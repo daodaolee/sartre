@@ -1,0 +1,35 @@
+# OS / 编辑器
+.DS_Store
+.cursor/
+.jj/
+.worktrees/
+.idea/
+.vscode/
+*.swp
+*~
+
+# 环境 / 密钥（切勿推送）
+.env
+.env.*
+!.env.example
+*.pem
+credentials.json
+
+# 构建与依赖
+node_modules/
+target/
+dist/
+.turbo/
+
+# 证据与本地产物
+reports/*.log
+reports/**/regression/*-regression-report.md
+!reports/**/regression/latest.md
+.playwright-cli/
+.sartre/
+**/.sartre/
+output/
+/tmp/
+
+# OpenSpec / 本地缓存（按实施阶段可调整）
+.openspec-cache/

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!target",
+      "!apps/desktop/src-tauri/target",
+      "!apps/desktop/src-tauri/gen",
+      "!apps/desktop/dist",
+      "!apps/web-console/dist",
+      "!node_modules",
+      "!.jj",
+      "!.git",
+      "!.cursor"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  }
+}

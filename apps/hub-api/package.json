@@ -1,0 +1,27 @@
+{
+  "name": "@sartre/hub-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "demo:local": "tsx src/scripts/local-demo.ts",
+    "demo:connector-local": "tsx src/scripts/local-connector-demo.ts",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sartre/contracts": "workspace:*",
+    "@sartre/connector-core": "workspace:*",
+    "@sartre/domain": "workspace:*",
+    "@sartre/sdk": "workspace:*",
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/platform-express": "^11.1.27",
+    "pg": "^8.22.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {}
+}

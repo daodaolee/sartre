@@ -1,0 +1,17 @@
+{
+  "name": "@sartre/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sartre/contracts": "workspace:*"
+  },
+  "devDependencies": {}
+}

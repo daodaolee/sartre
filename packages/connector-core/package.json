@@ -1,0 +1,19 @@
+{
+  "name": "@sartre/connector-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./profiles": "./src/profiles.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sartre/contracts": "workspace:*",
+    "@sartre/sdk": "workspace:*"
+  },
+  "devDependencies": {}
+}

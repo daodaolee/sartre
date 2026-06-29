@@ -1,0 +1,198 @@
+{
+  "schema_version": "1.0",
+  "id": "frontend-marketing-ai-aws-capability-pack",
+  "role": "developer",
+  "label": "FalcoCut Frontend Developer Agent",
+  "summary": "Frontend development capabilities extracted from marketing-ai-aws for Next.js, React, i18n, Tiptap, build, lint, and local verification work.",
+  "source_project": {
+    "id": "marketing-ai-aws",
+    "label": "FalcoCut Marketing Frontend",
+    "kind": "frontend_app",
+    "local_path": "/Users/xy/xykj/marketing-ai-aws",
+    "entry_documents": ["AGENTS.md", "package.json", ".agents/skills"]
+  },
+  "agent_endpoint": {
+    "tenant_id": "local-demo",
+    "user_id": "dev_frontend_user",
+    "role": "developer",
+    "agent_endpoint_id": "dev_frontend_falcocut_local",
+    "execution_mode": "manual_confirm",
+    "executor": {
+      "kind": "codex_cli",
+      "label": "Codex CLI",
+      "command": "codex"
+    },
+    "approval_policy": {
+      "mode": "manual_confirm",
+      "require_human_for": [
+        "run_command",
+        "write_file",
+        "local_build",
+        "submit_task"
+      ],
+      "allow_auto_for": [
+        "read_file",
+        "read_repo",
+        "draft_report",
+        "inspect_diff"
+      ]
+    }
+  },
+  "capability_sources": [
+    {
+      "id": "frontend_skill_vercel_react_best_practices",
+      "type": "skill",
+      "name": "Vercel React best practices",
+      "summary": "Apply React and Next.js implementation guidance when changing frontend code.",
+      "capabilities": [
+        "react_implementation",
+        "nextjs_performance",
+        "frontend_review"
+      ],
+      "approval_mode": "prompt_only",
+      "enabled": true,
+      "metadata": {
+        "path": ".agents/skills/vercel-react-best-practices/SKILL.md",
+        "mention_slug": "react-best-practices"
+      }
+    },
+    {
+      "id": "frontend_skill_openspec_workflow",
+      "type": "skill",
+      "name": "OpenSpec workflow",
+      "summary": "Drive PRD, BDD, OpenSpec, TDD, implementation, review, and archive workflow for frontend changes.",
+      "capabilities": ["openspec_change", "bdd_alignment", "tdd_frontend"],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "AGENTS.md",
+        "mention_slug": "openspec-workflow"
+      }
+    },
+    {
+      "id": "frontend_skill_i18n_workflow",
+      "type": "skill",
+      "name": "i18n workflow",
+      "summary": "Check and update frontend translation keys using repository scripts.",
+      "capabilities": ["i18n_check", "i18n_cleanup"],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "scripts/check-i18n-keys",
+        "mention_slug": "i18n-workflow"
+      }
+    },
+    {
+      "id": "frontend_skill_rich_editor",
+      "type": "skill",
+      "name": "Tiptap rich editor",
+      "summary": "Implement rich editor interactions, mentions, pasted files, ordered attachments, and task descriptions.",
+      "capabilities": [
+        "tiptap_editor",
+        "mention_interaction",
+        "attachment_reference"
+      ],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "package.json",
+        "mention_slug": "tiptap-rich-editor"
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dev.frontend.command.dev",
+      "slug": "dev",
+      "label": "Start frontend dev server",
+      "summary": "Run the marketing frontend local development server.",
+      "command": "npm run dev",
+      "cwd": "/Users/xy/xykj/marketing-ai-aws",
+      "capabilities": ["run_local_server"],
+      "risk": "local_build",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.frontend.command.build-qa",
+      "slug": "build-qa",
+      "label": "Build US QA frontend",
+      "summary": "Run the repository QA build script for the US FalcoCut frontend.",
+      "command": "npm run build-us-qa",
+      "cwd": "/Users/xy/xykj/marketing-ai-aws",
+      "capabilities": ["build_frontend", "verify_next_build"],
+      "risk": "local_build",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.frontend.command.test",
+      "slug": "test",
+      "label": "Run frontend tests",
+      "summary": "Run the frontend Vitest suite.",
+      "command": "npm test",
+      "cwd": "/Users/xy/xykj/marketing-ai-aws",
+      "capabilities": ["run_tests"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.frontend.command.lint",
+      "slug": "lint",
+      "label": "Run frontend lint",
+      "summary": "Run repository lint and format checks for frontend files.",
+      "command": "npm run lint",
+      "cwd": "/Users/xy/xykj/marketing-ai-aws",
+      "capabilities": ["lint_frontend"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.frontend.command.i18n-check",
+      "slug": "i18n-check",
+      "label": "Check i18n keys",
+      "summary": "Run the repository translation key checker.",
+      "command": "npm run i18n:check",
+      "cwd": "/Users/xy/xykj/marketing-ai-aws",
+      "capabilities": ["i18n_check"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    }
+  ],
+  "hooks": [
+    {
+      "id": "dev.frontend.hook.task-received",
+      "slug": "task-received",
+      "label": "Project task context projection",
+      "summary": "When a frontend task is received, project relevant package scripts, constraints, and selected skills into the Codex prompt.",
+      "trigger": "delivery.accepted",
+      "capabilities": ["project_context_projection"],
+      "approval_mode": "prompt_only",
+      "enabled": true
+    }
+  ],
+  "constraints": [
+    {
+      "id": "dev.frontend.constraint.prd-bdd-openspec-tdd",
+      "slug": "prd-bdd-openspec-tdd",
+      "label": "PRD to TDD workflow",
+      "summary": "Frontend feature work follows PRD, BDD, OpenSpec, TDD, implementation, review, and archive sequence.",
+      "severity": "blocking",
+      "source": "AGENTS.md"
+    },
+    {
+      "id": "dev.frontend.constraint.design-consistency",
+      "slug": "design-consistency",
+      "label": "Existing design consistency",
+      "summary": "Reuse repository components, local conventions, and design tokens before adding new UI abstractions.",
+      "severity": "warning",
+      "source": ".agents/skills"
+    }
+  ],
+  "metadata": {
+    "mention_prefix": "dev.frontend"
+  }
+}

@@ -1,0 +1,264 @@
+{
+  "schema_version": "1.0",
+  "id": "bff-marketing-bff-capability-pack",
+  "role": "developer",
+  "label": "FalcoCut BFF Developer Agent",
+  "summary": "BFF development capabilities extracted from marketing-bff-server for NestJS service work, DDD boundaries, legacy contracts, MySQL adapters, BDD, and harness verification.",
+  "source_project": {
+    "id": "marketing-bff-server",
+    "label": "FalcoCut Marketing BFF Server",
+    "kind": "bff_service",
+    "local_path": "/Users/xy/xykj/marketing-bff-server",
+    "entry_documents": ["AGENTS.md", "package.json", "bdd", "scripts"]
+  },
+  "agent_endpoint": {
+    "tenant_id": "local-demo",
+    "user_id": "dev_bff_user",
+    "role": "developer",
+    "agent_endpoint_id": "dev_bff_falcocut_local",
+    "execution_mode": "manual_confirm",
+    "executor": {
+      "kind": "codex_cli",
+      "label": "Codex CLI",
+      "command": "codex"
+    },
+    "approval_policy": {
+      "mode": "manual_confirm",
+      "require_human_for": [
+        "run_command",
+        "write_file",
+        "local_build",
+        "qa_mutation",
+        "prod_mutation",
+        "submit_task"
+      ],
+      "allow_auto_for": [
+        "read_file",
+        "read_repo",
+        "inspect_diff",
+        "draft_report"
+      ]
+    }
+  },
+  "capability_sources": [
+    {
+      "id": "bff_skill_nestjs_service_boundary",
+      "type": "skill",
+      "name": "NestJS service boundary",
+      "summary": "Implement BFF changes inside NestJS module boundaries with application services, repositories, and adapters kept separate.",
+      "capabilities": [
+        "nestjs_module",
+        "service_boundary",
+        "repository_adapter"
+      ],
+      "approval_mode": "prompt_only",
+      "enabled": true,
+      "metadata": {
+        "path": "AGENTS.md",
+        "mention_slug": "nestjs-service-boundary"
+      }
+    },
+    {
+      "id": "bff_skill_bdd_contract_harness",
+      "type": "skill",
+      "name": "BDD and contract harness",
+      "summary": "Use BDD and harness scripts for regression, acceptance, drift, and legacy contract reports.",
+      "capabilities": ["bdd", "regression_harness", "legacy_contract_report"],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "bdd",
+        "mention_slug": "bdd-contract-harness"
+      }
+    },
+    {
+      "id": "bff_skill_mysql_local_adapter",
+      "type": "skill",
+      "name": "Local MySQL adapter",
+      "summary": "Use the repository local MySQL docker compose path only when a task explicitly needs local database verification.",
+      "capabilities": ["mysql_local", "repository_verification"],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "compose/mysql/docker-compose.yml",
+        "mention_slug": "mysql-local-adapter"
+      }
+    },
+    {
+      "id": "bff_skill_legacy_compatibility",
+      "type": "skill",
+      "name": "Legacy compatibility",
+      "summary": "Preserve Java legacy and downstream API compatibility through explicit contract checks.",
+      "capabilities": ["legacy_contract", "api_compatibility"],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "scripts/legacy-contract-report.sh",
+        "mention_slug": "legacy-compatibility"
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dev.bff.command.dev",
+      "slug": "dev",
+      "label": "Start BFF dev server",
+      "summary": "Run the NestJS BFF dev server with watch mode.",
+      "command": "npm run dev",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["run_local_server"],
+      "risk": "local_build",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.bff.command.build",
+      "slug": "build",
+      "label": "Build BFF service",
+      "summary": "Run the NestJS build for marketing-bff-service.",
+      "command": "npm run build",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["build_bff"],
+      "risk": "local_build",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.bff.command.test",
+      "slug": "test",
+      "label": "Run BFF tests",
+      "summary": "Run the BFF Jest suite.",
+      "command": "npm test",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["run_tests"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.bff.command.lint",
+      "slug": "lint",
+      "label": "Run BFF lint",
+      "summary": "Run repository ESLint checks for BFF source.",
+      "command": "npm run lint",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["lint_bff"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.bff.command.bdd",
+      "slug": "bdd",
+      "label": "Run BFF BDD",
+      "summary": "Run repository BDD scripts.",
+      "command": "npm run bdd",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["bdd"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.bff.command.harness-regression",
+      "slug": "harness-regression",
+      "label": "Run BFF regression harness",
+      "summary": "Generate a BFF regression report.",
+      "command": "npm run harness:regression",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["regression_harness"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.bff.command.harness-acceptance",
+      "slug": "harness-acceptance",
+      "label": "Run BFF acceptance harness",
+      "summary": "Generate a BFF acceptance report.",
+      "command": "npm run harness:acceptance",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["acceptance_harness"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.bff.command.harness-drift",
+      "slug": "harness-drift",
+      "label": "Run BFF drift harness",
+      "summary": "Generate a BFF spec drift report.",
+      "command": "npm run harness:drift",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["drift_harness"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.bff.command.harness-legacy-contract",
+      "slug": "harness-legacy-contract",
+      "label": "Run legacy contract harness",
+      "summary": "Generate a legacy contract report for downstream compatibility.",
+      "command": "npm run harness:legacy-contract",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["legacy_contract_report"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.bff.command.mysql-local",
+      "slug": "mysql-local",
+      "label": "Start local MySQL",
+      "summary": "Start the repository local MySQL docker compose service when explicitly needed for verification.",
+      "command": "npm run mysql:local",
+      "cwd": "/Users/xy/xykj/marketing-bff-server",
+      "capabilities": ["mysql_local"],
+      "risk": "qa_mutation",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    }
+  ],
+  "hooks": [
+    {
+      "id": "dev.bff.hook.task-received",
+      "slug": "task-received",
+      "label": "Prepare BFF task prompt",
+      "summary": "When a BFF task is accepted, project module boundaries, relevant scripts, and contract constraints into Codex context.",
+      "trigger": "delivery.accepted",
+      "capabilities": ["project_context_projection"],
+      "approval_mode": "prompt_only",
+      "enabled": true
+    }
+  ],
+  "constraints": [
+    {
+      "id": "dev.bff.constraint.library-first",
+      "slug": "library-first",
+      "label": "Library-first implementation",
+      "summary": "Prefer repository libraries, modules, and adapters over ad hoc cross-boundary code.",
+      "severity": "blocking",
+      "source": "AGENTS.md"
+    },
+    {
+      "id": "dev.bff.constraint-test-first",
+      "slug": "test-first",
+      "label": "Test-first service changes",
+      "summary": "Behavioral BFF changes must be covered by focused tests or harness evidence.",
+      "severity": "blocking",
+      "source": "package.json"
+    },
+    {
+      "id": "dev.bff.constraint-legacy-contract",
+      "slug": "legacy-contract",
+      "label": "Legacy contract compatibility",
+      "summary": "Changes touching legacy boundaries must keep downstream contracts explicit and verifiable.",
+      "severity": "blocking",
+      "source": "scripts/legacy-contract-report.sh"
+    }
+  ],
+  "metadata": {
+    "mention_prefix": "dev.bff"
+  }
+}

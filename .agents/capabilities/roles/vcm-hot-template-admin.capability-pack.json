@@ -1,0 +1,235 @@
+{
+  "schema_version": "1.0",
+  "id": "vcm-hot-template-admin-capability-pack",
+  "role": "developer",
+  "label": "VCM Hot Template Admin Developer Agent",
+  "summary": "Admin-console development capabilities extracted from vcm-imagetext-platform for Vite React, BackendSpec-driven integration, state handling, tests, QA build, and drift checks.",
+  "source_project": {
+    "id": "vcm-imagetext-platform",
+    "label": "VCM ImageText Admin Platform",
+    "kind": "admin_console",
+    "local_path": "/Users/xy/xykj/vcm-imagetext-platform",
+    "entry_documents": ["AGENTS.md", "package.json", "bdd", "scripts"]
+  },
+  "agent_endpoint": {
+    "tenant_id": "local-demo",
+    "user_id": "dev_vcm_user",
+    "role": "developer",
+    "agent_endpoint_id": "dev_vcm_hot_template_local",
+    "execution_mode": "manual_confirm",
+    "executor": {
+      "kind": "codex_cli",
+      "label": "Codex CLI",
+      "command": "codex"
+    },
+    "approval_policy": {
+      "mode": "manual_confirm",
+      "require_human_for": [
+        "run_command",
+        "write_file",
+        "local_build",
+        "qa_mutation",
+        "submit_task"
+      ],
+      "allow_auto_for": [
+        "read_file",
+        "read_repo",
+        "inspect_diff",
+        "draft_report"
+      ]
+    }
+  },
+  "capability_sources": [
+    {
+      "id": "vcm_skill_backendspec_alignment",
+      "type": "skill",
+      "name": "BackendSpec alignment",
+      "summary": "Treat BackendSpec as the source of truth for hot template admin integration and avoid inventing backend behavior.",
+      "capabilities": ["backendspec_parse", "api_contract_alignment"],
+      "approval_mode": "prompt_only",
+      "enabled": true,
+      "metadata": {
+        "path": "AGENTS.md",
+        "mention_slug": "backendspec-alignment"
+      }
+    },
+    {
+      "id": "vcm_skill_admin_state_machine",
+      "type": "skill",
+      "name": "Admin page state handling",
+      "summary": "Implement success, failure, empty, loading, and recovery states for admin-console workflows.",
+      "capabilities": ["state_machine", "admin_console_ux"],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "src",
+        "mention_slug": "admin-state-machine"
+      }
+    },
+    {
+      "id": "vcm_skill_vite_react_testing",
+      "type": "skill",
+      "name": "Vite React testing",
+      "summary": "Use Vitest, TypeScript check, lint, and build scripts for focused admin-console verification.",
+      "capabilities": ["vitest", "typescript_check", "vite_build"],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "package.json",
+        "mention_slug": "vite-react-testing"
+      }
+    },
+    {
+      "id": "vcm_skill_medi_server_url",
+      "type": "skill",
+      "name": "mediServerUrl integration",
+      "summary": "Use the repository mediServerUrl integration path for backend API access instead of ad hoc endpoint construction.",
+      "capabilities": ["medi_server_url", "api_client_alignment"],
+      "approval_mode": "prompt_only",
+      "enabled": true,
+      "metadata": {
+        "path": "src",
+        "mention_slug": "medi-server-url"
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "dev.vcm.command.dev",
+      "slug": "dev",
+      "label": "Start VCM dev server",
+      "summary": "Run the Vite dev server for the VCM admin console.",
+      "command": "npm run dev",
+      "cwd": "/Users/xy/xykj/vcm-imagetext-platform",
+      "capabilities": ["run_local_server"],
+      "risk": "local_build",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.vcm.command.tsc",
+      "slug": "tsc",
+      "label": "Run VCM TypeScript check",
+      "summary": "Run repository TypeScript checking.",
+      "command": "npm run tsc",
+      "cwd": "/Users/xy/xykj/vcm-imagetext-platform",
+      "capabilities": ["typescript_check"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.vcm.command.test",
+      "slug": "test",
+      "label": "Run VCM tests",
+      "summary": "Run the VCM Vitest suite with repository config.",
+      "command": "npm run test",
+      "cwd": "/Users/xy/xykj/vcm-imagetext-platform",
+      "capabilities": ["run_tests"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.vcm.command.build-qa",
+      "slug": "build-qa",
+      "label": "Build VCM QA bundle",
+      "summary": "Run the VCM QA build.",
+      "command": "npm run build-qa",
+      "cwd": "/Users/xy/xykj/vcm-imagetext-platform",
+      "capabilities": ["build_admin_console"],
+      "risk": "local_build",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.vcm.command.build-prod",
+      "slug": "build-prod",
+      "label": "Build VCM production bundle",
+      "summary": "Run the VCM production build locally for release verification.",
+      "command": "npm run build-prod",
+      "cwd": "/Users/xy/xykj/vcm-imagetext-platform",
+      "capabilities": ["build_admin_console"],
+      "risk": "local_build",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.vcm.command.harness-regression",
+      "slug": "harness-regression",
+      "label": "Run VCM regression harness",
+      "summary": "Generate a VCM regression report.",
+      "command": "npm run harness:regression",
+      "cwd": "/Users/xy/xykj/vcm-imagetext-platform",
+      "capabilities": ["regression_harness"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.vcm.command.harness-acceptance",
+      "slug": "harness-acceptance",
+      "label": "Run VCM acceptance harness",
+      "summary": "Generate a VCM acceptance report.",
+      "command": "npm run harness:acceptance",
+      "cwd": "/Users/xy/xykj/vcm-imagetext-platform",
+      "capabilities": ["acceptance_harness"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "dev.vcm.command.harness-drift",
+      "slug": "harness-drift",
+      "label": "Run VCM drift harness",
+      "summary": "Generate a VCM spec drift report.",
+      "command": "npm run harness:drift",
+      "cwd": "/Users/xy/xykj/vcm-imagetext-platform",
+      "capabilities": ["drift_harness"],
+      "risk": "local_test",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    }
+  ],
+  "hooks": [
+    {
+      "id": "dev.vcm.hook.task-received",
+      "slug": "task-received",
+      "label": "Prepare VCM task prompt",
+      "summary": "When a VCM task is accepted, project BackendSpec, admin-state expectations, scripts, and selected constraints into Codex context.",
+      "trigger": "delivery.accepted",
+      "capabilities": ["project_context_projection"],
+      "approval_mode": "prompt_only",
+      "enabled": true
+    }
+  ],
+  "constraints": [
+    {
+      "id": "dev.vcm.constraint.backendspec-truth",
+      "slug": "backendspec-truth",
+      "label": "BackendSpec is truth",
+      "summary": "Do not design backend behavior, auth, or API semantics in the admin console when BackendSpec is missing or ambiguous.",
+      "severity": "blocking",
+      "source": "AGENTS.md"
+    },
+    {
+      "id": "dev.vcm.constraint.medi-server-url",
+      "slug": "medi-server-url",
+      "label": "Use mediServerUrl",
+      "summary": "Use repository API integration conventions instead of constructing untracked service URLs.",
+      "severity": "blocking",
+      "source": "src"
+    },
+    {
+      "id": "dev.vcm.constraint.admin-states",
+      "slug": "admin-states",
+      "label": "Admin states are explicit",
+      "summary": "Success, failure, empty, loading, and recovery states must be represented in admin-console flows.",
+      "severity": "warning",
+      "source": "AGENTS.md"
+    }
+  ],
+  "metadata": {
+    "mention_prefix": "dev.vcm"
+  }
+}

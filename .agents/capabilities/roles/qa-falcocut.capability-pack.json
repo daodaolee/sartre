@@ -1,0 +1,221 @@
+{
+  "schema_version": "1.0",
+  "id": "qa-falcocut-capability-pack",
+  "role": "qa",
+  "label": "FalcoCut QA Agent",
+  "summary": "Project-local QA automation capabilities extracted from ai-native-qa for requirement drafting, static risk review, UI regression, API checks, and evidence reports.",
+  "source_project": {
+    "id": "ai-native-qa",
+    "label": "FalcoCut Knowledge and QA Execution System",
+    "kind": "qa_automation",
+    "local_path": "/Users/xy/xykj/ai-native-qa",
+    "entry_documents": [
+      "AGENTS.md",
+      "README.md",
+      "agent_skills/skills-inventory.md"
+    ]
+  },
+  "agent_endpoint": {
+    "tenant_id": "local-demo",
+    "user_id": "qa_user",
+    "role": "qa",
+    "agent_endpoint_id": "qa_falcocut_local",
+    "execution_mode": "manual_confirm",
+    "executor": {
+      "kind": "codex_cli",
+      "label": "Codex CLI",
+      "command": "codex"
+    },
+    "approval_policy": {
+      "mode": "manual_confirm",
+      "require_human_for": [
+        "run_command",
+        "write_file",
+        "qa_mutation",
+        "prod_mutation",
+        "submit_task"
+      ],
+      "allow_auto_for": [
+        "read_file",
+        "read_repo",
+        "draft_report",
+        "summarize_evidence"
+      ]
+    }
+  },
+  "capability_sources": [
+    {
+      "id": "qa_skill_requirement_to_draft",
+      "type": "skill",
+      "name": "Requirement to draft cases",
+      "summary": "Generate draft UI and business test suites plus matching mind-map artifacts from requirements, screenshots, or PRDs.",
+      "capabilities": [
+        "draft_test_cases",
+        "draft_xmind",
+        "analyze_requirement"
+      ],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "agent_skills/requirement-to-draft/SKILL.md",
+        "mention_slug": "requirement-to-draft"
+      }
+    },
+    {
+      "id": "qa_skill_static_regression_review",
+      "type": "skill",
+      "name": "Static regression review",
+      "summary": "Review historical risks against current frontend, BFF, backend, and config source when live verification is deferred.",
+      "capabilities": ["review_source_risk", "generate_regression_scope"],
+      "approval_mode": "auto_read_only",
+      "enabled": true,
+      "metadata": {
+        "path": "agent_skills/static-regression-review/SKILL.md",
+        "mention_slug": "static-regression-review"
+      }
+    },
+    {
+      "id": "qa_skill_ui_regression_execution",
+      "type": "skill",
+      "name": "UI regression execution",
+      "summary": "Execute QA UI regression after deployment: align requirement, explore real UI, run smoke or reviewed suites, and produce attribution reports.",
+      "capabilities": [
+        "run_playwright",
+        "execute_ui_regression",
+        "write_evidence_report"
+      ],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "agent_skills/ui-regression-execution/SKILL.md",
+        "mention_slug": "ui-regression-execution"
+      }
+    },
+    {
+      "id": "qa_skill_viral_template_bff_api_testing",
+      "type": "skill",
+      "name": "Viral template BFF API testing",
+      "summary": "Run authorized BFF interface testing with curl, polling, recover-dify checks, and interface reports.",
+      "capabilities": ["test_bff_api", "poll_task", "write_api_report"],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "agent_skills/viral-template-bff-api-testing/SKILL.md",
+        "mention_slug": "viral-template-bff-api-testing"
+      }
+    },
+    {
+      "id": "qa_skill_viral_template_prod_ui_only",
+      "type": "skill",
+      "name": "Viral template prod UI-only",
+      "summary": "Compare online snapshot and local material baseline, then submit only reviewed newly added templates through UI-only workflow.",
+      "capabilities": [
+        "inventory_prod_templates",
+        "diff_template_scope",
+        "ui_only_submit"
+      ],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "agent_skills/viral-template-prod-ui-only/SKILL.md",
+        "mention_slug": "viral-template-prod-ui-only"
+      }
+    },
+    {
+      "id": "qa_skill_viral_template_workflow_testing",
+      "type": "skill",
+      "name": "Viral template workflow testing",
+      "summary": "Run QA full workflow testing for user-visible result, generated assets, watermark, refund, and end-to-end acceptance.",
+      "capabilities": [
+        "execute_full_workflow",
+        "verify_user_visible_result",
+        "write_acceptance_report"
+      ],
+      "approval_mode": "manual_confirm",
+      "enabled": true,
+      "metadata": {
+        "path": "agent_skills/viral-template-workflow-testing/SKILL.md",
+        "mention_slug": "viral-template-workflow-testing"
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "qa.command.static-regression-review",
+      "slug": "static-regression-review",
+      "label": "Run static regression review",
+      "summary": "Use the project-local static-regression-review skill to inspect source-only regression risk.",
+      "command": "codex --cd /Users/xy/xykj/ai-native-qa \"Use agent_skills/static-regression-review/SKILL.md to review the provided change scope.\"",
+      "cwd": "/Users/xy/xykj/ai-native-qa",
+      "capabilities": ["review_source_risk"],
+      "risk": "read_only",
+      "approval_mode": "auto_read_only",
+      "enabled": true
+    },
+    {
+      "id": "qa.command.run-ui-regression",
+      "slug": "run-ui-regression",
+      "label": "Run UI regression",
+      "summary": "Use the project-local UI regression execution skill after human-reviewed scope approval.",
+      "command": "codex --cd /Users/xy/xykj/ai-native-qa \"Use agent_skills/ui-regression-execution/SKILL.md to run the reviewed UI regression scope.\"",
+      "cwd": "/Users/xy/xykj/ai-native-qa",
+      "capabilities": ["run_playwright", "execute_ui_regression"],
+      "risk": "qa_mutation",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    },
+    {
+      "id": "qa.command.viral-template-prod-inventory",
+      "slug": "viral-template-prod-inventory",
+      "label": "Inventory prod template scope",
+      "summary": "Prepare viral-template prod UI-only scope inventory before any reviewed submit action.",
+      "command": "codex --cd /Users/xy/xykj/ai-native-qa \"Use agent_skills/viral-template-prod-ui-only/SKILL.md in inventory mode for the provided template scope.\"",
+      "cwd": "/Users/xy/xykj/ai-native-qa",
+      "capabilities": ["inventory_prod_templates", "diff_template_scope"],
+      "risk": "prod_mutation",
+      "approval_mode": "manual_confirm",
+      "enabled": true
+    }
+  ],
+  "hooks": [
+    {
+      "id": "qa.hook.delivery-accepted",
+      "slug": "delivery-accepted",
+      "label": "Prepare QA execution context",
+      "summary": "When a delivery is accepted, prepare a QA agent prompt from task, attachments, selected skills, and approval policy.",
+      "trigger": "delivery.accepted",
+      "capabilities": ["prepare_prompt", "project_context_projection"],
+      "approval_mode": "prompt_only",
+      "enabled": true
+    }
+  ],
+  "constraints": [
+    {
+      "id": "qa.constraint.reviewed-case-gate",
+      "slug": "reviewed-case-gate",
+      "label": "Reviewed case gate",
+      "summary": "Only reviewed test scope can be executed as formal QA evidence.",
+      "severity": "blocking",
+      "source": "agent_skills/skills-inventory.md"
+    },
+    {
+      "id": "qa.constraint.no-mutation-api-as-ui-evidence",
+      "slug": "no-mutation-api-as-ui-evidence",
+      "label": "UI evidence must come from UI",
+      "summary": "UI regression evidence cannot be replaced by mutation API calls.",
+      "severity": "blocking",
+      "source": "agent_skills/ui-regression-execution/SKILL.md"
+    },
+    {
+      "id": "qa.constraint.prod-submit-human-confirm",
+      "slug": "prod-submit-human-confirm",
+      "label": "Production submit requires approval",
+      "summary": "Production submit, payment-impacting flows, delete, and rename actions require explicit human approval.",
+      "severity": "blocking",
+      "source": "AGENTS.md"
+    }
+  ],
+  "metadata": {
+    "mention_prefix": "qa"
+  }
+}
