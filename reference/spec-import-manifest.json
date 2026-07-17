@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "sourceRoot": "/Users/xy/personal/Sartre(agent-workspace-design)",
+  "generatedAt": "2026-07-19T08:50:30.764Z",
+  "entries": [
+    {
+      "source": "docs/01-architecture-overview.md",
+      "target": "docs/01-architecture-overview.md",
+      "sha256": "545c6a63c148ed06c36f84a158da7674ce55719562069943923f8a86ef004401"
+    },
+    {
+      "source": "docs/DATABASE-SCHEMA.md",
+      "target": "docs/DATABASE-SCHEMA.md",
+      "sha256": "123cb5fa4e6e767db8ddaa6d4f3416ae87f3bc69c4ddc8f08fc509a2902d1e7a"
+    },
+    {
+      "source": "docs/plans/2026-07-16-multi-user-ai-native-workspace-design.md",
+      "target": "docs/plans/2026-07-16-multi-user-ai-native-workspace-design.md",
+      "sha256": "e8791b78caf4e0b5e8c8ea3f8abe0ada63ae5faaeb2aba36a0b47302ac9ec807"
+    },
+    {
+      "source": "plan/00-master-plan.md",
+      "target": "plan/00-master-plan.md",
+      "sha256": "31153d4a0da753401d4c48123137126f6b2ab795ca7529b068ab7c7f44dec842"
+    },
+    {
+      "source": "plan/adr/ADR-0004-codex-sdk-work-agent-and-bounded-steward.md",
+      "target": "plan/adr/ADR-0004-codex-sdk-work-agent-and-bounded-steward.md",
+      "sha256": "9e6eea3e8f970c34ad603fc54611bd9a0b3f52129f97c828db8894dbd8190d53"
+    },
+    {
+      "source": "plan/adr/ADR-0005-shared-agent-caller-runtime-and-version-pinning.md",
+      "target": "plan/adr/ADR-0005-shared-agent-caller-runtime-and-version-pinning.md",
+      "sha256": "3d3cfd4cc8d0a393ce3ff55a4263c075fe84bec7e3597eb00c88e1133ce35f53"
+    },
+    {
+      "source": "spec/AcceptanceScenarioSpec.md",
+      "target": "spec/AcceptanceScenarioSpec.md",
+      "sha256": "69ad703336c9d935e662308984bd5118c8df73afeed6aff8a293b91b0f1e647b"
+    },
+    {
+      "source": "spec/AgentConnectorUXSpec.md",
+      "target": "spec/AgentConnectorUXSpec.md",
+      "sha256": "5eec7ad2cb3e0736b394c8adf95dbad0576ae7e7278d2174fcf4ea460d8128b1"
+    },
+    {
+      "source": "spec/ArchitectureConstraints.md",
+      "target": "spec/ArchitectureConstraints.md",
+      "sha256": "a706b4d3662d0fc63c0f121c41eb45698c21334cde47e21ca40aa80fed70af23"
+    },
+    {
+      "source": "spec/ArchitectureFitnessSpec.md",
+      "target": "spec/ArchitectureFitnessSpec.md",
+      "sha256": "4b2a1e61b53fe0eb5ec1f119b8e8a95c6e6cca1ca5064d4d51d20d4fa7e4247e"
+    },
+    {
+      "source": "spec/BDD_TestSpec.md",
+      "target": "spec/BDD_TestSpec.md",
+      "sha256": "96980c212c63e650d8cb9a0ddc369778d1dfe9a390a67816d9ce87120a30b009"
+    },
+    {
+      "source": "spec/DDDSpec.md",
+      "target": "spec/DDDSpec.md",
+      "sha256": "852b1a31da5b42405c7e7d175ab9749f1644f97970afcec01a5890f851578cc5"
+    },
+    {
+      "source": "spec/ElectronAppSpec.md",
+      "target": "spec/ElectronAppSpec.md",
+      "sha256": "1b0c02f54f4bd7a63a2081ef9ec9bb9c52adf8d862c904a5061c0094c4ed19c4"
+    },
+    {
+      "source": "spec/EngineeringPrinciples.md",
+      "target": "spec/EngineeringPrinciples.md",
+      "sha256": "3625afc6e068daa441d79bcbc20a40e58a985fdfb2ef126d6b3966d4fee919cf"
+    },
+    {
+      "source": "spec/ExecutionArchitectureSpec.md",
+      "target": "spec/ExecutionArchitectureSpec.md",
+      "sha256": "0b2d3cab6a755747c652b02b9117732c1547717e694098d6174ffa42bb2619dd"
+    },
+    {
+      "source": "spec/HandoffHubArchitectureSpec.md",
+      "target": "spec/HandoffHubArchitectureSpec.md",
+      "sha256": "cda956a5aab5b0864b08e210c55a196158a1a00ac6504e0e398561f93d042ef3"
+    },
+    {
+      "source": "spec/HubApiSpec.md",
+      "target": "spec/HubApiSpec.md",
+      "sha256": "ac74c1321cea4a077420ea3bc0f36faeeadfa91729ce2f4d4653ca1327b34782"
+    },
+    {
+      "source": "spec/LocalRuntimeSpec.md",
+      "target": "spec/LocalRuntimeSpec.md",
+      "sha256": "00b6be24e00bc601bc21282f3d599f4042d122ac52b56f2e733da284957dd6cd"
+    },
+    {
+      "source": "spec/ModuleContractSpec.md",
+      "target": "spec/ModuleContractSpec.md",
+      "sha256": "d3a413343f484e90c19b2f56e6499f0379cec5d8b2f115664cf819a86292f63a"
+    },
+    {
+      "source": "spec/ProgramSpec.md",
+      "target": "spec/ProgramSpec.md",
+      "sha256": "06a401f94e6014e7a3f53d54655007d1d83c64401fa630e3d0b253df9016a6d6"
+    },
+    {
+      "source": "spec/README.md",
+      "target": "spec/README.md",
+      "sha256": "9cf6797c32932c367e2f0294fd67b3faff86c66543b1d57b3e099383abf11a80"
+    },
+    {
+      "source": "spec/StateMachineSpec.md",
+      "target": "spec/StateMachineSpec.md",
+      "sha256": "397a8665008b1ebb60a764226d5e50c80e2647e320994a5d4218d144e2c2e670"
+    },
+    {
+      "source": "spec/TestStrategy.md",
+      "target": "spec/TestStrategy.md",
+      "sha256": "8e4e1bd9d2ae2f41defe52b36dbb06720611747ed02c441db46af3777aa2f275"
+    },
+    {
+      "source": "spec/UIDesignV2Spec.md",
+      "target": "spec/UIDesignV2Spec.md",
+      "sha256": "59a2890a9cdfea80b6426a3a8e9e3632eace5a0379701dd3991ca5dc69992695"
+    },
+    {
+      "source": "workflow/WORKFLOW.md",
+      "target": "workflow/WORKFLOW.md",
+      "sha256": "11f318b2273790db3319e3967c4daa2aed823af46c18e0ac52d50cafaa498d55"
+    },
+    {
+      "source": "workflow/harness-sop.md",
+      "target": "workflow/harness-sop.md",
+      "sha256": "c151338a1220e31307437ed21ed59c414a943a97e7b3f0cb47dd5ea228925174"
+    },
+    {
+      "source": "workflow/plan-ledger-sop.md",
+      "target": "workflow/plan-ledger-sop.md",
+      "sha256": "d8500bf7364f779274d4d5c0345a95ca674d81fab0d46c0402b7a0a201cfaa88"
+    }
+  ]
+}

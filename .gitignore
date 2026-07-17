@@ -1,0 +1,28 @@
+# Local unattended-development credentials. Never commit this directory.
+/.local-secrets/
+
+# Dependencies, generated output, evidence raw logs, and local tooling.
+node_modules/
+dist/
+out/
+coverage/
+reports/**/raw/
+.worktrees/
+.tools/
+*.tgz
+*.dmg
+*.zip
+*.asar
+*.app/
+release/
+artifacts/
+
+# Local configuration and credential-bearing files. Examples remain trackable.
+.env
+.env.*
+!.env.example
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx

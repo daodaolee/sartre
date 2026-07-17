@@ -1,0 +1,46 @@
+{
+  "name": "sartre",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": "24.11.x",
+    "pnpm": "10.33.x"
+  },
+  "scripts": {
+    "toolchain:bootstrap": "tsx scripts/constitution/bootstrap-gitleaks.ts",
+    "toolchain:check": "tsx scripts/constitution/check-toolchain.ts",
+    "constitution:workspaces": "tsx scripts/constitution/check-repository-policy.ts",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "typecheck": "pnpm run constitution:workspaces && pnpm -r typecheck",
+    "test": "pnpm run constitution:workspaces && vitest run scripts && pnpm -r test",
+    "build": "pnpm run constitution:workspaces && pnpm -r build",
+    "architecture:check": "tsx scripts/architecture/check.ts",
+    "secret:check": "tsx scripts/constitution/check-secrets.ts",
+    "secret:artifacts": "tsx scripts/constitution/scan-artifacts.ts",
+    "docker-context:check": "tsx scripts/constitution/check-docker-context-policy.ts",
+    "sast": "biome lint . --diagnostic-level=error",
+    "dependency:check": "pnpm audit --audit-level high",
+    "license:check": "pnpm licenses list --prod --json",
+    "openspec:validate": "tsx scripts/constitution/validate-openspec.ts",
+    "contract:compatibility": "vitest run packages/contracts/src/contracts.test.ts",
+    "spec:verify": "tsx scripts/constitution/verify-spec-import.ts",
+    "pg:verify": "tsx scripts/postgres/verify-version.ts",
+    "migrate": "tsx scripts/postgres/migrate.ts",
+    "health:smoke": "vitest run tests/integration/service-health.integration.test.ts",
+    "ops:trace-correlation": "tsx scripts/ops/trace-correlation.ts",
+    "package:mac:arm64": "pnpm --filter @sartre/electron-app package:mac:arm64",
+    "harness:ms0": "tsx scripts/harness/run-required-gates.ts --config scripts/harness/ms0.config.ts",
+    "verify:ms0": "pnpm run harness:ms0",
+    "prepack": "tsx scripts/constitution/forbid-root-pack.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.4",
+    "@types/node": "24.13.3",
+    "tsx": "4.23.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}
