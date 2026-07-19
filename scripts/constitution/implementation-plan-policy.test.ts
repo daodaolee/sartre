@@ -34,4 +34,16 @@ describe("MS0 implementation plan policy", () => {
     );
     expect(plan).toContain("scripts/constitution/extract-electron-payload.ts");
   });
+
+  it("uses workflow-authoritative commitSha for the tested subject", () => {
+    const plan = readFileSync(
+      resolve("docs/superpowers/plans/2026-07-17-ms0-repository-constitution.md"),
+      "utf8",
+    );
+
+    expect(plan).not.toContain("subjectCommitSha");
+    expect(plan.match(/commitSha \(tested subject commit\)/gu)?.length).toBeGreaterThanOrEqual(2);
+    expect(plan).toContain("two commits");
+    expect(plan).toContain("evidence-only child commit");
+  });
 });

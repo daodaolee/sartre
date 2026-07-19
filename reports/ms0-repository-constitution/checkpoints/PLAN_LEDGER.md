@@ -3,18 +3,19 @@
 - Goal: MS0 Repository Constitution and evidence baseline
 - Plan: `docs/superpowers/plans/2026-07-17-ms0-repository-constitution.md`
 - Status: IN_PROGRESS
-- Current task: Task 1 is DONE at a clean branch `HEAD`; specification and code-quality reviewers approved the final implementation, while Task 2 remains unstarted
-- Last verified action: the controller reran the Task 1 focused/full gates from the final clean amended `HEAD`, then both independent reviewers approved Task 1
-- Evidence level: Task 1 REAL_TEST and STRUCTURAL_CHECK evidence is PASS as classified below; this is not MS0 closeout evidence
+- Current task: Task 2 is DONE after final targeted specification regression APPROVED and the same code-quality reviewer reported Ready YES with no issues. MS0 remains IN_PROGRESS; Task 3 is unstarted
+- Last verified action: final reviewers accepted the Task 2 implementation on reviewed subject `c770b8b266aeea82e6855b5d5bb8b2156f23df2d` / tree `0c82e61d0a6c61e6bb4aaf3bb929ca315ff02816`; the controller authorized a ledger-only closeout amend with no Task 3 source or command
+- Evidence level: Task 2 contract/negative-control tests are REAL_TEST / PASS and `architecture:check` is STRUCTURAL_CHECK / PASS; Task 2 is approved, but neither result is MS0 closeout evidence
 - Required dependency: PostgreSQL 17.6 container `sartre-postgres-17-6` on `127.0.0.1:54326`
 - Secret source: ignored `/.local-secrets/development.env`; values must never be recorded here
 - Resume procedure:
   1. Read root `AGENTS.md`, `spec/README.md`, `plan/00-master-plan.md`, this ledger, and the implementation plan.
-  2. Run `git status --short --branch`; expect branch `codex/ms0-repository-constitution`, a clean worktree, and `HEAD` subject `chore(ms0): initialize repository constitution`.
-  3. The final Task 1 SHA cannot self-reference inside its own commit. The controller must verify `git rev-parse HEAD` after amend and treat that clean `HEAD` plus the commit subject as the recovery identity.
-  4. Run `pnpm run secret:check` so pinned gitleaks scans committed history. Both Task 1 reviewers are approved; any later Task 1 source/test/config change invalidates those approvals and requires fresh gates and re-review.
-  5. The next implementation command is exactly `pnpm exec vitest run packages/contracts/src/contracts.test.ts` for Task 2 RED. This command has not been run by the Task 1 repair.
-  6. Do not regenerate `reference/legacy-freeze/manifest.json`; later Task 8 independently reverifies the pre-implementation snapshot and reports `legacy_source_drift` rather than overwriting it.
+  2. Run `git status --short --branch`; expect branch `codex/ms0-repository-constitution`, a clean worktree, and exactly two commits: `HEAD` subject `feat(ms0): enforce module and contract boundaries` with sole parent subject `chore(ms0): initialize repository constitution`.
+  3. The amended Task 2 commit cannot self-reference inside its own ledger entry. The controller must verify `git rev-parse HEAD`, `git rev-parse HEAD^`, and `git rev-list --count HEAD` after amend and treat that clean two-commit chain plus the subjects as the recovery identity.
+  4. Task 2 is reviewer-approved. Any later Task 2 source/test/config change invalidates its fresh matrix and both approvals and requires the focused contracts/architecture/plan-policy suite, standalone strict architecture `tsc`, production `architecture:check`, full Secret, targeted specification regression, and code-quality re-review again.
+  5. Next implementation action for Task 3: create the failing tests `scripts/evidence/validate.test.ts` and `scripts/harness/run-required-gates.test.ts` exactly as specified by the active plan. Neither file exists yet.
+  6. First verification command only after both Task 3 test files exist: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`. Expected evidence is behavioral RED from missing validator/runner implementation, not a no-file or missing-test-path failure. Task 2 did not run this command.
+  7. Do not regenerate `reference/legacy-freeze/manifest.json`; later Task 8 independently reverifies the pre-implementation snapshot and reports `legacy_source_drift` rather than overwriting it.
 
 ## Entries
 
@@ -359,3 +360,630 @@
   - The accepted nonblocking code-quality Minor is O(total tracked bytes) in-memory worktree framing. It is bounded by the current 108-path Task 1 repository and should become streaming only when later repository scale requires it.
   - No Task 2 command was run and no push occurred. Task 1 approval is not MS0 closeout evidence.
 - Resume: use only the top resume procedure. Verify final clean `HEAD`, rerun `pnpm run secret:check`, then run only the exact Task 2 RED command.
+
+### 2026-07-19 20:20 CST - Task 2 module boundaries and shared contracts ready for review
+
+- Status: IN_PROGRESS. Task 2 implementation and local verification are complete, but independent specification and code-quality approvals are still required. MS0 remains IN_PROGRESS and Task 3 has not started.
+- Change: `ms0-repository-constitution`.
+- Scope:
+  - Added Zod 4 contracts and inferred TypeScript types for the controlled ErrorCode catalog, exact `Result<T>` union, complete `DiagnosticContext`, `HealthSnapshot`, and `EvidenceManifest` metadata.
+  - Kept nullable non-applicable diagnostic identifiers as required fields. Diagnostic UUID/timestamp/status/error-code structure is stable, while extra Secret, local-path, and raw-output fields fail closed.
+  - Evidence metadata separates `evidenceLevel` from `status`, binds subject commit/tree/dirty hash, release/artifact/environment/tool metadata, and records argv/exit/assertions. This schema does not claim to prove Task 3 Harness execution or a real failure mode.
+  - Added a TypeScript AST architecture checker for static import/export, `require()`, one/two-argument dynamic `import()`, package manifests, root/module path aliases, and project references. All dependency forms resolve to the same eight-module graph.
+  - Added renderer, app-source, pure-domain, legacy-noun, tracked/build Secret, forbidden Secret-path, contained-file, and stable CLI output boundaries. Target-tree symlinks fail closed without reading their target content.
+- Changed files:
+  - `packages/contracts/package.json`, `packages/contracts/src/contracts.test.ts`, `packages/contracts/src/diagnostics.ts`, `packages/contracts/src/error-catalog.ts`, `packages/contracts/src/evidence.ts`, `packages/contracts/src/health.ts`, `packages/contracts/src/index.ts`, `packages/contracts/src/result.ts`.
+  - `packages/domain/package.json`, `packages/sdk/package.json`, `packages/runtime-core/package.json`, and `pnpm-lock.yaml`.
+  - `scripts/architecture/check.ts`, `scripts/architecture/check.test.ts`, `scripts/architecture/fixtures/repository.ts`, and this ledger.
+- Preserved TDD RED and attempt history:
+  - The controller's pre-test command found no test file and is not behavioral RED. After the test file existed, `pnpm exec vitest run packages/contracts/src/contracts.test.ts` exited 1 because `./diagnostics.js` was absent. This is the effective contracts missing-module RED.
+  - The first contracts GREEN attempt ran 32 tests with `31 passed | 1 failed`; the test compared two independently generated UUID fixtures. Reusing the same input object fixed the fixture without changing contract semantics; the next run passed 32/32.
+  - After architecture tests and fixture helpers existed, `pnpm exec vitest run scripts/architecture/check.test.ts` exited 1 because `./check.js` was absent. This is the effective architecture missing-module RED.
+  - The initial checker passed 26/26. Self-review then added a two-argument dynamic-import bypass and extensionless Docker build-file Secret control. The first added control produced `1 failed | 25 passed`; the combined controls produced `2 failed | 25 passed`. After the focused fixes, architecture passed 27/27 and production `architecture:check` passed.
+  - The first full format command exited 1 on four Task 2 files. After formatting only those files, format passed. Lint then exited 0 but reported one unused-import warning; it was treated as not closed, removed, and the fresh lint run had no warnings.
+  - A staged self-review added strict standalone TypeScript compilation for the architecture script files because root workspace `typecheck` does not include `scripts/`. The first command exited 2: `ReturnType<typeof readdirSync>` selected the Buffer-name overload and produced six `Dirent<NonSharedBuffer>` assignment/use errors. The checker now declares `Dirent<string>[]` explicitly; the same strict command then exited 0.
+  - Two combined/root-test attempts returned only a Vitest start fragment without a final exit code and are not recorded as PASS. A fresh independently tracked root-test session was polled to final exit 0.
+- Fresh Task 2 commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0; all nine workspace projects used the current lockfile with strict peers.
+  - `pnpm run format:check`: exit 0; 75 files checked with no fixes.
+  - `pnpm run lint`: exit 0; 75 files checked with no warnings.
+  - `pnpm run typecheck`: exit 0; repository policy and all eight workspace typechecks passed.
+  - `pnpm exec tsc --noEmit --target ES2024 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --noImplicitOverride --useUnknownInCatchVariables --verbatimModuleSyntax --skipLibCheck --types node,vitest scripts/architecture/check.ts scripts/architecture/check.test.ts scripts/architecture/fixtures/repository.ts`: exit 0 after the preserved staged self-review failure above.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts`: exit 0, `2 files | 73 tests passed`. Evidence: REAL_TEST / PASS, including controlled rejection and checker negative controls.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 112 tests`, then all eight workspace suites passed, including `46` contracts tests. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0; all eight workspaces built.
+  - Post-build `pnpm run architecture:check`: exit 0. Evidence: STRUCTURAL_CHECK / PASS only.
+- Fresh Task 1 safety and boundary commands:
+  - `pnpm run spec:verify`: exit 0, exactly 27 approved target mappings/hashes.
+  - `pnpm exec tsx scripts/constitution/verify-spec-import.ts --verify-source`: exit 0, exactly 27 approved source/target mappings/hashes.
+  - `pnpm run openspec:validate`: exit 0. Evidence: STRUCTURAL_CHECK / PASS.
+  - `pnpm exec tsx scripts/legacy/verify-freeze-manifest.ts --source "/Users/xy/personal/Sartre(agent-workspace-design)" --manifest reference/legacy-freeze/manifest.json`: exit 0 across 835 unchanged path facts; the freeze was not regenerated.
+  - `pnpm run docker-context:check`: exit 0 without enumerating Docker context contents. Evidence: STRUCTURAL_CHECK / PASS.
+  - `pnpm run secret:check`: exit 0 with pinned full history/index/worktree scanning. Evidence: REAL_TEST / PASS.
+  - `pnpm run secret:artifacts -- apps/electron-app/dist apps/hub-api/dist apps/hub-worker/dist apps/local-runtime/dist packages/contracts/dist packages/domain/dist packages/runtime-core/dist packages/sdk/dist`: exit 0 across eight explicit build roots. Evidence: REAL_TEST / PASS.
+  - `pnpm pack`: exit 1 with required `root_packaging_prohibited`; no root package artifact was produced. Evidence: REAL_TEST / PASS negative control.
+- Architecture negative controls:
+  - Domain framework/I/O imports: Nest, Electron, `node:fs`, and `http`.
+  - App source boundaries: scoped app package, source subpath, and relative app-to-app path.
+  - Same-graph bypasses: static import/export, `require()`, one/two-argument dynamic import, root alias use, module-local `paths`, TypeScript project reference, and package dependency.
+  - Renderer bypasses: raw `ipcRenderer`, direct Hub SDK, Node access, Runtime source, and absolute local path.
+  - Legacy nouns: Phase, Dispatch, Delivery, and WorkspaceToken, plus comments/fixture labels as a no-false-positive control. The checker also bans WorkItem, Handoff, and the spaced Workspace Token form from production domain AST.
+  - Secret boundaries: dynamically constructed synthetic credential in target source, extensionless Docker build file, and forbidden local Secret path in a target manifest. No real Secret was persisted.
+  - CLI control: a negative repository prints stable `ruleId`, `file`, `line`, and `remediation`, then exits non-zero. The canonical fixture and current production tree both pass.
+- Risks and boundaries:
+  - `architecture:check` is static and cannot prove RLS, transactions, IPC runtime behavior, Electron sandbox configuration, Harness execution, or a real multi-process path. Those remain later REAL_TEST gates.
+  - The evidence schema proves shape and limited internal consistency only. Task 3 must still prove executed targets, non-zero failure modes, required-step handling, and subject/evidence commit binding.
+  - The error catalog is controlled and deliberately small. Any future stable code requires an explicit contract/version compatibility change rather than a free-form message fallback.
+  - Target scanning is limited to the eight approved apps/packages and text/build files. Repository-wide immutable Secret coverage remains the pinned Task 1 scanner, which was freshly passed here.
+  - Task 2 has not received independent review, no push occurred, and this checkpoint is not Task 2 approval or MS0 closeout evidence.
+- Resume: use only the top resume procedure. From the clean Task 2 commit, rerun focused contracts/architecture, production architecture, and full Secret; then obtain specification approval followed by code-quality approval.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-19 21:12 CST - Task 2 specification-review fail-closed repair ready for amend
+
+- Status: IN_PROGRESS. Independent Task 2 specification review failed. The repair is locally GREEN but has not been amended or re-reviewed; Task 3 has not started and MS0 remains IN_PROGRESS.
+- Review result entering this checkpoint:
+  - The first architecture checker resolved only known happy paths. Missing/invalid module/config input, nonliteral/unresolved source imports, several dependency aliases, outside references, nested renderer paths, composite legacy tokens, extensionless build files, and deterministic constructed Secrets could fall through without a violation.
+  - Target test/spec source was skipped entirely. Renderer classification used one fixed prefix. Manifest/config parsing contained `catch -> []` paths and did not enforce the exact canonical module inventory.
+  - `EvidenceManifest` and the active plan used lower-authority `subjectCommitSha`, while `workflow/harness-sop.md` and `spec/TestStrategy.md` require `commitSha` for the tested subject.
+  - The controlled ErrorCode catalog omitted approved MS0 codes already present in OpenSpec, the active plan, and constitution scripts.
+  - Therefore the prior Task 2 checkpoint's claim that all dependency forms and target text/build boundaries were closed is superseded by this review FAIL. Only the repaired evidence below is current.
+- Changed files:
+  - `scripts/architecture/check.ts`, `scripts/architecture/check.test.ts`, `scripts/architecture/fixtures/repository.ts`, plus new single-purpose `scripts/architecture/model.ts`, `scripts/architecture/config-resolution.ts`, and `scripts/architecture/source-analysis.ts`.
+  - `packages/contracts/src/contracts.test.ts`, `packages/contracts/src/evidence.ts`, and `packages/contracts/src/error-catalog.ts`.
+  - `scripts/constitution/implementation-plan-policy.test.ts`, `docs/superpowers/plans/2026-07-17-ms0-repository-constitution.md`, and this ledger. Workflow authority was not changed.
+- Mandatory grouped RED evidence before production repair:
+  - Exact module/config inventory: exit 1, `4 failed | 57 skipped` for missing root config, invalid root/module config, missing/invalid/misidentified manifests, and an extra module.
+  - Target test/nonliteral/unresolved source: exit 1, `3 failed | 58 skipped`.
+  - Config/dependency aliases: exit 1, `8 failed | 53 skipped` for every path fallback, outside project reference, workspace aliases in all four dependency fields, file/link aliases, and outside dependency target.
+  - Renderer classification/local paths: exit 1, `7 failed | 54 skipped`.
+  - Composite legacy tokenization: exit 1, `6 failed | 1 passed | 54 skipped`; the comments/test-label control already passed.
+  - Extensionless build and constant-folded Secret inventory: exit 1, `4 failed | 57 skipped`.
+  - Evidence authority and MS0 catalog: contracts exited 1 with `11 failed | 45 passed`; one failure proved the schema still required `subjectCommitSha`, and ten proved approved MS0 codes were absent.
+  - Active-plan authority: exit 1 with `1 failed | 1 passed` because `subjectCommitSha` remained.
+  - Self-review added two further RED controls. Outside `extends` was touched by TypeScript recursive parsing before containment and produced an extra `module_tsconfig_invalid`; the isolated control exited 1. A nonexistent project reference inside a canonical module was accepted; its isolated control also exited 1.
+- Root-cause repair:
+  - `model.ts` owns the exact eight-module identities, allowed dependency graph, stable violations, remediation text, canonical path resolution, and deterministic violation ordering.
+  - `config-resolution.ts` uses TypeScript config APIs after contained extends-chain validation. It validates every path fallback, effective alias resolution, project references, and missing/invalid/outside/unresolved states. An outside extends target never reaches recursive TypeScript parsing.
+  - `source-analysis.ts` checks production and test/spec AST for static import/export/import type, `require()`, and one/two-argument dynamic import. Every specifier resolves to a canonical module, TypeScript-resolved external, or stable violation. Test-only resolved external tooling is allowed; canonical internal edges and every manifest edge remain governed by the graph.
+  - Renderer classification recognizes any contained `renderer` segment plus explicit renderer entry conventions. Raw IPC, Hub SDK, Node, Runtime, `/tmp`, `/Users`, `file://`, and Windows absolute paths fail closed.
+  - Domain legacy checks tokenize PascalCase, camelCase, snake_case, and kebab/phrase strings, rejecting Phase, Dispatch, Delivery, WorkItem, Handoff, and WorkspaceToken concepts without matching comments, test labels, or partial words.
+  - Target inventory reads only contained regular bounded candidate text/build files, rejects symlinks/unreadable/oversized/forbidden paths, separates UTF-8 text from binary, and includes Dockerfile, Containerfile, Makefile, and no-extension build text. AST folding covers deterministic string/template concatenation and static joins before Secret matching.
+  - `EvidenceManifest` now requires strict `commitSha`; missing `commitSha` and the old field are rejected. Task 3/Task 9 plan text says `commitSha (tested subject commit)` while preserving the two-commit subject/evidence protocol and non-self-reference.
+  - ErrorCode adds exactly the review-listed MS0 codes plus `process_recovered`, the remaining stable recovery code in current MS0 OpenSpec. No speculative MS1 business code was added.
+- Preserved repair attempt history:
+  - The first refactor strict architecture `tsc` exited 2 with ten exact-optional/internal-TypeScript-API typing errors. Required properties now explicitly include `undefined`, and parse diagnostics use a bounded internal-property type guard; the fresh strict command passes.
+  - The first full architecture run after grouped GREEN passed 59/61. One old fixture placed exact `delivery` in a production-domain string rather than a test label; it was corrected to a partial nonlegacy word. The second failure was resolved by allowing only resolved external tooling in domain test/spec files while retaining all canonical internal and manifest graph checks.
+  - The first full formatter gate exited 1 on five architecture files. Targeted Biome formatting fixed only those files.
+  - The next lint exited 0 but reported five warnings: three test construction strings and two unused import groups. They were treated as not closed; deterministic test construction and imports were corrected, and fresh lint has no warnings.
+- Fresh repair commands and results:
+  - All original grouped commands are GREEN: module/config `4/4`, source `3/3`, config/dependency `8/8`, renderer `7/7`, legacy `7/7`, and build/folded Secret `4/4`.
+  - The two self-review controls for pre-parse extends containment and unresolved project references each pass after their isolated RED.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 64 tests passed`.
+  - Standalone strict architecture `tsc` across model/config/source/check/test/fixture: exit 0.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 122 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run format:check`: exit 0, 78 files; `pnpm run lint`: exit 0, 78 files with no warnings; `pnpm run typecheck`: exit 0 across repository policy and eight workspaces.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 149 tests`, followed by all eight workspace suites, including `57` contracts tests.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture evidence remains STRUCTURAL_CHECK / PASS only.
+- Fresh Task 1 safety gates:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed; the immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full Secret, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Risks and boundaries:
+  - Static resolution still cannot prove runtime IPC, RLS, transaction, process, Electron sandbox, or Harness behavior. `architecture:check` remains STRUCTURAL_CHECK.
+  - Text scanning is bounded to 4 MiB per contained candidate file and skips detected binary content; complete binary/package payload Secret coverage remains the independent pinned artifact scanner.
+  - TypeScript resolution cost is proportional to target source/import count. The current production check and 64-case fixture suite complete without timeout; future scale should introduce cached resolution without weakening resolve-or-violate.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, Secret read, or Task 1 amend occurred.
+- Resume: amend only the latest Task 2 commit after precise index/full Secret checks, rerun all critical gates from clean amended `HEAD`, then request fresh specification review followed by code-quality review.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-19 21:54 CST - Task 2 specification re-review A-D repair ready for amend
+
+- Status: IN_PROGRESS. The fresh specification re-review approved Contracts, Evidence, ErrorCode, and prior ledger scope, but failed the remaining architecture negative space. The A-D repair is locally GREEN and awaits precise amend plus fresh specification/code-quality re-review. Task 3 has not started and MS0 remains IN_PROGRESS.
+- Change: `ms0-repository-constitution`.
+- Scope boundary:
+  - Changed only `scripts/architecture/check.test.ts`, `scripts/architecture/check.ts`, `scripts/architecture/config-resolution.ts`, `scripts/architecture/model.ts`, `scripts/architecture/source-analysis.ts`, and this ledger.
+  - Contracts, Evidence, ErrorCode, active plan, workflow authority, module package manifests, and Task 1 implementation were not changed.
+  - No push, Secret value read, freeze regeneration, or Task 3 command occurred.
+- Re-review result entering this checkpoint:
+  - Config parsing handled only `extends: string`, validated raw parent and child `paths` instead of final effective paths, and treated inventory enumeration failure as an empty directory.
+  - Source analysis omitted `ImportTypeNode`; lexical canonical/relative classification allowed missing module files and canonical subpaths to pass without successful TypeScript resolution.
+  - Dependency protocols accepted canonical keys aliased to unrelated npm identities, file/link descendants or nested packages, wrong package identity, and malformed protocol payloads.
+  - Renderer local-path roots were incomplete; legacy tokens omitted `Memory` and `FailureRecord`; deterministic string folding did not propagate file-local const identifiers.
+- Mandatory grouped RED evidence, before production repair:
+  - A config/inventory: exit 1, `3 failed | 1 passed | 109 skipped`. Missing behaviors were TypeScript 5 `extends: string[]` preflight, child override of parent `paths`, and stable inventory enumeration failure; inherited final fallback validation already passed.
+  - B source resolution: exit 1, `3 failed | 1 passed | 109 skipped`. Missing behaviors were `ImportTypeNode`, missing relative source, and missing canonical subpath; a missing root alias target was already rejected.
+  - C dependency protocols: exit 1, `7 failed | 3 passed | 103 skipped`. Missing behaviors were canonical-key/noncanonical npm alias, file/link descendant and nested-package targets, wrong target identity, and empty `npm:`, `workspace:`, and `file:` payloads. Existing actual npm/workspace identity controls already passed.
+  - D renderer/legacy/static strings: exit 1, `22 failed | 9 passed | 82 skipped`. Eighteen newly required POSIX roots, three `Memory`/`FailureRecord` forms, and file-local const folding were missing. Existing roots, `/health`, HTTPS URL, comments/test labels, and cycle/shadow non-execution controls passed.
+  - Total expected behavioral RED: 35 failures. Every failure was an assertion on a missing rejection; no test syntax, fixture setup, or runner error occurred.
+- Root-cause repair:
+  - `config-resolution.ts` preflights every string or array extends target using contained regular-file metadata before TypeScript recursive parsing. It composes array parents in order, validates only the final effective `paths`, retains every fallback, and uses a branch-local ancestor set so shared parent configs are not mistaken for cycles.
+  - Inventory enumeration now emits stable `module_inventory_unreadable` instead of `catch -> []` when `apps/` or `packages/` cannot be read as a directory.
+  - Source collection includes `ImportTypeNode`. Canonical, relative, absolute, and path-alias imports require TypeScript resolution to a real regular file; missing relative/canonical targets emit `source_specifier_unresolved`. Canonical graph rules are still evaluated even when an internal specifier is unresolved.
+  - Resolved source paths retain both lexical and canonical forms. This preserves macOS `/var -> /private/var` fixture classification and supports realpath containment without trusting a missing lexical target.
+  - `npm:` and explicit `workspace:` aliases use actual package identity; `workspace:*` uses the dependency key. `file:`/`link:` must resolve exactly to a canonical module root whose manifest has the canonical package name; descendants, nested packages, wrong identities, and empty targets fail closed.
+  - Renderer local paths cover `/Users /private /Volumes /System /Library /Applications /home /root /tmp /var /etc /opt /usr /bin /sbin /lib /dev /run /srv /mnt /media /work /workspace` while retaining `/health` and HTTPS URL positives.
+  - Legacy tokenization now rejects `Memory` and adjacent `Failure Record` tokens across Pascal, snake, kebab, and phrase forms, while comments and test-label source remain excluded.
+  - Secret folding collects only unambiguous file-local `const Identifier = initializer` bindings and evaluates only the existing deterministic syntax. A visited set and depth bound stop cycles; duplicate/shadow names are marked ambiguous; no call expression or runtime code is executed.
+- Preserved implementation attempt history:
+  - All grouped controls first turned GREEN: A `4/4`, B `4/4`, C `10/10`, D `31/31`.
+  - The first full architecture run then exited 1 with `3 failed | 110 passed`. Relative cross-app, root path-alias, and renderer-to-Runtime fixtures resolved correctly, but `realpathSync` changed macOS temporary roots from lexical `/var/...` to canonical `/private/var/...`, so canonical paths no longer matched lexical module roots and the rules were misclassified.
+  - Diagnostic resolution output proved all three TypeScript targets existed and identified only the lexical/canonical containment mismatch. Keeping both path forms fixed the existing fixtures without weakening real-file resolution.
+  - The first standalone strict architecture `tsc` exited 2 with one union narrowing error in the canonical package branch. Using the already-proven `packageTarget` in that branch fixed the typing error.
+  - The first final-state format check exited 1 on four architecture files, while lint exited 0 with two unused-import warnings. Targeted Biome formatting and removal of only those obsolete imports produced fresh warning-free gates.
+- Fresh final-source commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0 across all nine workspace projects with the current lockfile.
+  - `pnpm run format:check`: exit 0, 78 files; `pnpm run lint`: exit 0, 78 files with no warnings.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspace typechecks.
+  - Standalone strict architecture `tsc` across model/config/source/check/test/fixture: exit 0.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 113 tests passed`.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 171 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 198 tests`, followed by all eight workspace suites, including contracts `57/57`. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture production evidence remains STRUCTURAL_CHECK / PASS only.
+  - `git diff --check`: exit 0.
+- Fresh Task 1 safety and boundary commands:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed.
+  - The immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full Secret scan, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Risks and boundaries:
+  - The architecture checker remains static and cannot prove runtime IPC, RLS, transactions, process health, Electron sandbox, or Harness execution. `architecture:check` remains STRUCTURAL_CHECK.
+  - TypeScript resolution and real-file checks are point-in-time and proportional to target source/import count. The current 113-case suite and production tree complete without timeout; future caching must preserve resolve-or-violate behavior.
+  - Config preflight reads only contained config contents after metadata containment succeeds. File-local const folding is syntax-only, bounded, and deliberately refuses ambiguous or executable expressions.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, Contracts/Evidence/ErrorCode change, Secret read, or Task 1 amend occurred.
+- Resume: use only the top resume procedure. Precisely stage the five architecture files and this ledger, run immutable index/full Secret checks, amend only the latest Task 2 commit, then rerun critical gates from clean amended `HEAD` before requesting fresh specification review followed by code-quality review.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-19 22:26 CST - Task 2 third specification re-review repair ready for amend
+
+- Status: IN_PROGRESS. The third specification re-review found exactly two remaining HIGH architecture findings. Both repairs are locally GREEN and await precise amend plus fresh specification/code-quality re-review. Task 3 has not started and MS0 remains IN_PROGRESS.
+- Change: `ms0-repository-constitution`.
+- Scope boundary:
+  - Changed only `scripts/architecture/check.test.ts`, `scripts/architecture/check.ts`, and this ledger.
+  - Contracts, Evidence, ErrorCode, active plan, workflow authority, package manifests, Task 1 implementation, and prior A-D architecture behavior were not changed.
+  - No push, Secret value read, freeze regeneration, or Task 3 command occurred.
+- Re-review result entering this checkpoint:
+  - `apps/` and `packages/` were passed directly to `readdirSync` before lstat/realpath containment. A container symlink could therefore enumerate an external directory. Later text collection also started from raw module-root strings instead of an inventory-proven root.
+  - Manifest dependencies reused source-specifier matching, where canonical package subpaths are intentional. Dependency keys and protocol identities therefore accepted canonical subpaths, malformed aliases, tags, URLs, relative workspace payloads, and unknown values through key fallback.
+- Mandatory RED evidence before production repair:
+  - Safe containers: exit 1, `2 failed | 1 passed | 125 skipped`. Both `apps` and `packages` symlink sentinels exposed `outside-read-marker` through `module_inventory_extra` instead of returning `module_inventory_unreadable`; the real-directory positive already passed.
+  - Strict dependency identities: exit 1, `10 failed | 2 passed | 116 skipped`. Missing rejections covered a canonical subpath key, four malformed npm aliases, four malformed/URL/relative workspace payloads, and a plain URL. A valid selector matrix and the already-rejected exact unknown `@sartre/rogue` key passed.
+  - Every RED was a missing behavioral rejection; no fixture, runner, or syntax error occurred.
+- Root-cause repair:
+  - Repository root, each inventory container, and each canonical module root now pass lstat, realpath, real-directory, non-symlink, and canonical containment before any directory enumeration.
+  - Unsafe containers emit stable `module_inventory_unreadable`; their child module paths are not touched. Unsafe or missing module roots emit `module_inventory_missing` and never enter manifest, config, or text traversal.
+  - Inventory returns a verified canonical module-root map. `collectModuleTextTargets` accepts only a root from that map, eliminating a second walk initiated from unverified container/module strings. Both external marker sentinels remain absent from all returned violation paths.
+  - Manifest parsing now uses exact package identity, separate from source specifier/subpath matching. Scoped keys contain exactly `@scope/name`; unscoped keys contain one valid package segment.
+  - The dependency selector parser intentionally implements a documented strict subset without a new dependency: `*`, exact `x.y.z` with optional prerelease, `^`/`~` semver, comparison conjunctions/`||`, and hyphen ranges. Same-package workspace selectors also allow bare `^` and `~`.
+  - `npm:` requires `npm:<exact-package>@<valid selector>`. `workspace:` maps a supported same-package selector to the exact key or parses `workspace:<exact-package>@<valid selector>`. Relative workspace paths are not retained and fail closed. Tags, URLs, empty/unknown payloads, extra `@`, and package subpaths fail closed.
+  - Existing `file:`/`link:` behavior remains exact canonical root plus canonical manifest identity.
+- Preserved GREEN and attempt history:
+  - Safe-container focused GREEN: `3/3`; strict dependency focused GREEN: `12/12`.
+  - Full architecture passed `128/128`; standalone strict architecture `tsc` and production `architecture:check` exited 0. All prior A-D controls remained GREEN.
+  - The first final-state format check exited 1 on two formatter-only layouts; lint, focused `186/186`, and workspace typecheck already exited 0. Targeted formatting changed only those layouts, and all final-source gates were rerun.
+- Fresh final-source commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0 across all nine workspace projects with the current lockfile.
+  - `pnpm run format:check`: exit 0, 78 files; `pnpm run lint`: exit 0, 78 files with no warnings.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspace typechecks.
+  - Standalone strict architecture `tsc` across model/config/source/check/test/fixture: exit 0.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 128 tests passed`.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 186 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 213 tests`, followed by all eight workspace suites, including contracts `57/57`. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture production evidence remains STRUCTURAL_CHECK / PASS only.
+  - `git diff --check`: exit 0.
+- Fresh Task 1 safety and boundary commands:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed.
+  - The immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full Secret scan, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Risks and boundaries:
+  - Directory verification and later reads remain point-in-time filesystem operations. Canonical verified roots remove the known pre-enumeration and raw-root bypass; the architecture checker does not claim an atomic filesystem snapshot.
+  - The selector grammar is intentionally narrower than all npm/pnpm syntax. Unsupported tags, Git/HTTP tarballs, relative workspace paths, and exotic ranges must be added through an explicit constitution change and negative/positive controls rather than silent fallback.
+  - The architecture checker remains static and cannot prove runtime IPC, RLS, transactions, process health, Electron sandbox, or Harness execution. `architecture:check` remains STRUCTURAL_CHECK.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, Contracts/Evidence/ErrorCode change, Secret value read, or Task 1 amend occurred.
+- Resume: use only the top resume procedure. Precisely stage the two architecture files and this ledger, run immutable index/full Secret checks, amend only the latest Task 2 commit, then run the complete fresh gate matrix from clean amended `HEAD` before requesting specification review followed by code-quality review.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-19 23:18 CST - Task 2 fourth specification re-review repair ready for amend
+
+- Status: IN_PROGRESS. The fourth specification re-review found three remaining HIGH architecture findings. All three repairs are locally GREEN and await precise amend plus fresh specification/code-quality re-review. Task 3 has not started and MS0 remains IN_PROGRESS.
+- Change: `ms0-repository-constitution`.
+- Scope boundary:
+  - Changed only root `package.json`, `pnpm-lock.yaml`, `scripts/architecture/check.test.ts`, `scripts/architecture/check.ts`, `scripts/architecture/config-resolution.ts`, `scripts/architecture/model.ts`, `scripts/architecture/source-analysis.ts`, and this ledger.
+  - The only root dependency change is the direct pinned development tooling `semver@7.8.5` and `@types/semver@7.7.1`; no production module manifest changed.
+  - Contracts, Evidence, ErrorCode, active plan, workflow authority, Task 1 implementation, and prior architecture behavior were not changed.
+  - No push, Secret value read, freeze regeneration, or Task 3 command occurred.
+- Re-review result entering this checkpoint:
+  - Config containment validated only a subset of effective TypeScript paths. Raw `baseUrl`, `files`, `include`, `exclude`, `rootDir`, `rootDirs`, `typeRoots`, `paths`, and `references`, contained recursive `extends`, TypeScript host reads, and source-tree symlinks could still cause or attempt outside-repository access before a stable violation.
+  - Manifest dependency validation could accept a noncanonical key or alias actual identity and source analysis did not prove that every external production import was declared by that module. Test tooling ownership also needed an explicit root-only rule.
+  - The handwritten selector recognizer was not a complete SemVer authority and could accept invalid leading-zero forms or reject valid prerelease/comparator/hyphen/OR ranges.
+- Mandatory RED evidence before production repair:
+  - Config no-outside-read: exit 1, `11 failed | 1 passed`. Missing rejections covered unsafe raw/effective config paths, contained recursive path-bearing `extends`, safe TypeScript host access, and module source symlinks; the existing contained positive passed.
+  - Dependency actual identity: exit 1, `2 failed | 4 passed`. Missing rejections covered noncanonical `workspace:*` identity and alias actual-identity mismatch while prior canonical controls remained GREEN.
+  - Mature SemVer: exit 1, `4 failed | 5 passed`. Missing behavior rejected or accepted the wrong leading-zero, tag/URL, prerelease, comparator, hyphen, and `||` selector cases.
+  - Declared external import: exit 1, `1 failed | 1 passed`. A production source could import an undeclared external package while the existing declared positive passed.
+  - Every RED was an assertion on missing fail-closed behavior; no fixture, syntax, or runner failure was used as behavioral evidence.
+- Root-cause repair:
+  - Raw config and every contained `extends` layer now validate `baseUrl`, `files`, `include`, `exclude`, `rootDir`, `rootDirs`, `typeRoots`, `paths`, and `references`; absolute, outside, URL-like, unsupported/ambiguous glob, and symlinked source/config paths fail closed with stable `tsconfig_unsafe_path` before TypeScript parse/enumeration.
+  - A contained TypeScript host now mediates `readDirectory`, `readFile`, and `fileExists`; module resolution reuses that host. Source module trees are metadata-preflighted before TypeScript file enumeration, so a source symlink cannot expose an outside marker.
+  - Dependency analysis records both the dependency key and parsed actual identity. `workspace:*` requires a canonical workspace key; explicit workspace/npm aliases require a canonical actual identity and reject key/target mismatches or unknown `@sartre/*` identities.
+  - Production source external imports must appear in the module declaration set and otherwise emit stable `source_dependency_undeclared`. Test/spec source may additionally use only exact root `devDependencies` as tooling.
+  - Root development tooling now pins `semver@7.8.5` and `@types/semver@7.7.1`. Selector acceptance uses `valid`/`validRange` after the existing fail-closed protocol/package grammar, rejecting leading zero, tag, and URL forms while accepting supported prerelease, comparator, hyphen, and `||` ranges.
+- Preserved GREEN and attempt history:
+  - Grouped GREEN results were config `12/12`, actual identity `6/6`, mature SemVer `9/9`, and declared external import `2/2`.
+  - The first full architecture run exposed two existing dependency-direction fixtures where a canonical key pointed at another known canonical target but only `manifest_dependency_target_outside_graph` was retained. The analyzer now preserves both the actual direction violation and outside-graph identity violation; full architecture then passed `157/157`.
+  - The first final-state format check exited 1 on `scripts/architecture/check.test.ts` and `scripts/architecture/config-resolution.ts`. Targeted Biome formatting changed only those files.
+  - The first final-state lint exited 0 with one info for a useless regex escape. The equivalent character class was rewritten using the Biome safe fix; fresh lint has no info or warning.
+  - A parallel full-test attempt exceeded the output yield window and was not counted as evidence. The process completed naturally; a separate fresh solo `pnpm run test` produced the recorded exit code and complete counts below.
+- Fresh final-source commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0 across all nine workspace projects; lockfile was current.
+  - `pnpm run format:check`: exit 0, 78 files; `pnpm run lint`: exit 0, 78 files with no info, warnings, or errors.
+  - Standalone strict architecture `tsc` across model/config/source/check/test/fixture with strict, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `useUnknownInCatchVariables`, and `verbatimModuleSyntax`: exit 0.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspace typechecks.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 157 tests passed`.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 215 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 242 tests`, followed by all eight workspace suites, including contracts `57/57`. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture production evidence remains STRUCTURAL_CHECK / PASS only.
+- Fresh Task 1 safety and boundary commands:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed.
+  - The immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full worktree/history/index Secret scan, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Risks and boundaries:
+  - Filesystem metadata and content checks remain point-in-time rather than an atomic snapshot. Pre-amend and clean post-amend gates therefore rescan the current tree and immutable index.
+  - Config globs intentionally reject bracket classes, braces, backslashes, absolute/URL-like forms, and ambiguous outside prefixes. Any future syntax expansion requires explicit positive and outside-read negative controls.
+  - Root test tooling is an explicit constitution boundary, not an implicit global dependency escape. Production module source still requires module-local declarations.
+  - The architecture checker remains static and cannot prove runtime IPC, RLS, transactions, process health, Electron sandbox, or Harness execution. `architecture:check` remains STRUCTURAL_CHECK.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, Contracts/Evidence/ErrorCode change, Secret value read, freeze regeneration, or Task 1 amend occurred.
+- Resume: precisely stage the seven Task 2 source/config/lock files and this ledger, run immutable index and full Secret checks plus whitespace/forbidden-path checks, amend only the latest Task 2 commit, then run the complete fresh gate matrix from clean amended `HEAD` before requesting specification review followed by code-quality review.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-20 10:00 CST - Task 2 fifth specification re-review repair ready for amend
+
+- Status: IN_PROGRESS. The fifth specification re-review found three remaining architecture gaps. Config path metadata preflight, resolved external package identity/root, and full SemVer range delegation are locally GREEN and await precise amend plus fresh specification/code-quality re-review. Task 3 has not started and MS0 remains IN_PROGRESS.
+- Change: `ms0-repository-constitution`.
+- Scope boundary:
+  - Changed only `scripts/architecture/check.test.ts`, `scripts/architecture/check.ts`, `scripts/architecture/config-resolution.ts`, `scripts/architecture/model.ts`, `scripts/architecture/source-analysis.ts`, and this ledger.
+  - Root/package manifests, lockfile, Contracts, Evidence, ErrorCode, active plan, workflow authority, Task 1 implementation, and prior architecture behavior were not changed in this repair.
+  - No push, Secret value read, freeze regeneration, or Task 3 command occurred.
+- Re-review result entering this checkpoint:
+  - Raw TypeScript config path checks proved lexical containment but did not inspect existing path segments. A contained inherited `baseUrl` could therefore traverse a symlink to an outside tree when `files: []` prevented the TypeScript host from visiting it.
+  - Module manifests flattened import keys and actual package identities into one string Set. External resolution did not verify the nearest contained package root/package.json, so missing/wrong identities and an arbitrary module-local `node_modules` package could be accepted.
+  - `semver.validRange` was gated by a handwritten range regex. Valid build-metadata comparators were rejected even though pinned SemVer accepted them.
+- Reviewer-attempt classification before implementation:
+  - On prior clean HEAD `f44c1f90a579cfd67af3624d1f076064d1f7913c`, the reviewer reported one focused attempt with 215 total tests: `212 passed | 3 timeout`.
+  - The reviewer explicitly classified the three timeouts as non-assertion environmental timeouts and did not count that attempt as behavior evidence. The exact command and durations were not provided to the controller.
+  - This attempt is NOT PASS and is not controller evidence; the implementer's fresh `225/225` below is a separate command/result after the fifth repair.
+- Mandatory RED evidence before production repair:
+  - Config metadata preflight: exit 1, `1 failed | 165 skipped`. The inherited contained `baseUrl` symlink returned no violation; `files: []` proved the missing pre-host metadata phase rather than an outside TypeScript enumeration.
+  - Resolved external identity/root: exit 1, `3 failed | 4 passed | 159 skipped`. Missing package.json, different package name, and module-local `node_modules` were all incorrectly accepted; direct zod/semver, root test vitest, and npm alias positives already passed.
+  - SemVer build metadata: exit 1, `1 failed | 9 passed | 156 skipped`. `>=1.2.3+build.5 <2.0.0` was rejected only by the handwritten gate.
+  - Range-authority self-review added `x` as another `semver.validRange` positive. It produced exit 1, `1 failed | 10 passed | 156 skipped` before the remaining dist-tag heuristic was made non-narrowing.
+  - Every RED was an assertion on missing or over-restrictive behavior; no timeout, fixture error, or test syntax failure was used as behavioral evidence.
+- Root-cause repair:
+  - Every already-validated config path derives its static prefix before `*`/`?`, then walks existing lexical segments from the repository trust root with `lstat`. Any symlink is rejected without following it, even when its target would canonicalize inside; canonical existing prefixes must remain contained. Only `ENOENT` below a safe contained ancestor permits a nonexistent suffix; unreadable, non-directory traversal, loop, escape, or metadata error fails with stable `tsconfig_unsafe_path` before TypeScript host access.
+  - The metadata phase runs for `baseUrl`, `files`, `include`, `exclude`, `rootDir`, `rootDirs`, `typeRoots`, path fallbacks, references, and every recursively inherited contained config. Existing path-alias graph and module-direction checks retain their separate responsibility.
+  - Manifest declarations are now import-key -> expected actual-identity maps for every module and root test tooling. Direct dependencies map name to itself; npm aliases map alias key to the parsed actual package name.
+  - Resolved external imports must canonicalize under repository-root `node_modules`, including pnpm `.pnpm/.../node_modules/<package>` layouts. The nearest layout package root and regular non-symlink package.json are verified contained before reading; its exact `name` must equal the expected actual identity. Missing/invalid/different metadata or arbitrary module-local regular `node_modules` emits stable `source_dependency_identity_invalid`.
+  - Module-internal classification excludes `node_modules`, closing the initial repair attempt where a module-local package was still mistaken for SDK source. Legitimate pnpm workspace symlinks resolve canonically into root `.pnpm` and remain accepted.
+  - Version/range syntax is delegated to pinned `semver.valid`/`validRange`. Protocol checks still reject empty, URL-like, and direct bare `^`/`~`; workspace keeps its explicit bare shorthand. Dist-tag detection only rejects when SemVer also returns null, so it does not narrow valid wildcard/range syntax.
+- Preserved GREEN and attempt history:
+  - First implementation GREEN: config `1/1`, SemVer build-metadata group `10/10`; resolved identity passed `6/7` with only module-local `node_modules` still failing.
+  - Diagnostic TypeScript resolution showed the failing package at `<fixture>/packages/sdk/node_modules/declared-tool/index.d.ts`. Excluding `node_modules` from internal-module classification routed it through package identity validation; resolved identity then passed `7/7`.
+  - Combined reviewer groups passed `18/18` before the additional `x` control. Final SemVer group passed `11/11` and full architecture passed `167/167`, preserving all prior 157 controls.
+  - The first format gate exited 1 on pure layout in `check.test.ts`, `config-resolution.ts`, and `source-analysis.ts`; lint, strict typing, architecture `166/166`, focused `224/224`, and workspace typecheck were already GREEN. Targeted Biome formatting changed only those three files, and all final-source gates were rerun after the later `x` repair.
+  - Independent real package metadata controls found exact contained `zod`, `semver`, and `vitest` package names; production `architecture:check` also passed against real pnpm resolution.
+- Fresh final-source commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0 across all nine workspace projects; lockfile was current.
+  - `pnpm run format:check`: exit 0, 78 files; `pnpm run lint`: exit 0, 78 files with no warnings.
+  - Standalone strict architecture `tsc` across model/config/source/check/test/fixture: exit 0.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspace typechecks.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 167 tests passed`.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 225 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 252 tests`, followed by all eight workspace suites, including contracts `57/57`. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture production evidence remains STRUCTURAL_CHECK / PASS only.
+- Fresh Task 1 safety and boundary commands:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed.
+  - The immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full worktree/history/index Secret scan, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Risks and boundaries:
+  - Filesystem metadata and package contents remain point-in-time checks rather than an atomic snapshot. Pre-amend and clean post-amend gates therefore rescan current source, index, and artifacts.
+  - The repository root is the metadata walk trust anchor. Existing ancestors outside that root are not traversed; every descendant segment that exists is checked without following a symlink.
+  - External package validation intentionally rejects arbitrary regular module-local installs. Legitimate pnpm workspace links remain valid only because resolution returns a canonical package under repository-root `.pnpm` with matching metadata.
+  - The architecture checker remains static and cannot prove runtime IPC, RLS, transactions, process health, Electron sandbox, or Harness execution. `architecture:check` remains STRUCTURAL_CHECK.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, Contracts/Evidence/ErrorCode change, Secret value read, freeze regeneration, or Task 1 amend occurred.
+- Resume: precisely stage the five architecture files and this ledger, run immutable index and full Secret checks plus whitespace/exact-path checks, amend only the latest Task 2 commit, then run the complete fresh gate matrix from clean amended `HEAD` before requesting specification review followed by code-quality review.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-20 10:36 CST - Task 2 sixth specification re-review repair ready for amend
+
+- Status: IN_PROGRESS. The sixth specification re-review found two remaining architecture root issues: config paths could still bypass no-read validation, and external package identity was inferred from the resolved file's nearest nested `node_modules` instead of the root logical import entry. Both repairs are locally GREEN and await precise amend plus fresh specification/code-quality re-review. Task 3 has not started and MS0 remains IN_PROGRESS.
+- Change: `ms0-repository-constitution`.
+- Scope boundary:
+  - Changed only `scripts/architecture/check.test.ts`, `scripts/architecture/config-resolution.ts`, `scripts/architecture/source-analysis.ts`, and this ledger.
+  - Approved Contracts, ErrorCode, SemVer behavior/dependencies, root/package manifests, lockfile, active plan, workflow authority, Task 1 implementation, and prior architecture rules were not changed.
+  - No push, Secret value read, freeze regeneration, or Task 3 command occurred.
+- Re-review result entering this checkpoint:
+  - `extends` used final-path `lstat` plus canonical containment. An intermediate contained symlink such as `node_modules/config-link/base.json` could therefore be followed and read when its target remained inside the repository.
+  - Glob validation truncated at the first wildcard. `src/*/../../../../outside/*.ts` therefore validated only `src/` and allowed later parent traversal before TypeScript directory enumeration.
+  - External identity found the last `node_modules` segment in the resolved file. A root package with a wrong identity could point `types` at a nested package whose package.json impersonated the expected name and be accepted.
+- Clarified path scope:
+  - Glob-capable `include`, `exclude`, and path patterns reject any exact `..` segment, including traversal after a wildcard. `files` remains a literal path list and is not treated as glob syntax.
+  - Literal `extends`, `baseUrl`, and references may retain safe parent segments because all real/fixture module configs require `../../tsconfig.base.json`. Their raw segments are walked with `lstat`; every intermediate symlink, escape, unreadable segment, loop, or unsafe canonical prefix fails closed before read.
+  - This preserves the approved repository layout while closing wildcard-dependent traversal. A constitution change would be required before banning all literal parent segments.
+- Mandatory RED evidence before production repair:
+  - Config paths/no-read: exit 1, `2 failed | 168 skipped`. The intermediate contained symlink read a poison config and returned only `module_tsconfig_invalid`; the expected pre-read `tsconfig_extends_outside_graph` was absent. The late-parent glob returned no violations even with the outside directory present and empty.
+  - Root package entry binding: exit 1, `1 failed | 169 skipped`. `node_modules/declared-tool/package.json` used `name=outer-tool` and pointed its types at a nested package whose `name=declared-tool`; the nested identity incorrectly overrode the logical entry.
+  - Every RED was an assertion on missing behavior; no timeout, syntax error, or fixture setup failure was used as evidence.
+- Root-cause repair:
+  - One shared metadata validator now starts from a contained trust base and walks raw literal segments with `lstat`. Existing symlinks are rejected without following them; every existing prefix must canonicalize inside the repository. `ENOENT` permits only a suffix below a safe existing ancestor; a later parent traversal after a missing segment fails closed.
+  - Glob-capable values are structurally checked across every segment before any static prefix or TypeScript operation. Any `..` segment is rejected regardless of wildcard position; absolute, URL-like, bracket/brace/backslash, and non-glob wildcard misuse retain prior rejection behavior.
+  - `extends` invokes the shared validator before `regularContainedFile` or `readFileSync`, so the poison sentinel is never parsed. Recursively inherited config fields continue through the same path validator.
+  - ParseConfigHost validates the requested root/path before `ts.sys.readDirectory`, `readFile`, or `fileExists`; `readDirectory` is no longer called first and filtered afterward. Config-declared paths retain strict no-symlink semantics.
+  - Host module resolution separately permits a symlink only when its canonical target remains inside the repository. This is required for pnpm workspace/root entries and does not weaken config declaration preflight or outside containment.
+  - External validation now derives the bare import key and expected actual identity from the manifest map, then binds to repository-root `node_modules/<key>` or pnpm's repository-root `.pnpm/node_modules/<key>` logical entry. The entry may be a contained pnpm symlink, but its real package root and regular non-symlink package.json must remain contained, its exact name must equal expected actual identity, and the TypeScript resolved file must be canonical-contained within that bound root.
+  - Nested or module-local `node_modules` package.json files no longer select/override identity. Direct, pnpm, and npm-alias positives remain supported through their root logical keys.
+- Preserved GREEN and attempt history:
+  - Exact controls turned GREEN: config `2/2`, nested package binding `1/1`; combined config regressions passed `15/15` and package identity regressions passed `8/8`.
+  - The first config implementation attempt returned `module_tsconfig_invalid` for the normal fixture because the new validator referenced an unbound root variable inside the host. Correcting it to the explicit validator argument produced the exact config GREEN without changing the tests.
+  - The first combined production run after applying strict no-symlink status to all host reads exited 1 with 25 `source_specifier_unresolved` violations across real module tests, contracts/zod, and root test tooling. Focused synthetic controls were GREEN, proving this was a real pnpm layout regression rather than a reviewer control failure.
+  - Separating config-declaration no-symlink validation from host canonical-contained package resolution restored production `architecture:check` while retaining the exact symlink/glob negatives.
+  - Full architecture then passed `170/170`, preserving all previous 167 controls; focused Contracts/architecture/plan policy passed `228/228`.
+  - The first format gate exited 1 on layout in `check.test.ts` and `source-analysis.ts`; lint exited 0 with one useless-continue info. Targeted formatting and removal of only that continue produced fresh clean gates.
+- Fresh final-source commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0 across all nine workspace projects; lockfile was current.
+  - `pnpm run format:check`: exit 0, 78 files; `pnpm run lint`: exit 0, 78 files with no warnings or info.
+  - Standalone strict architecture `tsc` across model/config/source/check/test/fixture: exit 0.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspace typechecks.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 170 tests passed`.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 228 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 255 tests`, followed by all eight workspace suites, including contracts `57/57`. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture production evidence remains STRUCTURAL_CHECK / PASS only.
+- Fresh Task 1 safety and boundary commands:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed.
+  - The immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full worktree/history/index Secret scan, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Risks and boundaries:
+  - Filesystem metadata/content remain point-in-time checks rather than an atomic snapshot. Pre-amend and clean post-amend gates therefore rescan source, index, resolution, and artifacts.
+  - Safe host pnpm support follows only entries whose canonical target remains under repository-root node_modules; package identity/root binding performs the stronger logical-key and package.json check before an import is accepted.
+  - Glob parent traversal is rejected structurally rather than relying on whether an outside directory exists or TypeScript happens to enumerate it.
+  - The architecture checker remains static and cannot prove runtime IPC, RLS, transactions, process health, Electron sandbox, or Harness execution. `architecture:check` remains STRUCTURAL_CHECK.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, Contracts/Evidence/ErrorCode/SemVer change, Secret value read, freeze regeneration, or Task 1 amend occurred.
+- Resume: precisely stage the three architecture files and this ledger, run immutable index and full Secret checks plus whitespace/exact-path checks, amend only the latest Task 2 commit, then run the complete fresh gate matrix from clean amended `HEAD` before requesting specification review followed by code-quality review.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-20 11:07 CST - Task 2 seventh specification re-review repair ready for amend
+
+- Status: IN_PROGRESS. The seventh specification re-review found one remaining external package-root fallback gap. The first-existing repair is locally GREEN and awaits precise amend plus fresh specification/code-quality re-review. Task 3 has not started and MS0 remains IN_PROGRESS.
+- Change: `ms0-repository-constitution`.
+- Scope boundary:
+  - Changed only `scripts/architecture/check.test.ts`, `scripts/architecture/source-analysis.ts`, and this ledger.
+  - Config resolution, Contracts, ErrorCode, SemVer behavior/dependencies, root/package manifests, lockfile, active plan, workflow authority, Task 1 implementation, and all prior architecture rules were not changed.
+  - No push, Secret value read, freeze regeneration, or Task 3 command occurred.
+- Re-review result entering this checkpoint:
+  - External package validation treated repository-root `node_modules/<key>` and `.pnpm/node_modules/<key>` as interchangeable candidates. A direct logical entry could exist with the wrong identity and point its `types` to a correctly named secondary pnpm entry; the loop skipped the invalid direct root and accepted the secondary root.
+  - The required policy is first-existing and fail-closed: the direct logical entry owns validation whenever it exists. Secondary pnpm fallback is allowed only when direct `lstat` proves `ENOENT`, never when direct metadata or identity/root/resolved-file validation fails.
+- Mandatory RED evidence before production repair:
+  - `pnpm exec vitest run scripts/architecture/check.test.ts -t "does not fall back to pnpm when the direct package entry has the wrong identity"`: exit 1, `1 failed | 170 skipped`. The direct manifest used `name=wrong-tool` and pointed `types` at a correctly named `.pnpm/node_modules/declared-tool`; the checker incorrectly returned no violation.
+  - The RED was an assertion on the missing stable `source_dependency_identity_invalid`; no timeout, syntax error, or fixture setup failure was used as evidence.
+- Root-cause repair:
+  - Validation now performs direct-entry `lstat` before selecting a logical root. A successful direct `lstat` binds all subsequent directory, canonical containment, resolved-file containment, regular package.json, parse, and exact-name checks to that direct entry; any failure returns false immediately.
+  - Only a direct `ENOENT` selects repository-root `.pnpm/node_modules/<key>`. Any other direct metadata error fails closed without fallback, and any secondary metadata/identity/root failure also returns false.
+  - Secondary support was retained rather than removed. The real install has no `node_modules/zod` direct entry but has a contained `.pnpm/node_modules/zod` symlink; production `architecture:check` passes this path. Direct `semver` and `vitest` entries also remain accepted.
+- Preserved GREEN and attempt history:
+  - The exact single control turned GREEN with `1 passed | 170 skipped`; the full architecture fixture then passed `171/171`, preserving all previous 170 controls, and production `architecture:check` passed.
+  - The first format gate on the final logic exited 1 for one formatter-only line layout in `source-analysis.ts`. Lint, strict architecture typing, workspace typecheck, and focused `229/229` were already GREEN. The one layout was corrected, and all final-source gates below were rerun.
+- Fresh final-source commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0 across all nine workspace projects; lockfile was current.
+  - `pnpm run format:check`: exit 0, 78 files; `pnpm run lint`: exit 0, 78 files with no warnings or info.
+  - Standalone strict architecture `tsc` across model/config/source/check/test/fixture: exit 0.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspace typechecks.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 171 tests passed`.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 229 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 256 tests`, followed by all eight workspace suites, including contracts `57/57`. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture production evidence remains STRUCTURAL_CHECK / PASS only.
+- Fresh Task 1 safety and boundary commands:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed.
+  - The immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full worktree/history/index Secret scan, immutable index Secret scan, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Pre-amend immutable staging checks:
+  - The index contained exactly `scripts/architecture/check.test.ts`, `scripts/architecture/source-analysis.ts`, and this ledger; there were no unstaged or nonignored untracked paths.
+  - Cached whitespace, exact-path, and index/worktree consistency checks exited 0.
+  - Final immutable-index and full worktree/history/index Secret checks both exited 0 before amend.
+- Risks and boundaries:
+  - Filesystem metadata/content remain point-in-time checks rather than an atomic snapshot. Pre-amend and clean post-amend gates therefore rescan source, index, resolution, and artifacts.
+  - First-existing deliberately prefers direct repository-root package ownership. An invalid or transiently unreadable direct entry blocks the import instead of allowing a secondary entry to mask it.
+  - The architecture checker remains static and cannot prove runtime IPC, RLS, transactions, process health, Electron sandbox, or Harness execution. `architecture:check` remains STRUCTURAL_CHECK.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, Contracts/Evidence/ErrorCode/SemVer change, Secret value read, freeze regeneration, or Task 1 amend occurred.
+- Historical resume at checkpoint creation: precisely stage the two architecture files and this ledger, run immutable index and full Secret checks plus whitespace/exact-path checks, amend only the latest Task 2 commit, then run the complete fresh gate matrix from clean amended `HEAD`. That sequence completed before the code-quality checkpoint below; current recovery is governed only by the top resume procedure.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-20 11:48 CST - Task 2 code-quality WITH FIXES repair committed, awaiting re-review
+
+- Status: IN_PROGRESS. Task 2 specification re-review approved the seventh repair, but code-quality review returned WITH FIXES with two Important and two Minor findings. All four are repaired and locally verified in the current Task 2 implementation commit; fresh specification regression and code-quality re-review remain. Task 3 has not started and MS0 remains IN_PROGRESS.
+- Change: `ms0-repository-constitution`.
+- Scope boundary:
+  - Changed only `scripts/architecture/check.test.ts`, `scripts/architecture/check.ts`, `scripts/architecture/model.ts`, `scripts/architecture/source-analysis.ts`, and this ledger.
+  - Config resolution, Contracts, Evidence, ErrorCode/SemVer dependencies, module manifests/lockfile, active plan, workflow authority, Task 1 implementation, and all previously approved architecture behavior were not changed.
+  - No tracked `dist` fixture, Task 3 path, push, Secret value read, or freeze regeneration was introduced.
+- Code-quality result entering this checkpoint:
+  - Important: exact canonical `@sartre/*` imports relied on TypeScript package resolution. When an allowed target package exported only ignored `dist` types/default files and the clean tree had no build output, an allowed root or source subpath import produced `source_specifier_unresolved` even though its contained `src` entry existed.
+  - Important: deterministic string folding recursively rebuilt const expressions for every AST expression and had only a depth guard. Exponential concatenation could allocate rapidly growing strings; unsupported `repeat` returned unknown and could bypass a Secret assembled at runtime-static syntax.
+  - Minor: dependency diagnostics used the first raw occurrence of a package token. An exact duplicate string in manifest metadata before the dependency section moved the violation away from the actual dependency key.
+  - Minor: top recovery/status text still described a prior pre-amend specification repair instead of the code-quality WITH FIXES state and current reviewer order.
+- Mandatory RED evidence before production repair:
+  - Clean/no-dist canonical source group: exit 1, `1 failed | 1 passed | 175 skipped`. Allowed SDK imports of contracts root and subpath returned two `source_specifier_unresolved` violations when exports pointed to absent `dist`; the missing source-subpath rejection already passed.
+  - Bounded constant evaluator group: exit 1, `3 failed | 174 skipped`. The exponential chain completed in about 1.16 seconds but returned no budget violation; oversized repeat returned no budget violation; a small repeated synthetic credential returned no Secret violation.
+  - Dependency diagnostic line: exit 1, `1 failed | 176 skipped`. The violation used duplicate description line 6 instead of the actual dependency key on line 8.
+  - Every RED asserted missing behavior or incorrect diagnostic location. No timeout, syntax error, fixture setup error, or real Secret was used as behavioral evidence.
+- Root-cause repair:
+  - Exact known canonical package specifiers now resolve only through bounded target-source candidates: `src/index.*`, `src/<subpath>.*`, or `src/<subpath>/index.*` over the approved JS/TS source extensions. The target `src` root and resolved file must be existing contained regular non-symlink paths; nonexistent lexical candidates are never accepted.
+  - Canonical source resolution is independent of package `exports` and ignored build output, while dependency graph enforcement is unchanged. Relative imports, root/module aliases, and external packages retain the TypeScript resolver and existing identity/root checks. The clean fixture points realistic `types/default` exports to absent `dist` and creates no tracked build output.
+  - Static evaluation is now one memoized evaluator per source file with distinct value/unknown/budget results, a 64 KiB folded-byte limit, 4096 total evaluation operations, and depth 32. Concatenation, template, array join, and repeat calculate output bytes before allocation. Cycles and ambiguous shadow bindings remain unknown without execution.
+  - Once any static budget is exceeded, the source fails closed with exactly one stable `static_evaluation_budget_exceeded`; it cannot degrade to unknown and permit the file. Small deterministic repeat continues into the existing Secret scanner.
+  - Dependency lines are derived from the already-valid package JSON using TypeScript's JSON AST, scoped first to the exact dependency section and then to its exact property key. Raw text lookup remains only a defensive fallback.
+  - Top status and resume now require fresh specification regression followed by code-quality re-review; prior specification approval is not reused after source changes.
+- Preserved GREEN and attempt history:
+  - Exact groups turned GREEN: canonical source `2/2`, dependency line `1/1`, and bounded evaluator `3/3`. The bounded group completed in about 78 ms after memoization and preflight.
+  - Full architecture passed `177/177`, preserving all prior 171 controls; production `architecture:check` and standalone strict architecture typing passed.
+  - The first format gate exited 1 only on layouts in `check.test.ts`, `check.ts`, and `source-analysis.ts`; lint, full architecture, strict typing, and production architecture were already GREEN. Targeted formatting changed only those three files, and the full final-source gates were rerun.
+- Fresh final-source commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0 across all nine workspace projects; lockfile was current.
+  - `pnpm run format:check`: exit 0, 78 files; `pnpm run lint`: exit 0, 78 files with no warnings or info.
+  - Standalone strict architecture `tsc` across model/config/source/check/test/fixture: exit 0.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspace typechecks.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 177 tests passed`.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 235 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 262 tests`, followed by all eight workspace suites, including contracts `57/57`. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture production evidence remains STRUCTURAL_CHECK / PASS only.
+- Fresh Task 1 safety and boundary commands:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed.
+  - The immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full worktree/history/index Secret scan, immutable index Secret scan, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Pre-amend immutable staging checks:
+  - The index contained exactly the four architecture source/test files and this ledger; there were no unstaged or nonignored untracked paths.
+  - Cached whitespace, exact-path, and index/worktree consistency checks exited 0.
+  - Final immutable-index and full worktree/history/index Secret checks both exited 0 before amend.
+- Risks and boundaries:
+  - Canonical source candidate enumeration is deliberately closed to the approved JS/TS extension list and exact known modules. Adding other source formats or public subpath conventions requires an explicit constitution/test change rather than falling back to `dist` or lexical paths.
+  - A deterministic source expression above the static budget is rejected even when its eventual value might be safe. This is intentional fail-closed behavior; large generated content belongs outside tracked source.
+  - JSON AST line lookup assumes the package manifest has already passed strict JSON parsing, as enforced before dependency analysis.
+  - The architecture checker remains static and cannot prove runtime IPC, RLS, transactions, process health, Electron sandbox, or Harness execution. `architecture:check` remains STRUCTURAL_CHECK.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, Contracts/Evidence/ErrorCode/SemVer dependency change, Secret value read, freeze regeneration, or Task 1 amend occurred.
+- Historical resume at checkpoint creation: from the clean Task 2 commit, rerun focused contracts/architecture/plan policy, standalone strict architecture typing, production architecture, and full Secret; obtain fresh specification regression, then code-quality re-review. That sequence completed and produced the export finding below; current recovery is governed only by the top resume procedure.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-20 13:55 CST - Task 2 final quality export repair committed, awaiting same-reviewer re-review
+
+- Status: IN_PROGRESS. The fresh specification regression approved the prior quality repair, but code-quality re-review found one Important export exposure and extension mapping gap. It is repaired and locally verified in the current Task 2 implementation commit; fresh targeted specification regression and the same code-quality reviewer re-review remain. Task 3 has not started and MS0 remains IN_PROGRESS.
+- Change: `ms0-repository-constitution`.
+- Scope boundary:
+  - Changed only `scripts/architecture/check.test.ts`, `scripts/architecture/check.ts`, `scripts/architecture/model.ts`, `scripts/architecture/source-analysis.ts`, and this ledger.
+  - Constant evaluator, dependency diagnostic lines, config resolution, external package identity/root binding, Contracts, Evidence, ErrorCode/SemVer dependencies, module manifests/lockfile, active plan, workflow authority, and Task 1 implementation were not changed.
+  - No tracked `dist` fixture, Task 3 path, push, Secret value read, or freeze regeneration was introduced.
+- Code-quality result entering this checkpoint:
+  - Canonical source resolution accepted any existing contained `src` subpath under a known package even when that exact subpath was not exposed by the target package manifest. A package exporting only `.` could therefore be imported through `@sartre/contracts/internal` when `src/internal.ts` existed.
+  - Source extension resolution universally stripped a recognized JS/TS suffix and tried every approved source extension. An exported `./feature.mjs` backed only by `src/feature.ts` was incorrectly accepted, and the recommended declaration mappings were incomplete.
+- Mandatory RED evidence before production repair:
+  - Export exposure group: exit 1, `9 failed | 5 passed | 189 skipped`. Unexported contained source, missing/null/all-null exposure, and four mixed/wildcard/invalid export shapes exposed the missing policy; existing root/subpath positives and missing-source rejection already passed.
+  - Extension mapping group: exit 1, `4 failed | 10 passed | 189 skipped`. The exact reviewer `.mjs -> .ts` case was incorrectly accepted, while `.d.mts`, `.d.cts`, and `.d.ts` recommended positives were not resolved.
+  - Every RED asserted exposure or exact mapping behavior. No timeout, syntax error, fixture setup error, generated `dist`, or real Secret was used as behavioral evidence.
+- Root-cause repair:
+  - Every valid canonical module manifest is parsed before source analysis into an exact exposed-key set. A top-level string, array, or conditional object with no dot-prefixed keys exposes root `.` only when recursive traversal finds at least one non-null string target.
+  - A subpath object may contain only exact `.` or `./subpath` keys. Each value may be a string, array, null, or conditional object and exposes its key only when at least one recursive branch is a non-null string. Missing, null, or all-null shapes are valid but expose nothing, so a canonical import fails closed.
+  - Mixed condition/subpath objects, invalid scalar/nested targets, unsafe exact keys, and wildcard/pattern keys emit stable `manifest_exports_invalid` and expose no keys. Condition names are not executed or selected, and export target files/build output do not need to exist.
+  - Source analysis receives the target module's exact exposed keys. A canonical import is accepted only when its exact `.`/`./subpath` key is exposed and the corresponding bounded contained regular source candidate exists; package graph enforcement remains unchanged.
+  - Explicit `.mjs` imports map only to `.mts`, `.d.mts`, or `.mjs`; `.cjs` maps only to `.cts`, `.d.cts`, or `.cjs`; `.js` maps only to `.ts`, `.tsx`, `.d.ts`, `.js`, or `.jsx`. Other explicit source extensions remain exact, while extensionless subpaths retain the bounded direct/index candidate list. The export key, including its extension, is never normalized for exposure lookup.
+- Preserved GREEN and attempt history:
+  - Exact groups turned GREEN: export policy `14/14` and extension mapping `14/14`.
+  - Full architecture passed `203/203`, preserving all previous 177 controls; production `architecture:check` and standalone strict architecture typing passed.
+  - The first format gate exited 1 only on layouts in `check.test.ts`, `check.ts`, and `source-analysis.ts`; lint, full architecture, strict typing, and production architecture were already GREEN. Targeted formatting changed only those three files, and the full final-source gates were rerun.
+- Fresh final-source commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0 across all nine workspace projects; lockfile was current.
+  - `pnpm run format:check`: exit 0, 78 files; `pnpm run lint`: exit 0, 78 files with no warnings or info.
+  - Standalone strict architecture `tsc` across model/config/source/check/test/fixture: exit 0.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspace typechecks.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 203 tests passed`.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 261 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 288 tests`, followed by all eight workspace suites, including contracts `57/57`. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture production evidence remains STRUCTURAL_CHECK / PASS only.
+- Fresh Task 1 safety and boundary commands:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed.
+  - The immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full worktree/history/index Secret scan, immutable index Secret scan, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Pre-amend immutable staging checks:
+  - The index contained exactly the four architecture source/test files and this ledger; there were no unstaged or nonignored untracked paths.
+  - Cached whitespace, exact-path, and index/worktree consistency checks exited 0.
+  - Final immutable-index and full worktree/history/index Secret checks both exited 0 before amend.
+- Risks and boundaries:
+  - The first-version export parser validates a deliberately bounded structural subset and does not reproduce Node condition selection. Any valid non-null string branch establishes exposure; authorization still depends on the exact export key and contained source.
+  - Missing/null exports do not make an otherwise unused package manifest invalid, but they expose no canonical import. Invalid/mixed/pattern shapes fail the manifest explicitly.
+  - Export targets are policy metadata only; the architecture checker neither executes conditions nor trusts/reads ignored `dist` output to resolve canonical source.
+  - Other source formats or extension mappings require a deliberate constitution/test change rather than universal suffix fallback.
+  - The architecture checker remains static and cannot prove runtime IPC, RLS, transactions, process health, Electron sandbox, or Harness execution. `architecture:check` remains STRUCTURAL_CHECK.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, evaluator/diagnostic/config/external-identity change, Secret value read, freeze regeneration, or Task 1 amend occurred.
+- Historical resume at checkpoint creation: from the clean current Task 2 commit, rerun the two exact export groups, full architecture, focused contracts/architecture/plan policy, standalone strict architecture typing, production architecture, and full Secret; obtain fresh targeted specification regression, then return to the same code-quality reviewer. That sequence completed and exposed the shared source-policy drift below; current recovery is governed only by the top resume procedure.
+- Next after both approvals only: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+
+### 2026-07-20 14:25 CST - Task 2 final source-policy repair ready for amend
+
+- Status: IN_PROGRESS. Final code-quality self-review found one source-inventory/canonical-resolver suffix-policy drift after the prior export repair. The shared-policy repair is locally GREEN and awaits precise amend, fresh targeted specification regression, and the same code-quality reviewer re-review. Task 3 has not started and MS0 remains IN_PROGRESS.
+- Change: `ms0-repository-constitution`.
+- Scope boundary:
+  - Changed only `scripts/architecture/check.test.ts`, `scripts/architecture/check.ts`, `scripts/architecture/source-analysis.ts`, new `scripts/architecture/source-policy.ts`, and this ledger.
+  - Export exposure parsing, bounded constant evaluation, dependency diagnostic lines, config resolution, external package identity/root binding, Contracts, Evidence, ErrorCode/SemVer dependencies, module manifests/lockfile, active plan, workflow authority, and Task 1 implementation were not changed.
+  - No tracked `dist` fixture, Task 3 path, push, Secret value read, or freeze regeneration was introduced.
+- Final quality finding entering this checkpoint:
+  - Canonical resolution already recognized `.mts`, `.d.mts`, `.cts`, and `.d.cts`, but repository inventory independently classified readable source through a narrower local extension set. Those four target files were therefore never decoded or entered into AST analysis even when a canonical import resolved to them.
+  - This was a fail-open policy drift rather than a resolver failure: an imported target source could contain a forbidden dependency at line 1 while the importer and manifest remained otherwise valid, yet the architecture checker returned no target-source violation.
+- Mandatory RED evidence before production repair:
+  - `pnpm exec vitest run scripts/architecture/check.test.ts -t "quality re-review - canonical TypeScript extension mapping"`: exit 1, `4 failed | 24 passed | 189 skipped`.
+  - The four expected failures were exactly the `.mts`, `.d.mts`, `.cts`, and `.d.cts` target-analysis cases. Each expected `dependency_direction_forbidden` on the resolved target source at line 1, not on the importer. Existing root, extensionless, `.mjs`, `.cjs`, `.js`, `.ts`, `.tsx`, `.d.ts`, `.jsx`, direct, and index controls remained GREEN.
+- Root-cause repair:
+  - Added one shared `source-policy.ts` for target-source classification and canonical source candidate selection. Target-source suffixes are exactly `.ts`, `.tsx`, `.mts`, `.cts`, `.d.ts`, `.d.mts`, `.d.cts`, `.js`, `.jsx`, `.mjs`, and `.cjs`.
+  - `check.ts` inventory now delegates source classification to shared `isTargetSourceFile`; non-source text/build/extensionless inventory behavior remains unchanged.
+  - `source-analysis.ts` now delegates extensionless candidates and explicit `.js`/`.mjs`/`.cjs` mapping to the same shared policy. Explicit mappings and export-key exposure lookup remain exact and unchanged.
+  - No candidate widening was introduced: `.mjs` still maps only to `.mts`/`.d.mts`/`.mjs`, `.cjs` only to `.cts`/`.d.cts`/`.cjs`, `.js` only to `.ts`/`.tsx`/`.d.ts`/`.js`/`.jsx`, explicit source extensions remain exact, and extensionless paths retain the bounded direct/index list.
+- Preserved GREEN and attempt history:
+  - The targeted extension suite turned GREEN at `28/28`; full architecture passed `217/217`, preserving all previous `203/203` controls.
+  - Focused contracts/architecture/plan-policy passed `275/275`; the root scripts passed `302/302`, and the eight workspace suites passed, including contracts `57/57`.
+  - The first format gate on the final logic exited 1 only for layout in `check.test.ts` and `source-analysis.ts`. Targeted Biome formatting changed only those files, after which fresh format and lint exited 0.
+- Fresh final-source commands and results:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies`: exit 0 across all nine workspace projects; lockfile was current.
+  - `pnpm run format:check` and `pnpm run lint`: exit 0 with no warnings or info after the recorded formatter-only repair.
+  - `pnpm exec tsc --noEmit --target ES2024 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --noImplicitOverride --useUnknownInCatchVariables --verbatimModuleSyntax --skipLibCheck --types node,vitest scripts/architecture/model.ts scripts/architecture/config-resolution.ts scripts/architecture/source-policy.ts scripts/architecture/source-analysis.ts scripts/architecture/check.ts scripts/architecture/check.test.ts scripts/architecture/fixtures/repository.ts`: exit 0.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspace typechecks.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts -t "quality re-review - canonical TypeScript extension mapping"`: exit 0, `28/28`.
+  - `pnpm exec vitest run scripts/architecture/check.test.ts`: exit 0, `1 file | 217 tests passed`.
+  - `pnpm exec vitest run packages/contracts/src/contracts.test.ts scripts/architecture/check.test.ts scripts/constitution/implementation-plan-policy.test.ts`: exit 0, `3 files | 275 tests passed`. Evidence: REAL_TEST / PASS.
+  - `pnpm run test`: exit 0; root scripts passed `11 files | 302 tests`, followed by all eight workspace suites, including contracts `57/57`. Evidence: REAL_TEST / PASS.
+  - `pnpm run build`: exit 0 across all eight workspaces; post-build `pnpm run architecture:check`: exit 0. Architecture production evidence remains STRUCTURAL_CHECK / PASS only.
+- Fresh Task 1 safety and boundary commands:
+  - Target-only and explicit-source spec verification each passed exactly 27 mappings; OpenSpec validation passed.
+  - The immutable legacy freeze independently passed all 835 facts without regeneration.
+  - Docker context policy, pinned full worktree/history/index Secret scan, immutable index Secret scan, and artifact Secret scanning over all eight explicit build roots exited 0.
+  - `pnpm pack` exited 1 with required `root_packaging_prohibited`; no root package artifact was produced.
+- Pre-amend immutable staging checks:
+  - The index contained exactly `scripts/architecture/check.test.ts`, `scripts/architecture/check.ts`, `scripts/architecture/source-analysis.ts`, new `scripts/architecture/source-policy.ts`, and this ledger; there were no unstaged or nonignored untracked paths.
+  - Cached whitespace, exact-path, and index/worktree consistency checks exited 0.
+  - Final immutable-index and full worktree/history/index Secret checks both exited 0 before amend.
+- Risks and boundaries:
+  - Source suffixes now have one shared runtime policy, but any future supported source format or import-extension mapping still requires a deliberate constitution/test change rather than filesystem fallback.
+  - Export targets remain policy metadata only; the checker neither executes export conditions nor reads ignored `dist` output to authorize canonical source.
+  - The architecture checker remains static and cannot prove runtime IPC, RLS, transactions, process health, Electron sandbox, or Harness execution. `architecture:check` remains STRUCTURAL_CHECK.
+  - Task 2 remains unapproved. No Task 3 command, push, workflow edit, evaluator/diagnostic/config/external-identity change, Contracts/Evidence/ErrorCode/SemVer change, Secret value read, freeze regeneration, or Task 1 amend occurred.
+- Historical resume at checkpoint creation: precisely stage the four architecture source/test files and this ledger, run immutable exact-path/index/worktree/Secret checks, amend only the latest Task 2 commit, then rerun the targeted extension suite and complete fresh gate matrix from clean amended `HEAD`. Obtain fresh targeted specification regression, then return to the same code-quality reviewer. That sequence and both reviews completed before the closeout checkpoint below; current recovery is governed only by the top resume procedure.
+- Historical next after both approvals: run `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`. This text is superseded because the two Task 3 test files do not exist yet; current recovery first creates the failing tests, then runs the command for behavioral RED.
+
+### 2026-07-20 14:55 CST - Task 2 dual-review approved, ledger-only closeout
+
+- Status: DONE. Final targeted specification regression is APPROVED and the same code-quality reviewer reported Ready YES with no issues. This closes Task 2 only; MS0 remains IN_PROGRESS and Task 3 has not started.
+- Change: `ms0-repository-constitution`.
+- Reviewed subject binding:
+  - Review subject commit: `c770b8b266aeea82e6855b5d5bb8b2156f23df2d`, subject `feat(ms0): enforce module and contract boundaries`, sole parent `983843d3985c9391b5a030aeec17148658d48d69`.
+  - Reviewed full tree: `0c82e61d0a6c61e6bb4aaf3bb929ca315ff02816`.
+  - The final closeout amend changes only this ledger. The final commit SHA cannot self-reference; after amend the controller must verify the clean two-commit chain and prove the only delta from the reviewed subject is this ledger. Any source/test/config delta invalidates both approvals.
+- Final reviewer evidence:
+  - Targeted specification regression: APPROVED. The reviewer accepted the shared source-policy repair and its exact target-source violation binding, with no open specification issue.
+  - Same code-quality reviewer: Ready YES, no Critical, Important, or other blocking issue.
+  - The final clean reviewed source passed targeted extension `28/28`, full architecture `217/217`, focused contracts/architecture/plan-policy `275/275`, root scripts `302/302`, contracts `57/57`, standalone strict architecture typing, repository/workspace typecheck, eight-workspace build, production architecture, and Task 1 spec/freeze/Docker/Secret/artifact safety gates.
+- Accepted deliberate boundaries:
+  - `architecture:check` remains STRUCTURAL_CHECK / PASS only. It does not prove runtime IPC, RLS, transactions, process health, Electron sandbox, Harness execution, or MS0 closeout.
+  - Canonical selector suffixes, explicit `.js`/`.mjs`/`.cjs` mappings, and supported `exports` shapes are deliberately strict bounded subsets. New formats, patterns, or Node condition-selection semantics require an explicit constitution/test change; there is no filesystem or `dist` fallback.
+  - The static constant evaluator deliberately rejects expressions that exceed its node/step/string budgets, even if they could eventually evaluate safely. This is accepted fail-closed behavior, not a requirement to widen evaluation.
+- Scope and safety:
+  - This closeout changes only `reports/ms0-repository-constitution/checkpoints/PLAN_LEDGER.md`; no Task 2 source/test/config, Task 1 path, active plan, workflow, manifest, lockfile, or package file changes.
+  - No Task 3 file or command, push, Secret value read, freeze regeneration, or new MS implementation occurred.
+- Task 3 handoff:
+  - Next implementation action: create `scripts/evidence/validate.test.ts` and `scripts/harness/run-required-gates.test.ts` with the failing cases specified in Task 3 of the active plan.
+  - First verification only after both test files exist: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`.
+  - Expected first result: behavioral RED because the evidence validator and required-gate runner implementation are missing. A no-file or missing-test-path failure is not accepted RED evidence.
+- Pre-amend immutable staging checks:
+  - The index contained only this ledger; there were no unstaged or nonignored untracked paths, and cached whitespace passed.
+  - The first parallel Secret invocations returned only startup output without exit codes and are not evidence. Explicit serial reruns of immutable-index and full worktree/history/index Secret checks each returned exit 0 with `Secret boundary check passed`.
+  - After this staging result is written, restage this ledger, repeat exact-path/cached/index/full Secret checks, amend Task 2, then verify the final two-commit chain, clean status/diff, focused reviewer suites, production architecture, and full Secret without running any Task 3 command.

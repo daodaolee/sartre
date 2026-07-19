@@ -325,7 +325,7 @@ Expected: FAIL before validators exist.
 
 - [ ] **Step 3: Implement required-gate runner**
 
-The runner executes gates in declared order, preserves all attempts, stops closeout on any required non-PASS result, and writes a manifest plus human-readable report. Evidence metadata contains `subjectCommitSha`, `subjectTreeHash`, `dirtyWorktreeHash`, release version, image digest where applicable, Electron artifact hashes, schema version, environment id, tool versions, evidence level, status, and timestamps. The schema rejects evidence that tries to identify its own evidence commit as the tested subject.
+The runner executes gates in declared order, preserves all attempts, stops closeout on any required non-PASS result, and writes a manifest plus human-readable report. Evidence metadata contains `commitSha (tested subject commit)`, `subjectTreeHash`, `dirtyWorktreeHash`, release version, image digest where applicable, Electron artifact hashes, schema version, environment id, tool versions, evidence level, status, and timestamps. The schema rejects evidence that tries to identify its own evidence commit as the tested subject.
 
 - [ ] **Step 4: Prove fail-closed behavior**
 
@@ -654,7 +654,7 @@ git status --short
 git commit -m "chore(ms0): freeze repository constitution subject"
 ```
 
-Expected: the commit succeeds only if there are intentional staged subject changes; otherwise the existing clean `HEAD` becomes the subject without an empty commit. Record `subjectCommitSha`, `subjectTreeHash`, and the clean dirty-worktree hash outside tracked evidence until the evidence commit.
+Expected: the commit succeeds only if there are intentional staged subject changes; otherwise the existing clean `HEAD` becomes the subject without an empty commit. Record `commitSha (tested subject commit)`, `subjectTreeHash`, and the clean dirty-worktree hash outside tracked evidence until the evidence commit.
 
 - [ ] **Step 3: Prove clean-clone and CI reproducibility for the subject**
 
@@ -720,7 +720,7 @@ git add reports/ms0-repository-constitution plan/00-master-plan.md
 git commit -m "test(ms0): bind repository constitution evidence"
 ```
 
-The resulting evidence commit must have the subject commit as its sole parent. It records `subjectCommitSha=$SUBJECT_SHA`; it never records its own SHA as the tested subject and never triggers evidence regeneration merely because the evidence commit SHA now exists.
+The resulting evidence commit must have the subject commit as its sole parent. It records `commitSha=$SUBJECT_SHA` as the tested subject commit; it never records its own SHA as the tested subject and never triggers evidence regeneration merely because the evidence commit SHA now exists.
 
 - [ ] **Step 8: Verify the evidence commit, then create the verified tag**
 
