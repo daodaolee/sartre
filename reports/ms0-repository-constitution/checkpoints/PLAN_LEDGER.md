@@ -3,18 +3,18 @@
 - Goal: MS0 Repository Constitution and evidence baseline
 - Plan: `docs/superpowers/plans/2026-07-17-ms0-repository-constitution.md`
 - Status: IN_PROGRESS
-- Current task: Task 2 is DONE after final targeted specification regression APPROVED and the same code-quality reviewer reported Ready YES with no issues. MS0 remains IN_PROGRESS; Task 3 is unstarted
-- Last verified action: final reviewers accepted the Task 2 implementation on reviewed subject `c770b8b266aeea82e6855b5d5bb8b2156f23df2d` / tree `0c82e61d0a6c61e6bb4aaf3bb929ca315ff02816`; the controller authorized a ledger-only closeout amend with no Task 3 source or command
-- Evidence level: Task 2 contract/negative-control tests are REAL_TEST / PASS and `architecture:check` is STRUCTURAL_CHECK / PASS; Task 2 is approved, but neither result is MS0 closeout evidence
+- Current task: Task 3 DONE. The final targeted specification reviewer APPROVED the force-kill repair, and the same-quality reviewer reported no Critical, Important, or Minor issue and Ready to proceed for Task 3 closeout only. Task 4 has not started, and MS0 remains IN_PROGRESS
+- Last verified action: reviewed Task 3 code subject `1be5c3fd8fc5b0aedde1678e4a5dd93533677229` with sole parent `f5ba76b92a5116e58826e2094bfc84b88e8f6e2d` passed final targeted specification regression. The same-quality reviewer freshly passed combined focused `49/49`, root scripts `351/351`, and all eight workspace suites, then reported no finding. This ledger-only closeout changes no reviewed source/test/config; its future amended SHA cannot self-reference and must be bound by the controller after amend
+- Evidence level: Task 3 unit and CLI negative controls are REAL_TEST / PASS; `architecture:check` is STRUCTURAL_CHECK / PASS only. The Harness foundation is not MS0 closeout evidence
 - Required dependency: PostgreSQL 17.6 container `sartre-postgres-17-6` on `127.0.0.1:54326`
 - Secret source: ignored `/.local-secrets/development.env`; values must never be recorded here
 - Resume procedure:
   1. Read root `AGENTS.md`, `spec/README.md`, `plan/00-master-plan.md`, this ledger, and the implementation plan.
-  2. Run `git status --short --branch`; expect branch `codex/ms0-repository-constitution`, a clean worktree, and exactly two commits: `HEAD` subject `feat(ms0): enforce module and contract boundaries` with sole parent subject `chore(ms0): initialize repository constitution`.
-  3. The amended Task 2 commit cannot self-reference inside its own ledger entry. The controller must verify `git rev-parse HEAD`, `git rev-parse HEAD^`, and `git rev-list --count HEAD` after amend and treat that clean two-commit chain plus the subjects as the recovery identity.
+  2. Run `git status --short --branch` and `git log -3 --format='%H %P %s'`; after the Task 3 commit expect branch `codex/ms0-repository-constitution`, a clean worktree, and a three-commit chain whose subjects are `feat(ms0): add fail-closed evidence harness`, `feat(ms0): enforce module and contract boundaries`, then `chore(ms0): initialize repository constitution`.
+  3. The Task 3 commit cannot self-reference inside its own ledger entry. The controller must record the actual commit SHA after commit and verify that its sole parent is the approved Task 2 commit `f5ba76b92a5116e58826e2094bfc84b88e8f6e2d`.
   4. Task 2 is reviewer-approved. Any later Task 2 source/test/config change invalidates its fresh matrix and both approvals and requires the focused contracts/architecture/plan-policy suite, standalone strict architecture `tsc`, production `architecture:check`, full Secret, targeted specification regression, and code-quality re-review again.
-  5. Next implementation action for Task 3: create the failing tests `scripts/evidence/validate.test.ts` and `scripts/harness/run-required-gates.test.ts` exactly as specified by the active plan. Neither file exists yet.
-  6. First verification command only after both Task 3 test files exist: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`. Expected evidence is behavioral RED from missing validator/runner implementation, not a no-file or missing-test-path failure. Task 2 did not run this command.
+  5. Task 3 is DONE. Final targeted specification regression is APPROVED, and the same-quality reviewer reported no Critical, Important, or Minor issue. Any later Task 3 source/test/config change invalidates both approvals and requires the focused, repeated negative-history, strict typing, full-load, repository, architecture, Secret, targeted specification, and same-quality matrices again.
+  6. Task 4 has not started. After writing the required failing real PostgreSQL test and confirming the local dependency boundary without printing or recording any credential value, its first real verification command is `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts`. The positive dependency is exactly PostgreSQL 17.6 at `127.0.0.1:54326`; credential values remain only in ignored local input. Do not execute Task 4 in this Task 3 closeout session.
   7. Do not regenerate `reference/legacy-freeze/manifest.json`; later Task 8 independently reverifies the pre-implementation snapshot and reports `legacy_source_drift` rather than overwriting it.
 
 ## Entries
@@ -987,3 +987,251 @@
   - The index contained only this ledger; there were no unstaged or nonignored untracked paths, and cached whitespace passed.
   - The first parallel Secret invocations returned only startup output without exit codes and are not evidence. Explicit serial reruns of immutable-index and full worktree/history/index Secret checks each returned exit 0 with `Secret boundary check passed`.
   - After this staging result is written, restage this ledger, repeat exact-path/cached/index/full Secret checks, amend Task 2, then verify the final two-commit chain, clean status/diff, focused reviewer suites, production architecture, and full Secret without running any Task 3 command.
+
+### 2026-07-20 15:38 CST - Task 3 fail-closed Evidence/Harness foundation ready for commit
+
+- Status: IN_PROGRESS. Task 3 implementation and local verification are complete, but independent specification and code-quality approvals are still required. MS0 remains IN_PROGRESS; Task 4 has not started.
+- Scope:
+  - Added a validator that reuses the authoritative `packages/contracts` `EvidenceManifestSchema` with `commitSha` and compares the trusted gate declaration against the reported manifest and observed subject state.
+  - Added an exact-argv collector using `spawn` with `shell: false`. It rejects caller environment input, known environment/config dumps, shell executables, and non-allowlisted argv before execution; persists raw stdout/stderr only under the caller-specified raw log directory; and returns only hashes and redacted facts.
+  - Added the required-gate runner, contained regular config loading, contained output/raw-log boundaries, ordered execution, retained attempt history, fail-closed exception/SKIPPED handling, manifest output, and a human-readable report containing every attempt.
+  - Added `ms0.config.ts` as a deliberately BLOCKED foundation configuration. It does not run or claim future Task 4-9 capabilities and cannot be mistaken for MS0 closeout evidence.
+  - Added missing-command and required-SKIPPED CLI negative fixtures plus evidence schema version `1`.
+- TDD attempt history:
+  - Invalid precondition wrapper: `/usr/bin/test -f scripts/evidence/validate.test.ts && /usr/bin/test -f scripts/harness/run-required-gates.test.ts && pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`: exit 127 with `zsh:1: no such file or directory: /usr/bin/test`. Vitest did not start. This is NOT behavioral RED and is retained only as an invalid tool-path attempt.
+  - Valid behavioral RED: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`: exit 1. Both exact suites were discovered and failed because `./collect-command.js` and `./run-required-gates.js` production modules were absent; this is the accepted behavior RED.
+  - First production-presence GREEN attempt: the focused command exited 1 with `16 failed | 4 passed`. Root cause was combining the root Zod v3 runtime with the contracts package Zod v4 schemas in one envelope schema (`keyValidator._parse is not a function`). The implementation now performs a bounded manual envelope-shape check and delegates the manifest only to the authoritative contracts schema; no behavioral assertion was weakened.
+  - Production presence exposed TypeScript-only fixture narrowing defects (`null`-only observation fields, widened config literals, and zero-argument mock tuples). The tests received explicit fixture return types and mock parameters without changing any runtime assertion. Standalone strict typing then passed.
+- Fresh Task 3 evidence:
+  - `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`: exit 0, `2 files | 20 tests passed`.
+  - `pnpm exec tsx scripts/harness/run-required-gates.ts --config scripts/harness/fixtures/missing-command.ts`: exit 1. The required attempt is BLOCKED with `command_not_found`, `targetExecuted=false`, and no unhandled success.
+  - `pnpm exec tsx scripts/harness/run-required-gates.ts --config scripts/harness/fixtures/skipped-required.ts`: exit 1. The required SKIPPED attempt is retained and overall status is BLOCKED.
+  - `pnpm exec tsc --noEmit --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --module NodeNext --moduleResolution NodeNext --target ES2024 --types node scripts/evidence/validate.ts scripts/evidence/collect-command.ts scripts/evidence/validate.test.ts scripts/harness/run-required-gates.ts scripts/harness/run-required-gates.test.ts scripts/harness/ms0.config.ts scripts/harness/fixtures/missing-command.ts scripts/harness/fixtures/skipped-required.ts`: exit 0.
+  - `pnpm run format:check`: exit 0, 87 files checked. `pnpm run lint`: exit 0, 87 files checked.
+  - `pnpm run test`: exit 0, root scripts passed `13 files | 322 tests`, then all eight workspace suites passed, including contracts `57/57`.
+  - `pnpm run typecheck`: exit 0 across repository policy and all eight workspaces.
+  - `pnpm run build`: exit 0 across repository policy and all eight workspaces.
+  - `pnpm run architecture:check`: exit 0, STRUCTURAL_CHECK / PASS only.
+  - `pnpm run secret:check`: exit 0. `pnpm run secret:artifacts -- apps/electron-app/dist apps/hub-api/dist apps/hub-worker/dist apps/local-runtime/dist packages/contracts/dist packages/domain/dist packages/runtime-core/dist packages/sdk/dist`: exit 0 across all eight build roots.
+  - `git diff --check`: exit 0.
+- Evidence boundary:
+  - Task 3 proves the foundation's unit behavior and the two contained CLI failure modes. It is not MS0 closeout evidence, does not claim future gates PASS, and does not prove PostgreSQL, process health, diagnostic timelines, Electron packaging, or release evidence.
+  - `architecture:check` remains STRUCTURAL_CHECK and cannot be relabeled REAL_TEST.
+  - The authoritative manifest schema cannot encode per-gate attempt history, so the persisted Harness document keeps the strict manifest under `manifest` and the append-only attempt records under `attempts`; the human report also includes every attempt. Review must confirm this envelope is acceptable before Task 4.
+  - The collector executes only repository-declared exact argv and deliberately prohibits shell/config/environment-dump forms. Command-specific assertion extraction remains an explicit configured boundary, not an inference from output hashes.
+- Changed files: `scripts/evidence/validate.ts`, `scripts/evidence/collect-command.ts`, `scripts/evidence/validate.test.ts`, `scripts/harness/run-required-gates.ts`, `scripts/harness/run-required-gates.test.ts`, `scripts/harness/ms0.config.ts`, `scripts/harness/fixtures/missing-command.ts`, `scripts/harness/fixtures/skipped-required.ts`, `reports/ms0-repository-constitution/evidence/schema-version.txt`, and this ledger.
+- Next command after precise staging, immutable-index Secret verification, commit, and clean status verification: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`. Obtain independent Task 3 specification approval, then independent code-quality approval; do not enter Task 4 before both approve.
+
+### 2026-07-20 16:23 CST - Task 3 first specification-review trusted-boundary repair
+
+- Status: IN_PROGRESS. The first Task 3 specification review FAILED. All four confirmed blocker categories are repaired through focused TDD and fresh repository gates, but the existing Task 3 commit must be precisely amended and specification re-review must approve before code-quality review. MS0 remains IN_PROGRESS; Task 4 has not started.
+- Specification FAIL:
+  - The aggregate runner could return exit 0 for a required `STRUCTURAL_CHECK/PASS` while writing a nested `SCENARIO_REGISTERED/PASS` manifest rejected by the authoritative schema; the final aggregate was not schema-gated.
+  - CLI treated config subject strings and a constant null evidence commit as observation. Dirty mismatch and real evidence-child relationship checks were unreachable, while config could self-report assertions, failure mode, service state, and artifact facts.
+  - Config/caller argv self-authorized arbitrary execution. Raw output paths were not enforced inside contained `reports/**/raw` by the collector itself, intermediate symlinks were not preflighted before mutation, and Secret-bearing output could be persisted raw.
+  - Tool versions, Vitest counts, failure counts, assertions, and error codes were caller claims/defaults rather than facts extracted from executed fixed commands. Prior persisted attempts were cast without runtime validation.
+- Root-cause correction:
+  - Replaced caller argv/allowlist with one code-owned command registry. Config gates reference only fixed policy ids. The registry currently owns Node version, pnpm version, exact Task 3 focused Vitest, and the missing-command negative policy. Unknown ids and every extra caller/config field fail before execution.
+  - The collector now owns contained segment-by-segment `reports/**/raw` preflight, executes fixed argv with `spawn` and `shell:false`, scans combined output through the approved Secret boundary before any log write, stores only a safe repository-relative raw-log reference, and never returns raw stdout/stderr or an absolute local path.
+  - Bounded code-owned extractors parse observed Node/pnpm versions and Vitest passed/failed/skipped counts. Assertions, key assertions, failure counts, stable error codes, and known Vitest non-zero failure semantics come from the extractor, not config.
+  - Added physical Git subject observation. Declared commit/tree are verified with fixed Git argv; dirty state is SHA-256 over the approved `buildRepositoryWorktreeGitleaksInput(root)`, which covers physical tracked and nonignored-untracked state without reading ignored credential input. `subject-head` observes no evidence commit; `evidence-child` requires exactly one actual parent and passes the real HEAD evidence commit into validation.
+  - Config runtime validation rejects tool versions, argv, allowlists, assertions, failure claims, service claims, artifact claims, duplicate gates, unknown policies, and extra keys. Tool versions are collected separately through fixed version policies.
+  - Previous envelopes require an authoritative nested manifest plus runtime-valid attempt records before reuse. Final aggregate level is conservative (`STRUCTURAL_CHECK` when any successful attempt is structural); the nested manifest must parse through `EvidenceManifestSchema` before write. A schema-invalid success is converted to BLOCKED only if a valid BLOCKED manifest can be formed, otherwise the runner exits non-zero without writing invalid evidence.
+  - Config import, output writes, raw logs, and prior-envelope reads perform contained metadata preflight before import/read/mkdir/write. `ms0.config.ts` remains deliberately required-SKIPPED/BLOCKED and cannot claim Task 4-9 or MS0 closeout.
+- Grouped TDD evidence:
+  - RED command: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`: exit 1, both files discovered, `17 failed | 14 passed` across 31 tests. Failures covered aggregate structural schema gating, runtime config/previous-envelope validation, missing real Git observer, config-supplied Node environment dump/Git config/Git credential/profile-read argv, outside and symlinked raw paths, Secret output persistence, and absent tool/Vitest extractors. This was behavioral RED, not a syntax, no-file, or discovery error.
+  - Collector/validator GREEN: `pnpm exec vitest run scripts/evidence/validate.test.ts`: exit 0, `1 file | 21 tests passed`.
+  - Runner/Git observer GREEN: `pnpm exec vitest run scripts/harness/run-required-gates.test.ts`: exit 0, `1 file | 10 tests passed`.
+  - Combined GREEN: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`: exit 0, `2 files | 31 tests passed`.
+  - Missing command CLI: `pnpm exec tsx scripts/harness/run-required-gates.ts --config scripts/harness/fixtures/missing-command.ts`: exit 1 after observing real subject and Node `v24.11.0`/pnpm `10.33.2`; the new attempt is BLOCKED with `command_not_found` and `targetExecuted=false`.
+  - Required SKIPPED CLI: `pnpm exec tsx scripts/harness/run-required-gates.ts --config scripts/harness/fixtures/skipped-required.ts`: exit 1 after the same real subject/tool observation; the required attempt records `required_gate_skipped` and overall BLOCKED.
+  - Standalone strict Task 3 `tsc` command from the prior checkpoint, covering all eight Task 3 source/test/config paths, exited 0 after this repair.
+- Repository gate attempt history:
+  - Fresh `pnpm run format:check` and `pnpm run lint`: exit 0, 87 files and no fixes/warnings. `pnpm run typecheck`: exit 0 across repository policy and all eight workspaces. `pnpm run architecture:check`: exit 0 and remains STRUCTURAL_CHECK only.
+  - First fresh `pnpm run test`: exit 1 with `2 failed | 331 passed`. Both failures were the new real-Git subject cases exceeding Vitest's default 5-second case timeout under full 13-file parallel load (`6.49s` and `8.73s`), with no assertion mismatch. Focused runner had passed `10/10` in `4.38s`.
+  - Only those two real-Git cases received local 15-second timeouts; no global timeout or assertion changed. Focused runner reran exit 0, `10/10` in `4.99s`. Fresh full `pnpm run test` then exited 0: root scripts `13 files | 333 tests`, followed by all eight workspace suites including contracts `57/57`.
+  - `pnpm run build`: exit 0 across repository policy and all eight workspaces. Post-build `pnpm run architecture:check`: exit 0, STRUCTURAL_CHECK only.
+  - Full `pnpm run secret:check`: exit 0. Explicit eight-root `pnpm run secret:artifacts -- apps/electron-app/dist apps/hub-api/dist apps/hub-worker/dist apps/local-runtime/dist packages/contracts/dist packages/domain/dist packages/runtime-core/dist packages/sdk/dist`: exit 0. `git diff --check`: exit 0.
+- Risks and boundaries:
+  - Adding an executable command requires an explicit registry and test change; config cannot widen execution dynamically.
+  - Output Secret rejection uses the approved repository supplemental Secret detector before persistence. Raw logs remain ignored local diagnostics; no raw output enters the tracked envelope.
+  - The physical worktree binding deliberately covers tracked and nonignored-untracked physical content and excludes ignored credential input. It is not a replacement for the separate full/index Secret gates.
+  - The persisted envelope remains `{ manifest, attempts }`, but the nested manifest is now independently authoritative-schema valid on every write, and attempts are runtime validated. This remains Task 3 foundation evidence, not MS0 closeout.
+  - `architecture:check` remains STRUCTURAL_CHECK and does not prove runtime Harness, PostgreSQL, process, Electron, or release behavior.
+- Pre-amend immutable staging:
+  - The index contained exactly the eight changed Task 3/ledger paths listed below, with no unstaged or nonignored untracked path. Cached whitespace and the exact eight-path assertion exited 0.
+  - `pnpm run secret:check -- --index`: exit 0 with `Secret boundary check passed`. A fresh full `pnpm run secret:check` over the same staged worktree also exited 0.
+  - This ledger-only staging-result addition is restaged and the cached/full Secret checks are repeated before amend; startup-only output without a final exit code is not accepted.
+- Changed paths: `scripts/evidence/collect-command.ts`, `scripts/evidence/validate.test.ts`, `scripts/harness/run-required-gates.ts`, `scripts/harness/run-required-gates.test.ts`, `scripts/harness/ms0.config.ts`, `scripts/harness/fixtures/missing-command.ts`, `scripts/harness/fixtures/skipped-required.ts`, and this ledger. No Task 1/2 source, authority plan/workflow/spec, freeze manifest, Task 4, or MS1 path changed.
+- Next after precise staging, immutable-index/full Secret verification, and amend: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`; then rerun both negative CLIs and obtain fresh Task 3 specification re-review. Do not start code-quality review or Task 4 before specification approval.
+
+### 2026-07-20 16:53 CST - Task 3 second specification-review prior-history repair
+
+- Status: IN_PROGRESS. The second Task 3 specification re-review independently accepted the four prior trusted-boundary repairs but FAILED on one remaining HIGH: persisted attempts were shape-checked but not semantically rebound or revalidated. The scoped repair is locally GREEN and awaits amend plus another specification re-review. Code-quality review, Task 4, and MS1 have not started.
+- Confirmed HIGH and root cause:
+  - A forged historical `REAL_TEST/PASS` attempt with a schema-valid command/assertion, `targetExecuted=false`, `failureModeVerified=false`, and empty stored `validationIssues` passed because only `isGateAttempt` shape ran. A later valid attempt allowed overall PASS/exit 0.
+  - Historical gate id, required declaration, evidence declaration, and command argv were not rebound to the current gate and code-owned policy.
+  - The persisted nested manifest was parsed for shape only and then discarded by the loader. Its subject/schema/release/artifact/environment/tool binding was never compared with the current declared and observed subject.
+  - Stored `validationIssues` were trusted rather than overwritten by the current `validateAttempt` path.
+- Mandatory behavioral RED:
+  - `pnpm exec vitest run scripts/harness/run-required-gates.test.ts`: exit 1, suite discovered, `6 failed | 10 passed` across 16 tests. The forged REAL_TEST history returned exit 0; unknown gate, required mismatch, declared evidence mismatch, code-owned policy argv mismatch, and stale subject manifest all resolved PASS rather than failing closed. This was not a syntax, fixture, or discovery failure.
+- Scoped correction:
+  - Persisted-envelope loading now retains both the authoritative parsed nested manifest and attempts. Nonempty attempt history without a valid manifest fails closed.
+  - The previous manifest is rebound exactly to current schema version, subject commit/tree/dirty hash, independently observed dirty hash, release version, image digest, Electron artifact hash, environment id, and freshly observed Node/pnpm versions.
+  - Every historical attempt must map to an existing current gate. Persisted `required` and `declaredEvidenceLevel` must equal the current declaration. Any historical command must match the current code-owned policy argv through the registry matcher; config allowlists were not reintroduced.
+  - Every accepted historical attempt has stored `validationIssues` overwritten by the same current `validateAttempt` path and current dirty/evidence-commit facts before it enters aggregate status.
+  - Added `declaredEvidenceLevel` as an explicit persisted declaration separate from the observed evidence level. This preserves truthful required-SKIPPED attempts (`declaredEvidenceLevel=REAL_TEST`, observed `evidenceLevel=SKIPPED`) without weakening declaration rebinding.
+  - Negative fixture manifest/report paths are keyed by actual subject commit plus physical dirty hash under contained ignored `reports/**/raw`. A new subject never silently consumes stale history; repeated runs of the same subject append non-destructively.
+- Repeated-SKIPPED integration attempt:
+  - After the first history repair, focused runner was `16/16` and combined Task 3 was `37/37`. The first missing/SKIPPED CLI runs each exited 1 for the intended reason.
+  - A same-subject second missing-command run remained intended exit 1, but the second required-SKIPPED run exited 1 early with `previous_attempts_invalid`. Root cause: the observed `SKIPPED` evidence level was incorrectly reused as the declaration level.
+  - Added a focused repeated-SKIPPED control before the declaration-field repair. RED: runner exit 1 with `1 failed | 16 passed`, stable `previous_attempts_invalid`. After adding independent `declaredEvidenceLevel`, runner passed `17/17`.
+- Fresh Task 3 evidence:
+  - `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`: exit 0, `2 files | 38 tests passed`.
+  - Both exact negative CLI commands ran twice on the same current subject. All four invocations exited 1 without subject/tool/history preflight failure. The newest subject-keyed missing manifest contains two `missing-required-command` attempts with `command_not_found` and `targetExecuted=false`; the skipped manifest contains two `skipped-required-gate` attempts with `required_gate_skipped` and `targetExecuted=false`.
+  - First standalone strict Task 3 `tsc` attempt after the new tests exited 2 on four test-only implicit-any callback parameters caused by intentional invalid-fixture casts. After explicit `RequiredGate` annotations, a second run found one remaining identical callback; after the final behavior-preserving annotation, the full strict command exited 0. No runtime assertion or production type was weakened.
+  - Fresh combined Task 3 focused test after the type/format corrections remained `38/38`.
+- Fresh repository evidence:
+  - Final `pnpm run format:check` and `pnpm run lint`: exit 0 across 87 files. Repository/workspace `pnpm run typecheck`: exit 0.
+  - `pnpm run test`: exit 0, root scripts `13 files | 340 tests`, followed by all eight workspace suites including contracts `57/57`.
+  - `pnpm run build`: exit 0 across repository policy and all eight workspaces. `pnpm run architecture:check`: exit 0 and remains STRUCTURAL_CHECK only.
+  - Full `pnpm run secret:check`: exit 0. Explicit eight-build-root artifact Secret scan: exit 0. `git diff --check`: exit 0 before staging.
+- Boundaries and risks:
+  - Same-subject attempt history is append-only and revalidated; a changed commit or physical dirty state receives a distinct fixture path and stale subject metadata is rejected rather than deleted or bypassed.
+  - Historical observed `evidenceLevel` remains truthful, while `declaredEvidenceLevel` is the field rebound to the current gate. Required SKIPPED remains BLOCKED and carries both `required_gate_skipped` and evidence mismatch semantics.
+  - Tool observation, command registry, raw-path/Secret boundaries, aggregate authoritative-schema gate, and real Git subject/evidence-child observation from the first repair remain unchanged and GREEN.
+  - This is Task 3 foundation evidence only. `architecture:check` remains STRUCTURAL_CHECK; PostgreSQL, process, Electron, release, Task 4, and MS1 remain out of scope.
+- Pre-amend immutable staging:
+  - The index contained exactly the six changed Task 3/ledger paths listed below, with no unstaged or nonignored untracked path. Cached whitespace and exact six-path assertions exited 0.
+  - Immutable-index `pnpm run secret:check -- --index` and fresh full `pnpm run secret:check` each exited 0 with `Secret boundary check passed`.
+  - This staging-result ledger delta is restaged and both Secret commands are repeated before amend; no startup-only output is treated as evidence.
+- Changed paths: `scripts/evidence/collect-command.ts`, `scripts/harness/run-required-gates.ts`, `scripts/harness/run-required-gates.test.ts`, both negative fixture configs, and this ledger. No validator, Task 1/2 source, authority spec/workflow/plan, freeze, Task 4, or MS1 path changed.
+- Next after exact staging, immutable-index/full Secret verification, and amend: `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`; then rerun both subject-keyed negative CLIs and request another independent Task 3 specification re-review. Do not enter code-quality review or Task 4 before approval.
+
+### 2026-07-20 - Task 3 code-quality WITH FIXES repair
+
+- Status: IN_PROGRESS. The third specification re-review APPROVED the prior-history trust repair. The independent code-quality review returned WITH FIXES: five Important findings and one Minor finding. These repairs require targeted specification regression then same-quality re-review. Task 3 remains IN_PROGRESS, Task 4 has not started, and MS1 is out of scope.
+- Quality-review findings and root causes:
+  - Required child commands had neither a policy-owned timeout nor an output-size cap, so a hang or unbounded stdout/stderr could keep the Harness alive indefinitely or exhaust memory without a truthful BLOCKED attempt.
+  - Aggregate commands were concatenated by source rather than time; a previous PASS followed by a current pre-command failure could produce `finishedAt < startedAt`, fail authoritative schema parsing as `aggregate_manifest_invalid`, and lose the new BLOCKED attempt.
+  - Optional attempts entered the authoritative manifest even though only required gates determine closeout. An optional FAIL or SKIPPED could therefore block or invalidate a required-only PASS.
+  - Manifest/report persistence used direct overwrite. Interruption after truncation could destroy the previous append-only envelope, and the write target was not rebound atomically at rename time.
+  - This ledger still directed recovery to the second specification failure even though the third specification re-review had approved and code-quality review had begun.
+  - Minor path-portability issue: Node evidence persisted the absolute `process.execPath`, and prior `rawLogReference` values were not restricted to a safe repository-relative POSIX `reports/**/raw/**` path.
+- Mandatory quality RED:
+  - `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`: exit 1, both suites discovered, `11 failed | 37 passed` across 48 tests. Failures covered absolute Node argv, real hang/output-flood controls, prior-PASS/current-pre-command timestamp ordering, optional FAIL/SKIPPED isolation, unsafe raw references, atomic persistence, and this stale ledger. This was behavioral RED, not a discovery or syntax failure.
+- Scoped repairs:
+  - Command policies now separate the actual executable argv from stable logical evidence argv. Node persists `node --version`; code-owned policies also own `timeoutMs` and `maxOutputBytes`.
+  - The POSIX runner creates a separate process group and terminates the group on timeout or output overflow, first with `SIGTERM` and then `SIGKILL`. Stable failures are `command_timed_out` and `command_output_limit_exceeded`; aborted commands do not persist raw logs. Fixed hang and flood policies exist only for the real negative controls.
+  - Authoritative commands are ordered by observed timestamps. Aggregate `startedAt` is the minimum command start and `finishedAt` is the maximum finish, so a previous PASS plus current pre-command failure retains the new BLOCKED attempt rather than becoming `aggregate_manifest_invalid`.
+  - Only required attempts, plus the required tool observations, contribute to the authoritative manifest and its evidence level. Optional attempts remain append-only in the envelope, report, and history but do not block or contaminate required closeout.
+  - New `scripts/harness/atomic-write.ts` performs canonical-parent containment preflight, unique same-directory `O_CREAT|O_EXCL` temp creation, write, file fsync, close, atomic rename, and supported parent-directory fsync. A pre-rename failure removes only the temp and preserves the prior manifest bytes.
+  - Historical `rawLogReference` is accepted only as a repository-relative POSIX path under `reports/**/raw/**`, with no absolute path, backslash, empty segment, `.` segment, or `..` segment.
+  - The ledger now records the approved specification state and active quality repair without claiming final quality approval.
+- First runtime GREEN attempt after the production repairs:
+  - `pnpm exec vitest run scripts/harness/run-required-gates.test.ts`: exit 1, `24 passed | 1 failed` across 25 tests. All runtime hang/flood, aggregate-ordering, optional-gate, raw-reference, and atomic-write controls passed; only the intentional stale-ledger assertion failed. No retry was layered before updating the ledger.
+- Heartbeat synchronization regression and repair:
+  - After the ledger update, the exact runner suite passed `25/25`. The next combined focused command exited 1 with `1 failed | 47 passed`: the real hang test reached post-timeout heartbeat polling but `stat(heartbeatPath)` returned `ENOENT`. The command completed in 2.00s and did not itself hang.
+  - Root cause: the 150ms fixture timeout included parent and grandchild scheduling, while the grandchild delayed its first heartbeat write until the first interval tick. Under the two-suite worker schedule, the group could be terminated before the heartbeat was ever created, so the test did not establish that a descendant had reached its observable lifecycle state.
+  - Diagnostic isolation of the exact hang case passed `1/1`, confirming the combined scheduling race. The fixture grandchild now writes its first heartbeat synchronously and the code-owned fixture timeout is 1,000ms, still bounded by the unchanged test requirement of less than 2,000ms. The test continues to require an existing heartbeat that stops growing and an empty command raw-log directory; `ENOENT` is not treated as successful termination.
+  - Fresh targeted hang control passed `1/1` in 1.30s. Fresh combined focused verification then passed `48/48` in 2.11s.
+- Fresh quality-repair verification matrix before staging:
+  - Both exact negative CLI commands ran twice on the same physical subject. All four invocations exited 1 for the intended fail-closed reason. The current missing-command envelope retains two BLOCKED attempts with `command_not_found` and `targetExecuted=false`; the required-SKIPPED envelope retains two SKIPPED attempts with `required_gate_skipped`, `targetExecuted=false`, observed `evidenceLevel=SKIPPED`, and declared `declaredEvidenceLevel=REAL_TEST`. Neither repeat failed history preflight or overwrote the first attempt.
+  - Standalone strict Task 3 `tsc`, including `scripts/harness/atomic-write.ts` and all Task 3 source/test/config/negative-fixture paths, exited 0.
+  - The first `pnpm run format:check` exited 1 only for Biome layout in `scripts/evidence/collect-command.ts`, `scripts/harness/atomic-write.ts`, and `scripts/harness/run-required-gates.ts`; concurrent `pnpm run lint` exited 0. Exact-file `biome format --write` changed only layout. Fresh repository `format:check` and `lint` then each exited 0 across 88 files.
+  - `pnpm run test`: exit 0. Root scripts passed `13 files | 350 tests`; all eight workspace suites passed, including contracts `57/57`.
+  - `pnpm run typecheck` and `pnpm run build`: exit 0 across repository policy and all eight workspaces. Post-build `pnpm run architecture:check`: exit 0 and remains STRUCTURAL_CHECK only.
+  - Full `pnpm run secret:check`: exit 0 with `Secret boundary check passed`. Explicit artifact Secret scan across all eight build roots: exit 0.
+  - `git diff --check`: exit 0. The only dirty paths are the five tracked Task 3/ledger files plus new `scripts/harness/atomic-write.ts`; no fixture, authority, Task 1/2, Task 4, or MS1 path changed.
+- Pre-amend immutable staging:
+  - The index contained exactly the six expected paths: `scripts/evidence/collect-command.ts`, `scripts/evidence/validate.test.ts`, new `scripts/harness/atomic-write.ts`, `scripts/harness/run-required-gates.ts`, `scripts/harness/run-required-gates.test.ts`, and this ledger. Cached whitespace, the exact path-set assertion, absence of unstaged changes, and absence of nonignored untracked paths all exited 0.
+  - Immutable-index `pnpm run secret:check -- --index` and fresh full `pnpm run secret:check` each exited 0 with `Secret boundary check passed`.
+  - This staging-result ledger delta is restaged and cached/exact-path/index/full Secret checks are repeated before amend; startup-only output is not accepted as evidence.
+- Current risks and boundaries:
+  - Process-group termination is exercised on POSIX. Non-POSIX fallback still terminates only the direct child and must not be represented as equivalent descendant-process containment.
+  - Parent-directory fsync is performed only where supported; atomic same-directory rename and prior-byte preservation are the portable correctness boundary.
+  - Optional attempt history is diagnostic evidence only and cannot authorize or raise the authoritative manifest evidence level.
+  - These changes remain Task 3 Harness foundation only. They do not prove PostgreSQL, process health, Electron, release, Task 4, MS0 closeout, or MS1 behavior. `architecture:check` remains STRUCTURAL_CHECK.
+- Changed paths currently expected: `scripts/evidence/collect-command.ts`, `scripts/evidence/validate.test.ts`, `scripts/harness/atomic-write.ts`, `scripts/harness/run-required-gates.ts`, `scripts/harness/run-required-gates.test.ts`, and this ledger. No fixture, Task 1/2 source, authority spec/workflow/plan, freeze manifest, Task 4, or MS1 path is changed.
+- Next command: `pnpm exec vitest run scripts/harness/run-required-gates.test.ts`. On `25/25`, run `pnpm exec vitest run scripts/evidence/validate.test.ts scripts/harness/run-required-gates.test.ts`, both exact negative CLIs twice on the same subject, strict Task 3 typing including `scripts/harness/atomic-write.ts`, and the full repository/staging/post-amend matrix. Then request targeted specification regression followed by same-quality re-review; do not claim Task 3 DONE before both approve.
+
+### 2026-07-20 - Task 3 targeted specification regression ledger-only repair
+
+- Status: IN_PROGRESS. The same targeted specification reviewer found the quality-repair code paths GREEN and reported exactly one remaining HIGH: active PLAN_LEDGER recovery drift. This ledger-only repair still awaits post-amend confirmation from that reviewer, followed by same-quality re-review. Neither final specification nor final quality approval is claimed; Task 3 remains IN_PROGRESS and Task 4 has not started.
+- Targeted specification regression evidence:
+  - Fresh combined focused validation passed `48/48` on the clean amended Task 3 subject.
+  - Both subject-keyed negative CLIs were repeated and retained their intended two-attempt histories: missing command remained BLOCKED with `command_not_found`, and required SKIPPED remained BLOCKED with `required_gate_skipped` and separate declared versus observed evidence levels.
+  - The deliberately incomplete `ms0.config.ts` remained BLOCKED and did not run or authorize a future gate.
+  - Strict Task 3 typing and repository format/lint/test/typecheck/build/architecture gates remained GREEN. Full, index, and artifact Secret checks also remained GREEN.
+  - Subject and parent identity, plus the Task 3 scope, remained verified. No code/spec contract issue was reported.
+- Sole HIGH and root cause:
+  - The active `Last verified action` still said “the existing Task 3 commit still requires precise amend” after the quality repair had already been amended.
+  - Active resume step 5 still described the five Important and one Minor findings as “under repair”, and step 6 pointed to the already-completed runner-only `25/25` command plus pre-amend matrix.
+  - Root cause: the pre-amend quality checkpoint was preserved correctly as history, but its transitional wording was also left in the active top/recovery fields after amend. A resumed controller would repeat completed work instead of returning to reviewer confirmation.
+- Ledger-only correction:
+  - Active state now distinguishes the prior-history specification approval, code-quality WITH FIXES result, implemented/amended quality repair, code-GREEN targeted regression, and this sole recovery-document repair.
+  - Active recovery now begins after this ledger-only amend: bind the clean three-commit chain and fixed Task 2 parent, rerun focused `48/48` plus index/full Secret, obtain confirmation from the same specification reviewer, then return to the same code-quality reviewer.
+  - Historical checkpoints, including the original quality RED, heartbeat ENOENT attempt, staging evidence, and previous Next commands, remain append-only and are not rewritten.
+- Scope: only `reports/ms0-repository-constitution/checkpoints/PLAN_LEDGER.md` changes. No Task 3 source/test/config/fixture, authority spec/workflow/plan, Task 1/2, freeze manifest, Task 4, or MS1 path changes; no negative CLI rerun is required unless focused verification fails.
+- Resume after ledger-only amend: verify clean branch `codex/ms0-repository-constitution`, exactly three commits, Task 3 subject `feat(ms0): add fail-closed evidence harness`, and sole parent `f5ba76b92a5116e58826e2094bfc84b88e8f6e2d`; then run the combined focused `48/48`, immutable-index and full Secret checks, and request same-reviewer specification confirmation followed by same-quality re-review. Do not enter Task 4 before both approve.
+
+### 2026-07-20 - Task 3 process-group force-kill quality repair
+
+- Status: IN_PROGRESS. The same specification reviewer confirmed the preceding ledger-only repair and all targeted code paths. The first same-quality re-review still returned WITH FIXES on exactly one Important process-lifecycle defect. The scoped correction is locally GREEN and is amended into the same Task 3 subject, but targeted specification regression and same-quality re-review must both approve before Task 3 can close. Task 4 and MS1 have not started.
+- Confirmed quality defect:
+  - Timeout/output-overflow termination sent group `SIGTERM` and scheduled group `SIGKILL` after a grace period, but direct-parent `close` immediately settled the Promise and `cleanup` cleared the force timer.
+  - A descendant that ignored `SIGTERM` therefore survived after its leader exited. The original descendant obeyed `SIGTERM`, so the earlier hang test did not exercise the force phase.
+  - The same reviewer independently observed focused `48/48`, but both `pnpm run test` and direct `vitest run scripts` failed the real hang case under full-suite load. Those failures are retained as reviewer evidence; they are not overwritten by later GREEN runs.
+- Deterministic TDD controls:
+  - The code-owned hang descendant now installs an explicit `SIGTERM` ignore handler, synchronously writes a ready PID, starts heartbeat, and owns an 8-second self-exit failsafe. The policy timeout is a bounded 3 seconds and each real lifecycle test owns a 15-second local timeout.
+  - The test begins collection without awaiting it, polls the ready marker, proves heartbeat growth, then evaluates termination. A `finally` block force-cleans the recorded descendant PID and verifies no process residue, so RED cannot leave a permanent orphan.
+  - Exact primary RED: `pnpm exec vitest run scripts/evidence/validate.test.ts -t "force-kills a ready SIGTERM-ignoring descendant after the direct parent closes"` exited 1 with the suite discovered, `1 failed | 23 skipped`. The collector returned `command_timed_out`, but heartbeat never became stable; the assertion received `false` instead of `true`. Cleanup completed and the test itself did not time out.
+  - Exact signal-error RED: `pnpm exec vitest run scripts/evidence/validate.test.ts -t "returns a stable error when forced process-group signaling fails"` exited 1 with `1 failed | 23 skipped`. It received `command_timed_out` instead of the required stable `command_termination_failed`; cleanup again completed.
+- Scoped lifecycle correction:
+  - Termination state and Promise settlement are now separate. Once termination starts, parent `close` or `error` cannot settle or cancel the force phase.
+  - After the grace period the POSIX group receives `SIGKILL` even if the leader has closed. `ESRCH` is a safe terminal result; false returns or any other signal error settle once with `command_termination_failed`, never throw from a timer or event callback.
+  - Normal exit, spawn error, timeout, output overflow, parent-close-before-force, successful force, and force-signal error all converge through exactly-once settle helpers that own listener and timer cleanup.
+  - Abort paths still reject before raw-log persistence. Output cap semantics and stable `command_output_limit_exceeded` behavior are unchanged.
+- Fresh GREEN and load-stability evidence:
+  - Primary forced-descendant control passed three consecutive exact invocations, each `1 passed | 23 skipped`, with test durations between 3.63s and 3.64s. The stable force-signal-error control passed `1 passed | 23 skipped` in 3.13s.
+  - Combined focused validation passed `49/49` in 7.12s.
+  - Two serial `pnpm run test` invocations each exited 0. Root scripts passed `13 files | 351 tests` in 23.06s and 20.61s respectively; all eight workspace suites passed on both runs, including contracts `57/57`.
+  - Standalone strict Task 3 `tsc`, including all Task 3 source/test/config/fixture paths and `scripts/harness/atomic-write.ts`, exited 0.
+  - Initial format verification exited 1 only for new test layout; lint exited 0 but reported two `boolean | void` style warnings. Exact layout formatting plus the equivalent `boolean | undefined` signature removed both warnings. Fresh format and lint then each exited 0 across 88 files.
+  - Repository/workspace typecheck and build exited 0. Post-build `architecture:check` exited 0 and remains STRUCTURAL_CHECK only.
+  - After this checkpoint's active-ledger update, combined focused validation remained `49/49` in 7.15s.
+  - Both exact negative CLI commands ran twice on the same physical subject. All four invocations exited 1 for the intended fail-closed reason. The missing-command envelope retains two BLOCKED `command_not_found` attempts with `targetExecuted=false`; the required-SKIPPED envelope retains two `required_gate_skipped` attempts with `targetExecuted=false`, observed `SKIPPED`, and declared `REAL_TEST`.
+  - Fresh full repository Secret check exited 0. Explicit artifact Secret scan across all eight build roots exited 0. `git diff --check` exited 0.
+  - The dirty path set is exactly `scripts/evidence/collect-command.ts`, `scripts/evidence/validate.test.ts`, and this ledger. There is no nonignored untracked path or source/test/config change outside Task 3.
+- Pre-amend immutable staging:
+  - The index contained exactly the three expected Task 3 paths, with cached whitespace clean, no unstaged change, and no nonignored untracked path.
+  - Immutable-index and fresh full Secret checks each exited 0 with `Secret boundary check passed`.
+  - This staging-result ledger delta is restaged and the exact path/cached/index/full checks are repeated before amend; startup-only output is not evidence.
+- Remaining platform boundary:
+  - Real ready/growth/force/stability/orphan assertions prove process-group cleanup on POSIX. Win32 still uses direct-child termination only and is explicitly non-equivalent; this Task 3 repair does not claim descendant containment there.
+  - The descendant PID and heartbeat are contained test diagnostics under ignored raw directories and never enter tracked evidence or reports.
+- Changed paths: `scripts/evidence/collect-command.ts`, `scripts/evidence/validate.test.ts`, and this ledger only. No Harness runner/config/fixture file, Task 1/2 source, authority spec/workflow/plan, freeze manifest, Task 4, or MS1 path changes.
+- Resume after amend: verify clean branch, exact three-commit chain, fixed Task 2 parent, combined `49/49`, a fresh full-root stability run, and full/index Secret checks. Then request targeted specification regression from the same reviewer; only after APPROVED return to the same-quality reviewer. No Task 4 or MS1 work is authorized.
+
+### 2026-07-20 - Task 3 dual-review approved, ledger-only closeout
+
+- Status: DONE. This closes Task 3 only. Task 4 has not started, MS0 remains IN_PROGRESS, and Ready to proceed is limited to this ledger-only Task 3 closeout.
+- Reviewed subject binding:
+  - Immutable reviewed Task 3 code subject: `1be5c3fd8fc5b0aedde1678e4a5dd93533677229`, subject `feat(ms0): add fail-closed evidence harness`.
+  - Subject tree: `ce272f46bbf9a0fed7ab42ac730b2140b3b82442`.
+  - Sole parent: approved Task 2 commit `f5ba76b92a5116e58826e2094bfc84b88e8f6e2d`.
+  - This closeout amend changes only this ledger. The final Task 3 commit SHA cannot self-reference; the controller must verify the clean three-commit chain and prove that the only delta from the reviewed subject is this ledger. Any source/test/config delta invalidates both approvals.
+- Final reviewer evidence:
+  - The same targeted specification reviewer APPROVED the process-group force-kill repair and found no remaining specification issue.
+  - The same-quality reviewer freshly ran combined focused validation at `49/49`, root scripts at `351/351`, and all eight workspace suites successfully. Critical: none. Important: none. Minor: none. Ready to proceed: yes, limited to Task 3 closeout.
+- Accepted boundaries and residual risks:
+  - POSIX has real ready/growth/force/stability/orphan evidence for a descendant that ignores `SIGTERM`; group `SIGKILL` completes the bounded termination phase.
+  - Win32 still guarantees direct-child termination only and is not equivalent descendant-process containment. A future Win32 requirement needs a platform-specific process-tree mechanism and REAL_TEST.
+  - `architecture:check` remains STRUCTURAL_CHECK only. Task 3 is Harness foundation evidence, not PostgreSQL, process-health, Electron, release, or MS0 closeout evidence.
+  - Optional attempt history remains diagnostic only and cannot authorize or raise the authoritative manifest evidence level. Raw lifecycle diagnostics stay contained and ignored.
+- Scope: only `reports/ms0-repository-constitution/checkpoints/PLAN_LEDGER.md` changes. No Task 3 source/test/config/fixture, authority spec/workflow/plan, Task 1/2, freeze manifest, Task 4, or MS1 path changes.
+- Task 4 dependency boundary and handoff:
+  - Required positive dependency: exact PostgreSQL 17.6 at `127.0.0.1:54326`, using a unique disposable database. Credential values remain only in ignored `/.local-secrets/development.env` and must never enter the ledger, command output, reports, fixtures, or Git.
+  - The later negative version-gate target is the existing local PostgreSQL 17.10 at port 55432 and must remain read-only; it is not the first Task 4 action.
+  - After creating `scripts/postgres/postgres.integration.test.ts`, the first real verification command is `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts`. Expected first result is behavioral RED because the migration runner/version gate does not exist. A missing test file, missing dependency, unreachable database, syntax error, or no-discovery result is not accepted RED.
+  - Do not execute that command or begin Task 4 in this Task 3 closeout session.
