@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["./*.ts", "../../apps/hub-api/src/infrastructure/database/schema-compatibility.ts"]
+}

@@ -3,19 +3,19 @@
 - Goal: MS0 Repository Constitution and evidence baseline
 - Plan: `docs/superpowers/plans/2026-07-17-ms0-repository-constitution.md`
 - Status: IN_PROGRESS
-- Current task: Task 3 DONE. The final targeted specification reviewer APPROVED the force-kill repair, and the same-quality reviewer reported no Critical, Important, or Minor issue and Ready to proceed for Task 3 closeout only. Task 4 has not started, and MS0 remains IN_PROGRESS
-- Last verified action: reviewed Task 3 code subject `1be5c3fd8fc5b0aedde1678e4a5dd93533677229` with sole parent `f5ba76b92a5116e58826e2094bfc84b88e8f6e2d` passed final targeted specification regression. The same-quality reviewer freshly passed combined focused `49/49`, root scripts `351/351`, and all eight workspace suites, then reported no finding. This ledger-only closeout changes no reviewed source/test/config; its future amended SHA cannot self-reference and must be bound by the controller after amend
-- Evidence level: Task 3 unit and CLI negative controls are REAL_TEST / PASS; `architecture:check` is STRUCTURAL_CHECK / PASS only. The Harness foundation is not MS0 closeout evidence
+- Current task: Task 4 PostgreSQL 17.6 migration/version gate is DONE after independent targeted specification and code-quality re-reviews approved the final compose fail-closed repair. Task 5 has not started, MS0 remains IN_PROGRESS, and MS1 remains out of scope
+- Last verified action: reviewed Task 4 subject `3499234bcf079ba7aedd664fd513a07bd9713429` retained sole parent `bf4a2c0e615da0bae0ad39e249299a4976a3834d`. Targeted specification re-review passed Compose `42/42`, rendered policy, and the original `volumes_from` plus external-volume bypass probe; targeted code-quality re-review reported no Critical or Important issue. This ledger-only closeout must be the only delta from that reviewed subject, and the controller must bind the final amended SHA after amend
+- Evidence level: Task 4 PostgreSQL and Migration Job behavior is REAL_TEST / PASS; compose rejection controls are AUTOMATED_BEHAVIOR / PASS; rendered Compose and `architecture:check` remain STRUCTURAL_CHECK / PASS only. The broader Migration Job `/app` third-party dependency scan remains explicitly non-PASS; repository-owned payload Secret evidence is PASS. No Task 5 process-health or MS0 closeout claim is made
 - Required dependency: PostgreSQL 17.6 container `sartre-postgres-17-6` on `127.0.0.1:54326`
-- Secret source: ignored `/.local-secrets/development.env`; values must never be recorded here
+- Secret source: ignored `/.local-secrets/development.env`; values must never be recorded here. Task 4 did not read it: the repo-owned database uses explicit loopback-only local-integration `trust`, guarded by a fail-closed compose policy that prohibits production reuse
 - Resume procedure:
-  1. Read root `AGENTS.md`, `spec/README.md`, `plan/00-master-plan.md`, this ledger, and the implementation plan.
-  2. Run `git status --short --branch` and `git log -3 --format='%H %P %s'`; after the Task 3 commit expect branch `codex/ms0-repository-constitution`, a clean worktree, and a three-commit chain whose subjects are `feat(ms0): add fail-closed evidence harness`, `feat(ms0): enforce module and contract boundaries`, then `chore(ms0): initialize repository constitution`.
-  3. The Task 3 commit cannot self-reference inside its own ledger entry. The controller must record the actual commit SHA after commit and verify that its sole parent is the approved Task 2 commit `f5ba76b92a5116e58826e2094bfc84b88e8f6e2d`.
-  4. Task 2 is reviewer-approved. Any later Task 2 source/test/config change invalidates its fresh matrix and both approvals and requires the focused contracts/architecture/plan-policy suite, standalone strict architecture `tsc`, production `architecture:check`, full Secret, targeted specification regression, and code-quality re-review again.
-  5. Task 3 is DONE. Final targeted specification regression is APPROVED, and the same-quality reviewer reported no Critical, Important, or Minor issue. Any later Task 3 source/test/config change invalidates both approvals and requires the focused, repeated negative-history, strict typing, full-load, repository, architecture, Secret, targeted specification, and same-quality matrices again.
-  6. Task 4 has not started. After writing the required failing real PostgreSQL test and confirming the local dependency boundary without printing or recording any credential value, its first real verification command is `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts`. The positive dependency is exactly PostgreSQL 17.6 at `127.0.0.1:54326`; credential values remain only in ignored local input. Do not execute Task 4 in this Task 3 closeout session.
-  7. Do not regenerate `reference/legacy-freeze/manifest.json`; later Task 8 independently reverifies the pre-implementation snapshot and reports `legacy_source_drift` rather than overwriting it.
+  1. Read root `AGENTS.md`, the authority chain, `plan/00-master-plan.md`, the active implementation plan, and this ledger. Do not read ignored credential input.
+  2. Run `git status --short --branch` and `git log -4 --format='%H %P %s'`. Expect branch `codex/ms0-repository-constitution`, a clean four-commit chain, Task 4 subject `feat(ms0): pin PostgreSQL 17.6 migration baseline`, and sole parent `bf4a2c0e615da0bae0ad39e249299a4976a3834d`. The final amended Task 4 SHA must be bound by the controller because it cannot self-reference.
+  3. Confirm safe dependency metadata only: repo-owned `sartre-postgres-17-6` remains healthy on `127.0.0.1:54326`; stopped backup `sartre-postgres-17-6-pre-task4-20260720` remains retained; no `sartre-postgres-17-10-negative` container remains. Do not inspect container environment.
+  4. The immutable reviewed Task 4 code subject is `3499234bcf079ba7aedd664fd513a07bd9713429`, tree `fbeac306b5745d25c44174179845ff997e0d3bc7`, with sole parent `bf4a2c0e615da0bae0ad39e249299a4976a3834d`. The final Task 4 amend may differ from that subject only in this ledger; any source/test/config/lock/Docker/migration delta invalidates both approvals and requires the affected Task 4 evidence plus specification and quality re-review.
+  5. Task 4 final specification and quality re-reviews are approved. Do not repeat PostgreSQL, Job, root, or full static matrices for this ledger-only closeout; verify the exact one-path delta, cached whitespace, immutable-index/full Secret, focused compose policy, rendered CLI, and clean four-commit chain.
+  6. Task 5 begins by writing `tests/integration/service-health.integration.test.ts`, then running `pnpm exec vitest run tests/integration/service-health.integration.test.ts` to obtain the required missing-process behavior RED. A missing file, dependency failure, unreachable PostgreSQL, syntax error, zero discovery, or SKIPPED assertion is not accepted RED.
+  7. Do not begin Task 6 or MS1, and do not regenerate `reference/legacy-freeze/manifest.json`; later Task 8 independently reverifies it and reports `legacy_source_drift` rather than overwriting it.
 
 ## Entries
 
@@ -1235,3 +1235,234 @@
   - The later negative version-gate target is the existing local PostgreSQL 17.10 at port 55432 and must remain read-only; it is not the first Task 4 action.
   - After creating `scripts/postgres/postgres.integration.test.ts`, the first real verification command is `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts`. Expected first result is behavioral RED because the migration runner/version gate does not exist. A missing test file, missing dependency, unreachable database, syntax error, or no-discovery result is not accepted RED.
   - Do not execute that command or begin Task 4 in this Task 3 closeout session.
+
+### 2026-07-20 21:08 CST - Task 4 PostgreSQL 17.6 migration baseline ready for commit
+
+- Status: IN_PROGRESS. Task 4 implementation and local evidence are complete on the dirty worktree and ready for precise staging/commit. Independent specification and code-quality reviews have not started; Task 5 and MS1 remain out of scope.
+- Scope and implementation:
+  - Added the immutable `000001_ms0_baseline.sql`; it creates only `schema_migrations(version text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`.
+  - Added exact `server_version_num=170006` verification, SHA-256 migration artifact loading, PostgreSQL transaction-scoped advisory locking, idempotent application, and stable `postgres_version_mismatch` / `migration_checksum_mismatch` failures.
+  - Added a Hub API `DatabaseQueryPort` compatibility boundary. It verifies exact server version, baseline columns/primary key, and the single exact version/checksum row. It performs only read queries and never imports or calls the migrator.
+  - Added disposable database helpers whose callback/finally paths force-drop each generated database, plus PostgreSQL REAL_TEST for empty schema, exact version, idempotency, checksum drift, failed-SQL rollback, two concurrent migrators, Hub schema incompatibility/no automatic migration, and PostgreSQL 17.10 read-only rejection with object fingerprint equality.
+  - Added a digest-pinned PostgreSQL 17.6 compose profile. It is loopback-only, uses `trust` only for `local-integration`, carries `sartre.production-reuse=prohibited`, and has a policy checker with negative controls for image, profile, auth, labels, port, and healthcheck drift.
+  - Added a non-root multi-stage Migration Job. Pinned TypeScript compiles the same runner in the build stage; the runtime image installs production dependencies, copies the exact repository migration artifact, and executes compiled JavaScript.
+- TDD and failure history, retained without hiding later GREEN:
+  - Required first command after the integration test existed: `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts`: exit 1. Vitest discovered the suite but loaded `0 tests` because the required Hub schema-compatibility module did not exist. This is the accepted missing-boundary RED; it was not a credential or dependency failure.
+  - First post-implementation rerun of that command: exit 1, `6/6 failed` with `SARTRE_DATABASE_URL_required`; the caller variable was absent. No database assertion ran and this is not REAL_TEST evidence.
+  - The first PG17.6 attempt with a locally constructed test variable: exit 1, `5 failed | 1 filtered`; all five failed at SASL before assertions because the helper command constructed an opaque `postgresql:` URL whose component setters were ignored. Runtime HBA inspection showed only `trust`, and parsing the temporary variable showed empty host/port/user. Correct hierarchical URL construction fixed routing; no Secret value was introduced.
+  - Compose health logs exposed `role "-d" does not exist`: `pg_isready` had expanded unset `$POSTGRES_USER/$POSTGRES_DB` yet still returned accepting. A new policy test first failed `1/8`; the healthcheck is now the explicit non-secret local role/database and the policy suite passes `8/8`.
+  - PG17.10 first pull/run failed with Docker exit 125, `short read ... unexpected EOF`; no image or container remained. One bounded `docker pull postgres:17.10` retry succeeded with digest `sha256:a426e44bac0b759c95894d68e1a0ac03ecc20b619f498a91aae373bf06d8508d`; no third pull was attempted.
+  - First full PostgreSQL suite on 17.10: exit 1, `5 passed | 1 failed`. The failure occurred before the version assertion because `pg_class.relkind` is internal `"char"` and the fingerprint query used ambiguous text concatenation. Explicit `relkind::text` was the only behavior fix; the fresh suite then passed `6/6`.
+  - First Migration Job negative run exited 1 before the version gate because Node strip-only rejected TypeScript parameter properties. Explicit fields removed that syntax, then local Node exposed unresolved `.js` source specifiers. A multi-stage TypeScript compile was implemented; subsequent image runs reached stable application errors.
+  - First full `/app` image Secret attempt exited 1 on synthetic connection examples in third-party `pg` README and a third-party `zod` test source. The repository-owned image payload was then scanned explicitly and passed. Dependency content is covered separately by supply-chain gates; third-party docs/tests are not rewritten to make the scanner green.
+  - First root `pnpm run test` after PostgreSQL behavior was green exited 1 with `364/365`: the sole architecture production-tree assertion reported `source_dependency_identity_invalid` because TypeScript resolved `pg` source types to `@types/pg`. The Task 2 checker was not weakened. Hub compatibility now accepts a narrow query port, and the real integration helper injects the live `pg` client; the fresh architecture fixture, focused PostgreSQL suite, and root suite all pass.
+  - Formatter attempts after compose-policy and query-port edits each exited 1 only on reported layout differences. Exact-file formatting changed layout only; subsequent repository format checks passed. One Vitest invocation used unsupported `--runInBand` and exited 1 before discovery; one `tsx -e` fingerprint attempt used unsupported top-level await and exited 1 before connection. Neither is evidence.
+- Fresh Layer 2 REAL_TEST evidence on the current code/lock tree:
+  - `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" SARTRE_POSTGRES_NEGATIVE_URL="$LOCAL_NEGATIVE_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts --disableConsoleIntercept`: exit 0, `1 file | 6 tests passed`. Assertions include PG17.6 `170006`, PG17.10 `170010`, exact checksum `ff57c5fa909fc4506e4a503c6ea2d39c4c3bb67d5bda1d9dfa1a7cf6f008b839`, a single idempotent version row, rollback to an empty schema, one applied plus one no-op concurrent result, `schema_incompatible` without DDL/DML, and unchanged 17.10 object fingerprint.
+  - Fresh focused disposable databases: `sartre_ms0_baseline_049341368dcf4e71`, `sartre_ms0_checksum_e71280800504456f`, `sartre_ms0_rollback_f7c6c895a513462b`, `sartre_ms0_concurrency_2728454c96e44b74`, and `sartre_ms0_readiness_febc57b8c9a34e7c`. All were dropped by `finally`; a later `pg_database` residual query returned no `sartre_ms0_%` row.
+  - Root `pnpm run test` with the same two database variable references: exit 0. Root scripts passed `15 files | 365 tests`, including the unfiltered PostgreSQL suite; all eight workspace suites then passed, including contracts `57/57`. The integration test is not silently excluded or treated as optional.
+- Current immutable Migration Job evidence:
+  - `pnpm run secret:check && docker build -f docker/migration-job/Dockerfile -t sartre-migration-job:ms0-task4 .`: exit 0 on the current lock/config. Image ID/RepoDigest: `sha256:ce20cde827ac0d1bcb4493f89bd5b3d21eaa643d8865f96ba35b857039e286ec`; Node base resolved to `sha256:76d0ed0ed93bed4f4376211e9d8fddac4d8b3fbdb54cc45955696001a3c91152`.
+  - Positive run on `sartre_ms0_job_final_1784552760_11029`: image exit 0, version `000001_ms0_baseline`, exact checksum above, `applied=true`; exact row assertion and force-drop passed.
+  - Checksum drift on the same disposable job database: second image run emitted `migration_checksum_mismatch` and exited 1; the injected drift row remained unchanged, proving no repair/write after rejection; cleanup passed.
+  - PG17.10 job run: emitted `postgres_version_mismatch` and exited 1. Read-only object fingerprint was `d41d8cd98f00b204e9800998ecf8427e` both before and after. The temporary negative container was removed and the safe exact-name filter returned no residue.
+  - Explicit repository-owned image payload artifact scan across compiled runner, migration, entrypoint, and package/lock manifests: exit 0. The temporary extraction container and directory were removed.
+- Dependency/image lifecycle and rollback:
+  - Original unmanaged positive container safe metadata was `sartre-postgres-17-6 | postgres:17.6 | 127.0.0.1:54326->5432 | healthy`; image ID/RepoDigest was `sha256:00bc86618629af00d2937fdc5a5d63db3ff8450acf52f0636ec813c7f4902929`.
+  - It was stopped and renamed to retained backup `sartre-postgres-17-6-pre-task4-20260720`; it remains stopped and was never removed. Repo-owned compose then created `sartre-postgres-17-6` on the same loopback port. A first health polling script used zsh's read-only variable name `status` and exited 1 without changing Docker state; the corrected safe-format loop confirmed healthy.
+  - PostgreSQL 17.10 image ID/RepoDigest is `sha256:a426e44bac0b759c95894d68e1a0ac03ecc20b619f498a91aae373bf06d8508d`. Every temporary `sartre-postgres-17-10-negative` instance bound only `127.0.0.1:55432`, reported `170010`, and was removed after its gate.
+  - Rollback if the repo-owned 17.6 container later fails: remove only that new test container without deleting its volume, rename `sartre-postgres-17-6-pre-task4-20260720` back to `sartre-postgres-17-6`, and start it. Do not delete either data volume during Task 4 review.
+- Fresh repository/static evidence:
+  - `pnpm exec vitest run scripts/postgres/postgres-compose-policy.test.ts`: exit 0, `8/8`.
+  - `pnpm exec tsx scripts/postgres/check-compose-policy.ts`: exit 0, `postgres_compose_policy=pass` against rendered compose.
+  - `pnpm exec tsc --noEmit -p scripts/postgres/tsconfig.json` and `pnpm exec tsc -p scripts/postgres/tsconfig.job.json --noEmit`: exit 0 under strict root options.
+  - Fresh `pnpm run format:check`, `pnpm run lint`, `pnpm run typecheck`, `pnpm run build`, and `pnpm run architecture:check`: exit 0. Architecture is STRUCTURAL_CHECK / PASS only.
+  - Fresh full `pnpm run secret:check`: exit 0. Explicit artifact scan across all eight workspace build roots and the repository-owned Migration Job payload: exit 0.
+  - Tool versions: Node `v24.11.0`; pnpm `10.33.2`; Docker `29.2.1` build `a5c7197`; Docker Compose `v5.0.2`.
+- Ledger-after freshness before staging:
+  - Focused PostgreSQL command above reran after this checkpoint text existed and exited 0, `6/6` in 848ms. Its exact disposable names were `sartre_ms0_baseline_76382ddf56fb4474`, `sartre_ms0_checksum_1fe987427daf4508`, `sartre_ms0_rollback_4a4c3ef1cc994dd3`, `sartre_ms0_concurrency_01d8b5d2a8184b60`, and `sartre_ms0_readiness_a3189024e1774071`; all dropped in `finally`.
+  - Root `pnpm run test` with both database variable references reran after the ledger update and exited 0: scripts `15/15 files | 365/365 tests` in 23.94s, then all eight workspace suites passed.
+  - Fresh format/lint, both strict PostgreSQL `tsc` commands, compose policy `8/8`, rendered compose CLI, root typecheck/build, architecture, whitespace, full Secret, and eight-root build artifact Secret checks all exited 0. The temporary PostgreSQL 17.10 container was removed after the database commands.
+- Risks and boundaries:
+  - The compose service deliberately uses `trust` for an explicit loopback-only local-integration profile. The policy rejects any non-loopback publish, missing profile/prohibition label, different image, password-bearing/non-trust environment, or environment-dependent healthcheck. It is prohibited from production reuse.
+  - The compatibility boundary is a readiness policy over a query-only port, not a Task 5 process or HTTP `/readyz` implementation. Task 5 must compose it without importing the migrator.
+  - Migration Job artifact evidence covers repository-owned payload. The broader `/app` scan is not PASS because third-party package documentation contains synthetic credential examples; supply-chain scanning remains a separate gate.
+  - The retained pre-Task4 PostgreSQL container and its data are intentionally not deleted. The repo-owned local-integration database volume also remains for review; neither is production state.
+  - No `.local-secrets` content, database URL, password, container environment, broad inspect output, shell profile, credential helper, npm/pnpm config dump, or process environment was read or recorded.
+- Changed paths expected for precise staging: root `package.json`, `pnpm-lock.yaml`; `apps/hub-api/src/infrastructure/database/migrations/000001_ms0_baseline.sql`; `apps/hub-api/src/infrastructure/database/schema-compatibility.ts`; `docker/postgres/compose.yml`; `docker/migration-job/Dockerfile`; `docker/migration-job/entrypoint.sh`; eight files under `scripts/postgres/`; and this ledger. No Task 1-3 source/test/config, authority spec/workflow/plan, freeze manifest, Task 5, or MS1 path changed.
+- Next after precise staging, immutable-index/full Secret verification, commit, and post-commit fresh focused/root/static/Secret/clean-chain verification: request independent Task 4 specification review. Do not begin Task 5 or MS1, and do not mark Task 4 DONE before both specification and code-quality review approve.
+
+### 2026-07-20 21:22 CST - Task 4 post-commit ledger-only pre-review correction
+
+- Status: IN_PROGRESS. Task 4 source/test/config/lock implementation is committed and post-commit GREEN. Independent specification and code-quality reviews have not started; Task 5 and MS1 remain out of scope.
+- Confirmed ledger drift:
+  - Active `Current task` still described the already-committed Task 4 tree as dirty and ready for staging/commit.
+  - Active `Last verified action` still bound only the dirty tree despite completed post-commit verification.
+  - The latest Task 4 checkpoint's Next sentence still routed recovery through staging/commit before review. A resumed controller could repeat completed Git work instead of starting independent specification review.
+- Ledger-only correction:
+  - Active state now binds the clean committed pre-ledger-repair Task 4 subject and distinguishes local evidence from reviewer approval.
+  - Resume no longer repeats implementation staging/commit. It first proves the final amend changed only this ledger, reruns the required post-amend focused/root/Secret chain, then routes directly to independent Task 4 specification review followed by code-quality review.
+  - Task 4 stays IN_PROGRESS until both reviewers approve. No Task 5 or MS1 work is authorized.
+- Verified pre-ledger-repair subject binding:
+  - Commit: `e7ce22b12c015ce5c8108686ef17687005def818`, subject `feat(ms0): pin PostgreSQL 17.6 migration baseline`.
+  - Tree: `146a09209f526522bada8e11571e78234c5eb7f9`.
+  - Sole parent: approved Task 3 commit `bf4a2c0e615da0bae0ad39e249299a4976a3834d`.
+  - Post-commit focused PostgreSQL passed `6/6`; root scripts passed `365/365` plus all eight workspace suites; format/lint/strict typing/typecheck/build/architecture, full/index/eight-root artifact Secret, Migration Job owned-payload Secret, exact commit path set, disposable cleanup, and clean four-commit chain all passed.
+- Scope: only `reports/ms0-repository-constitution/checkpoints/PLAN_LEDGER.md` changes. No Task 4 source, test, config, lockfile, migration artifact, Docker artifact, Task 1-3 source, authority document, freeze manifest, Task 5, or MS1 path changes.
+- Commit binding: the final amended SHA cannot appear in its own commit. After `git commit --amend --no-edit`, the controller must record the final SHA/tree/parent and verify that `e7ce22b12c015ce5c8108686ef17687005def818..HEAD` changes only this ledger.
+- Next after ledger-only amend and fresh post-amend verification: independent Task 4 specification review. Do not stage/commit implementation again and do not begin Task 5 or MS1.
+
+### 2026-07-20 21:58 CST - Task 4 quality review BLOCKED, six-Important repair opened
+
+- Status: IN_PROGRESS. Quality review result: BLOCKED; Critical `0`, Important `6`. Task 4 cannot close, and Task 5/MS1 are prohibited.
+- Candidate binding entering repair: clean commit `22b979d347c8a8f61c9e50f59110399f76df5c68`, subject `feat(ms0): pin PostgreSQL 17.6 migration baseline`, sole parent `bf4a2c0e615da0bae0ad39e249299a4976a3834d`.
+- Confirmed findings and root causes:
+  1. Hub schema compatibility never asserted the real migrated baseline as compatible. It expects the PostgreSQL `name[]` primary-key projection to be a JavaScript array, while driver parsing is not a stable contract, and it accepts any non-null `applied_at` default instead of exact `now()`.
+  2. Migration Job uses `FROM node:24.11.0-bookworm-slim` without a manifest digest. Prior build resolution recorded `sha256:76d0ed0ed93bed4f4376211e9d8fddac4d8b3fbdb54cc45955696001a3c91152`, but the Dockerfile does not bind it.
+  3. Compose policy extracts only `services.postgres`; it does not close the rendered document's service/volume set or reject container-name, restart, host-network, extra-service, or unexpected mount/lifecycle drift.
+  4. Hub compatibility catches every column/PK/version-row query error and rewrites transport/permission/driver failures as `schema_incompatible`. Only an observed structural mismatch may use that code; dependency failures must retain identity for Task 5 mapping.
+  5. Version CLI prints any driver/OS `error.code`. Closed-port, TLS, DNS, and auth errors can therefore escape the stable business error catalog instead of a single controlled `postgres_version_check_failed`.
+  6. Disposable database creation does not guarantee `end()` when connect fails, cannot compensate a successful CREATE followed by admin `end()` failure, allows concurrent `dispose()` races, and can let cleanup failure replace a primary assertion failure. Rollback integration also asserts only truthiness rather than a specific PostgreSQL failure code.
+- Required grouped RED sequence:
+  - schema: real migrated baseline positive, exact default drift negative, and first/later query dependency-error preservation;
+  - version CLI: allowlisted business codes only, raw driver/OS codes mapped to `postgres_version_check_failed`;
+  - compose: full rendered-document exact sets plus lifecycle/network/mount negative cases;
+  - disposable helper: narrow client-factory fault injection for connect/query/end/compensation and concurrent shared cleanup; rollback assertion uses the exact PostgreSQL error code, with rollback-failure aggregation covered if the narrow injection makes it low cost.
+- Evidence state: no repair RED or GREEN is claimed yet. Prior `6/6`, `365/365`, Job, and Secret runs predate these review findings and cannot close them.
+- Scope: single writer; Task 4 files and this ledger only. Task 1-3 checker behavior must not be weakened or modified.
+- Next: add the first grouped behavior tests and observe the expected schema RED before changing production implementation.
+
+### 2026-07-20 22:07 CST - Task 4 schema compatibility repair RED -> GREEN
+
+- Status: IN_PROGRESS. The schema compatibility repair group is GREEN; the remaining version CLI, compose, disposable lifecycle, rollback precision, and Migration Job base-image findings remain open. Task 5/MS1 remain prohibited.
+- Witnessed behavior RED before production changes:
+  - `pnpm exec vitest run scripts/postgres/schema-compatibility.test.ts`: exit 1, `4 failed | 1 passed`. A `clock_timestamp()` default resolved compatible, and dependency failures at query boundaries 1/2/3 were rewritten to `schema_incompatible`; boundary 0 preserved the original dependency error.
+  - `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts -t "fails Hub database readiness"`: exit 1, `1 failed | 6 skipped`. The real PostgreSQL 17.6 baseline migrated successfully, but Hub compatibility rejected it at the positive `.resolves` assertion with `schema_incompatible`.
+- Scoped implementation: `applied_at` now requires the exact `now()` default; the primary-key query returns a stable PostgreSQL boolean instead of exposing a driver-specific `name[]` representation; only observed structural/row mismatches create `SchemaIncompatibleError`, while query transport/permission/driver errors retain their original identity.
+- Fresh GREEN evidence:
+  - `pnpm exec vitest run scripts/postgres/schema-compatibility.test.ts`: exit 0, `5/5` AUTOMATED_BEHAVIOR / PASS.
+  - `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts -t "fails Hub database readiness|rejects applied_at default drift"`: exit 0, `2 passed | 5 skipped`, REAL_TEST / PASS on the repo-owned PostgreSQL 17.6 dependency. This proves both the migrated positive baseline and the read-only rejection of `clock_timestamp()` drift without automatic repair.
+- Dependency boundary: no PostgreSQL 17.10 container was started. The required 17.6 container was healthy and loopback-published before the real selector. No credential input, database URL value, password, container environment, or broad process environment was read or recorded.
+- Next: add the version CLI error-containment behavior tests and witness raw driver/OS codes escaping before changing its production mapper. Do not batch compose or disposable lifecycle production changes into that group.
+
+### 2026-07-20 22:10 CST - Task 4 version CLI error containment RED -> GREEN
+
+- Status: IN_PROGRESS. The version CLI repair group is GREEN; compose, disposable lifecycle, rollback precision, and Migration Job base-image findings remain open.
+- Witnessed behavior RED: `pnpm exec vitest run scripts/postgres/verify-version.test.ts` exited 1 with `4 failed | 2 passed`. The CLI exposed `ECONNREFUSED`, `ENOTFOUND`, `SELF_SIGNED_CERT_IN_CHAIN`, and PostgreSQL auth SQLSTATE `28P01` verbatim. Existing stable outputs `postgres_version_mismatch` and `SARTRE_DATABASE_URL_required` passed.
+- Scoped implementation: the CLI error mapper now forwards only the explicit stable `postgres_version_mismatch` business code plus the existing missing-configuration error; every driver, OS, DNS, TLS, auth, or unknown error maps to the existing contracts catalog code `dependency_unavailable`.
+- Catalog correction: an intermediate local fallback name was not present in the authoritative contracts catalog. Before the final mapper change, the test expectation was changed to existing `dependency_unavailable` while the intermediate implementation remained, and the fresh rerun again exited 1 with `4 failed | 2 passed`. No Task 2 contract/catalog file was changed.
+- Fresh GREEN evidence:
+  - `pnpm exec vitest run scripts/postgres/verify-version.test.ts`: exit 0, `6/6` AUTOMATED_BEHAVIOR / PASS.
+  - A real loopback closed-port CLI invocation emitted only `dependency_unavailable` and exited 1; a separate real PostgreSQL 17.6 CLI invocation emitted `server_version_num=170006` and exited 0. The wrapper asserted both exit codes and exited 0, REAL_TEST / PASS.
+- Secret boundary: both connection values were constructed only inside the command process; no value, password, ignored credential input, or environment dump was printed or recorded.
+- Next: add full rendered-document compose exact-set and lifecycle/network/mount rejection tests, witness RED, then change only the Task 4 compose policy implementation.
+
+### 2026-07-20 22:14 CST - Task 4 compose policy closure RED -> GREEN
+
+- Status: IN_PROGRESS. The compose repair group is GREEN; disposable lifecycle and Migration Job base-image findings remained open at this checkpoint.
+- Witnessed behavior RED: `pnpm exec vitest run scripts/postgres/postgres-compose-policy.test.ts` exited 1 with `8 failed | 8 passed`. The existing service-fragment checker accepted container-name drift, restart drift, `network_mode: host`, a bind mount, and an additional mount; the full rendered-document validator was absent and could not enforce exact service or top-level volume sets.
+- Scoped implementation: the original image/profile/auth/labels/loopback-port/healthcheck checks remain intact. The service policy now additionally pins `container_name=sartre-postgres-17-6`, `restart=no`, absence of explicit `network_mode`, and the single exact named-volume mount. A full rendered-document policy requires exactly `services.postgres` and the single expected top-level volume; the CLI now validates that document rather than extracting only the service fragment.
+- Fresh GREEN evidence:
+  - `pnpm exec vitest run scripts/postgres/postgres-compose-policy.test.ts`: exit 0, `16/16` AUTOMATED_BEHAVIOR / PASS.
+  - `pnpm exec tsx scripts/postgres/check-compose-policy.ts`: exit 0 with `postgres_compose_policy=pass` against Docker Compose rendered JSON, STRUCTURAL_CHECK / PASS.
+- Next: add disposable database client lifecycle/fault-injection tests and witness connect/end/compensation/concurrency/error-aggregation RED before changing its test-helper production implementation.
+
+### 2026-07-20 22:19 CST - Task 4 disposable database lifecycle RED -> GREEN
+
+- Status: IN_PROGRESS. Schema, version CLI, compose, and disposable lifecycle groups are GREEN. The Migration Job base-image binding remains open; Task 4 and MS0 remain IN_PROGRESS.
+- Witnessed behavior RED: `pnpm exec vitest run scripts/postgres/create-test-database.test.ts` exited 1 with `6/6` failed. Admin connect failure and cleanup connect failure each skipped `end()`; CREATE success followed by admin `end()` failure did not compensate; simultaneous admin-end/compensation failure was not aggregated; concurrent dispose created two cleanup clients; and no helper preserved both a primary assertion failure and cleanup failure.
+- Scoped implementation: added a narrow client factory only in `scripts/postgres/create-test-database.ts` test-helper infrastructure. A shared client-close primitive now ends after connect/query failure and aggregates operation+end failures. Known successful CREATE followed by setup failure runs a force-DROP compensation and aggregates dual failure. Dispose shares one in-flight promise and clears a rejected promise for a later retry. The exported helper aggregates primary operation+cleanup failures while preserving a lone original error. No factory or test-helper port entered Hub, Runtime, contracts, or any app production boundary.
+- Fresh GREEN evidence:
+  - `pnpm exec vitest run scripts/postgres/create-test-database.test.ts`: exit 0, `6/6` AUTOMATED_BEHAVIOR / PASS.
+  - `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts -t "PostgreSQL 17.6 migration boundary" --disableConsoleIntercept`: exit 0, `6 passed | 1 skipped`. The excluded test was only the PostgreSQL 17.10 selector; all PG17.6 migration, checksum, rollback, concurrency, migrated-schema compatibility, and default-drift scenarios executed as REAL_TEST / PASS. Rollback now asserts exact PostgreSQL SQLSTATE `42883`, not truthiness.
+  - A fresh exact `pg_database` residual count after the suite was zero; all six named disposable databases were dropped.
+- Secret and lifecycle boundary: no PostgreSQL 17.10 container was started; no credential value, database URL value, container environment, `.local-secrets` input, or process environment dump was read or recorded.
+- Next: verify the recorded Node 24.11.0 base manifest digest from safe Docker metadata, add the digest pin, rebuild the Migration Job, and rerun its positive/checksum/version/non-root/artifact/Secret evidence before whole-tree closeout.
+
+### 2026-07-20 22:26 CST - Task 4 Migration Job base digest and rebuilt runtime matrix GREEN
+
+- Status: IN_PROGRESS. All six quality findings now have scoped implementations and focused GREEN evidence. Whole-tree/root/static verification, precise staging, amend, and post-amend verification remain; Task 5/MS1 remain prohibited.
+- Fresh registry verification and TDD:
+  - `docker buildx imagetools inspect node:24.11.0-bookworm-slim`: exit 0. The live OCI index digest was exactly `sha256:76d0ed0ed93bed4f4376211e9d8fddac4d8b3fbdb54cc45955696001a3c91152`, with distinct Linux amd64 and arm64 manifests. This did not rely only on the old ledger value and did not inspect image/container environment.
+  - `pnpm exec vitest run scripts/postgres/migration-job-policy.test.ts` before the Dockerfile change: exit 1, `1/1` failed; received `FROM node:24.11.0-bookworm-slim AS base` instead of the exact tag+index-digest binding.
+  - After pinning, the same policy command exited 0, `1/1` AUTOMATED_BEHAVIOR / PASS.
+- Rebuild evidence: `pnpm run secret:check && docker build -f docker/migration-job/Dockerfile -t sartre-migration-job:ms0-task4 .` exited 0. BuildKit resolved the exact Node index digest. The new local image ID/manifest-list digest is `sha256:0439b083e43628201cf6828250fd840793ba616f9aeb0f027f10670ae2ecedc4`; config digest is `sha256:e803b503dc03b943585fb1b1d73c8923e96650fdf870bd5c452986a2c1d19911`.
+- Fresh Migration Job REAL_TEST on the rebuilt image:
+  - PostgreSQL 17.6 positive run exited 0 and wrote exact version `000001_ms0_baseline`, checksum `ff57c5fa909fc4506e4a503c6ea2d39c4c3bb67d5bda1d9dfa1a7cf6f008b839`, and `applied=true`; exact row assertion passed.
+  - Runtime UID probe exited 0 with UID `1000`; image metadata reports `user=node` and entrypoint `["/usr/local/bin/sartre-migrate"]`.
+  - After inserting checksum drift in the same disposable database, the rebuilt Job emitted `migration_checksum_mismatch` and exited 1; the drift row remained unchanged. Force-DROP cleanup exited 0.
+  - The first temporary PostgreSQL 17.10 attempt was nonPASS: `pg_isready` observed the init-stage temporary postmaster, then two fingerprint `psql` calls fell into the restart gap. The Job still emitted `postgres_version_mismatch`, but no before/after fingerprint was established; the wrapper exited 1 and removed the exact temporary container.
+  - The corrected condition-based attempt required two consecutive real `SHOW server_version_num=170010` reads. The rebuilt Job emitted `postgres_version_mismatch` and exited 1; object fingerprint was unchanged; container stop exited 0 and the exact-name residual filter was empty. The wrapper exited 0, REAL_TEST / PASS.
+- Owned-payload artifact binding and Secret evidence:
+  - The first extraction attempt copied an overbroad `/app/packages` subtree. The artifact scanner correctly exited 1 with `artifact_symlink_escape` on the pnpm dependency symlink; cleanup removed the stopped extraction container, temporary directory, and host compile output. This attempt is not PASS.
+  - The corrected exact set contains host/image-identical compiled `migrate.js` and `verify-version.js`, the immutable migration, entrypoint, and eleven package/lock/workspace manifests. Content diffs all exited 0; no symlink existed. `pnpm run secret:artifacts -- "$ARTIFACT_DIR"` exited 0, and exact container/temp/host-build cleanup passed. The known whole-`/app` third-party dependency scan remains nonPASS history and is not relabeled.
+- Secret boundary: no database URL value, password, container environment, ignored credential input, broad image inspect, or process environment was printed or persisted.
+- Next: run focused PostgreSQL behavior/static gates, then the fresh root format/lint/typecheck/test/build/architecture and full/artifact Secret matrix on the complete repair tree. Only after GREEN may the exact Task 4 repair paths plus this ledger be staged and amended.
+
+### 2026-07-20 22:33 CST - Task 4 quality repair pre-stage full matrix GREEN
+
+- Status: IN_PROGRESS. All six quality findings are repaired on the dirty tree and the full local matrix is GREEN. Precise staging, immutable-index Secret verification, amend, post-amend verification, and independent specification/code-quality re-reviews remain. Task 5/MS1 remain prohibited.
+- Focused/static evidence:
+  - `pnpm exec vitest run` across the five new/expanded schema, version, compose, disposable, and Migration Job policy files: exit 0, `5 files | 34/34 tests`.
+  - `pnpm exec tsc --noEmit -p scripts/postgres/tsconfig.json` and `pnpm exec tsc -p scripts/postgres/tsconfig.job.json --noEmit`: exit 0.
+  - The first post-repair `pnpm run format:check` exited 1 only on six reported layout differences; lint did not run because the chain was fail-fast. Exact-file Biome formatting changed layout only. The complete fresh focused/strict/format/lint rerun then exited 0; format and lint each checked 101 files with no fixes.
+- Fresh real database and root evidence:
+  - Standalone unfiltered `SARTRE_DATABASE_URL="$LOCAL_TEST_DATABASE_URL" SARTRE_POSTGRES_NEGATIVE_URL="$LOCAL_NEGATIVE_DATABASE_URL" pnpm exec vitest run scripts/postgres/postgres.integration.test.ts --disableConsoleIntercept`: exit 0, `1 file | 7/7 tests`. All six PG17.6 disposable databases were dropped; residual count was zero. The exact-digest PG17.10 dependency stopped with exit 0 and its exact-name residual filter became empty.
+  - First root wrapper attempt: `pnpm run test` itself exited 0 with scripts `19/19 files | 392/392 tests` and all eight workspace suites, but the outer wrapper exited 1 because it observed the `--rm` PG17.10 container before asynchronous removal completed. A later exact-name query proved it absent; this attempt is retained as nonPASS wrapper history.
+  - Corrected condition-based cleanup then reran the entire root command fresh: scripts `19/19 files | 392/392 tests`, all eight workspace suites, contracts `57/57`, PG17.6 residual zero, PG17.10 stop exit 0 and removed=true; wrapper exit 0, REAL_TEST / PASS.
+- Fresh root/static/build/Secret evidence:
+  - `pnpm run format:check`, `pnpm run lint`, `pnpm run typecheck`, `pnpm run build`, and `pnpm run architecture:check`: exit 0. Architecture remains STRUCTURAL_CHECK / PASS only.
+  - `pnpm run secret:check`: exit 0. Post-build `pnpm run secret:artifacts --` over all eight explicit workspace build roots exited 0. `git diff --check` exited 0.
+- Dirty repair path set at this checkpoint: `apps/hub-api/src/infrastructure/database/schema-compatibility.ts`; `docker/migration-job/Dockerfile`; `scripts/postgres/check-compose-policy.ts`; `scripts/postgres/create-test-database.ts`; `scripts/postgres/postgres-compose-policy.test.ts`; `scripts/postgres/postgres.integration.test.ts`; `scripts/postgres/verify-version.ts`; new `scripts/postgres/create-test-database.test.ts`, `migration-job-policy.test.ts`, `schema-compatibility.test.ts`, `verify-version.test.ts`; and this ledger. No Task 1-3 source/checker/catalog, authority spec/workflow/plan, migration artifact, compose file, lockfile, package manifest, freeze manifest, Task 5, or MS1 path changed.
+- Next: rerun ledger-after focused/root/format/lint/strict/type/build/architecture/full/artifact Secret checks; precisely stage only the twelve paths above; run immutable-index plus full Secret checks; amend the existing Task 4 subject without changing its sole approved parent; then perform the required post-amend fresh verification and stop for re-reviews.
+
+### 2026-07-21 10:06 CST - Task 4 targeted specification High compose bypass RED -> focused GREEN
+
+- Status: IN_PROGRESS. Targeted specification re-review remains BLOCKED by one High until this repair is fully verified, amended, and re-reviewed. Task 5/MS1 remain prohibited.
+- Clean base entering repair: commit `dfe9982938d00f6337be7ba10c90c3ec6de9cc8e`, tree `4d2d5c7122a25d4428ebdd606fe021ac41647039`, sole parent `bf4a2c0e615da0bae0ad39e249299a4976a3834d`.
+- Confirmed reviewer probe and root cause:
+  - A rendered document carrying `services.postgres.volumes_from=["unmanaged-production"]` and the approved logical volume redefined as `{ external: true, name: "production-database-data" }` returned no violation.
+  - The prior policy closed the service and top-level logical-name sets but did not close the complete key/value schema. Unknown service mount/config channels and top-level volume/network definition fields were therefore allow-by-default.
+- Fresh rendered schema authority: `docker compose -f docker/postgres/compose.yml --profile local-integration config --format json` showed exact document keys `name,networks,services,volumes`; postgres service keys `profiles,command,container_name,entrypoint,environment,healthcheck,image,labels,networks,ports,restart,volumes`; top-level volume key `name`; and default-network keys `name,ipam`. Compose normalizes approved absent command/entrypoint to `null` and default IPAM to `{}`.
+- Witnessed behavior RED before production changes:
+  - Initial expanded policy run: exit 1, `40 tests | 23 failed | 17 passed`.
+  - After adding project-name and extra-network controls, the final pre-production run exited 1 with `42 tests | 25 failed | 17 passed`.
+  - Failures isolated eight unapproved service channels (`volumes_from`, devices, tmpfs, configs, secrets, privileged, command, entrypoint), four nested service option gaps, four top-level volume definitions, four network definitions, two unapproved top-level config/secret sets, project-name drift, extra network, and the combined reviewer bypass. The pre-existing exact mount-option negative remained GREEN.
+- Scoped implementation:
+  - Added shared exact-key comparison and encoded the fresh rendered document/service/healthcheck/port/mount/network/volume shapes as allowlists. Any unknown key is now a violation by default.
+  - Approved `command`/`entrypoint` must remain `null`; environment, labels, ports, healthcheck, network attachment, and mount require exact keys and values.
+  - The rendered project name, single default network with empty IPAM, and single repo-owned logical volume with rendered name `postgres_sartre-postgres-17-6-data` are exact. External/name/driver/driver_opts and additional top-level configs/secrets/networks are rejected.
+- Focused GREEN: `pnpm exec vitest run scripts/postgres/postgres-compose-policy.test.ts` exited 0, `42/42`; `pnpm exec tsx scripts/postgres/check-compose-policy.ts` exited 0 with `postgres_compose_policy=pass` against fresh rendered JSON.
+- External state and image binding: no Compose file, Dockerfile, lockfile, package manifest, migration, entrypoint, or Job build input changed. No container, network, or volume recreation was needed; the prior Job image content binding remains applicable but runtime/database/root/Secret gates must still be refreshed before amend.
+- Dirty scope: only `scripts/postgres/check-compose-policy.ts`, `scripts/postgres/postgres-compose-policy.test.ts`, and this ledger.
+- Next: run repair-focused tests, standalone PostgreSQL `7/7`, root scripts/workspaces, strict/static/build/architecture, full/artifact Secret, and cleanup checks. Precisely stage the three paths, run immutable-index/full Secret, amend without changing the approved parent, then repeat post-amend verification before targeted specification re-review.
+
+### 2026-07-21 10:10 CST - Task 4 targeted specification High pre-stage full matrix GREEN
+
+- Status: IN_PROGRESS. The exact-schema repair is locally GREEN and ready for precise staging/amend; targeted specification and code-quality re-reviews remain required.
+- Focused/static: after one format-only failure on the checker, exact-file Biome formatting changed layout only. The fresh chain then passed repair-focused `5 files | 60/60 tests`, both strict PostgreSQL `tsc` targets, format over 101 files, and lint over 101 files.
+- Real PostgreSQL/root: standalone PostgreSQL exited 0 with `7/7`; root scripts exited 0 with `19 files | 418/418 tests`, followed by all eight workspace suites including contracts `57/57`. PG17.6 disposable residual count was zero; the exact-digest PG17.10 container stopped with exit 0 and its exact-name residual filter became empty.
+- Root/static/build/Secret: format, lint, typecheck, build, architecture, full Secret, post-build eight-root artifact Secret, and `git diff --check` all exited 0. Architecture and rendered Compose remain STRUCTURAL_CHECK evidence only.
+- Compose/Job boundary: Compose policy remained `42/42` and rendered CLI PASS. No Compose, Dockerfile, lock, package, migration, entrypoint, or Job input changed. Existing image metadata remains `sha256:0439b083e43628201cf6828250fd840793ba616f9aeb0f027f10670ae2ecedc4`, `user=node`, expected entrypoint; no rebuild claim is made.
+- Exact dirty set: only `scripts/postgres/check-compose-policy.ts`, `scripts/postgres/postgres-compose-policy.test.ts`, and this ledger. No external container/network/volume state was changed beyond the temporary exact-name PG17.10 negative dependency, which was removed.
+- Next: rerun ledger-after focused/root/static/Secret freshness; precisely stage only these three paths; run immutable-index/full Secret; amend with the approved parent unchanged; then rerun post-amend evidence and stop for targeted specification re-review.
+
+### 2026-07-21 - Task 4 dual-review approved, ledger-only closeout
+
+- Status: DONE. This closes Task 4 only. Task 5 has not started, MS0 remains IN_PROGRESS, and MS1 remains out of scope.
+- Reviewed subject binding:
+  - Immutable reviewed Task 4 code subject: `3499234bcf079ba7aedd664fd513a07bd9713429`, subject `feat(ms0): pin PostgreSQL 17.6 migration baseline`.
+  - Subject tree: `fbeac306b5745d25c44174179845ff997e0d3bc7`.
+  - Sole parent: approved Task 3 commit `bf4a2c0e615da0bae0ad39e249299a4976a3834d`.
+  - This closeout amend changes only this ledger. The final Task 4 commit SHA cannot self-reference; the controller must verify the clean four-commit chain and prove that the only delta from the reviewed subject is this ledger.
+- Final targeted reviewer evidence:
+  - The same specification reviewer APPROVED the final compose exact-schema repair. Fresh Compose policy passed `42/42`, rendered CLI passed, and the original `volumes_from` plus external production-volume probe returned both `postgres_compose_service_shape_unsafe` and `postgres_compose_volume_definition_unsafe`.
+  - The same code-quality reviewer freshly repeated those targeted controls and found Critical `0`, Important `0`. The only Minor was this naturally stale active ledger, to be corrected by this closeout.
+- Accepted Task 4 evidence and boundaries:
+  - PostgreSQL integration passed `7/7` on the reviewed implementation, including exact migrated-schema success and unmigrated/checksum/default-drift rejection; root scripts passed `418/418` after the final compose policy expansion. Those implementation gates are not rerun for this ledger-only delta.
+  - Migration Job image `sha256:0439b083e43628201cf6828250fd840793ba616f9aeb0f027f10670ae2ecedc4` is bound to the digest-pinned Node base, compiled runner, version gate, immutable SQL, non-root user, and positive/checksum/version controls.
+  - Whole `/app` third-party dependency scanning remains explicitly non-PASS on lock-pinned synthetic examples. Repository-owned image payload Secret scanning is PASS; dependency/SAST/license gates retain the vendor boundary.
+  - Compose exact-schema policy is intentionally bound to Docker Compose `v5.0.2` normalized JSON and fails closed on schema drift. The local `trust` database remains loopback-only and prohibited from production reuse.
+  - `architecture:check` and rendered Compose remain STRUCTURAL_CHECK only. No Task 5 process-health or MS0 closeout claim is made.
+- Scope: only `reports/ms0-repository-constitution/checkpoints/PLAN_LEDGER.md` changes. No Task 4 source/test/config/lock/Docker/migration artifact, Task 1-3 source, authority file, freeze manifest, Task 5, or MS1 path changes.
+- Task 5 handoff: first create `tests/integration/service-health.integration.test.ts`, then run `pnpm exec vitest run tests/integration/service-health.integration.test.ts`. The accepted first result is a behavioral RED caused by missing service process/health behavior, not a missing file, zero discovery, syntax/dependency failure, unreachable required PostgreSQL, or SKIPPED assertion.

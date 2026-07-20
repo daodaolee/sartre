@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": false,
+    "outDir": "../../.migration-job-build",
+    "rootDir": "../../",
+    "sourceMap": false
+  },
+  "include": ["./migrate.ts", "./verify-version.ts"]
+}
