@@ -18,6 +18,15 @@ export {
   HealthSnapshotSchema,
   HealthStatusSchema,
 } from "./health.js";
+export {
+  AggregatedServiceHealthSchema,
+  ElectronHealthSnapshotSchema,
+  HubApiHealthSnapshotSchema,
+  HubWorkerHealthSnapshotSchema,
+  LocalRuntimeHealthSnapshotSchema,
+  Ms0WorkerHeartbeatSchema,
+  ServiceProcessIdSchema,
+} from "./service-health.js";
 export { createResultSchema } from "./result.js";
 
 export type {
@@ -34,4 +43,9 @@ export type {
   EvidenceStatus,
 } from "./evidence.js";
 export type { HealthDependency, HealthSnapshot, HealthStatus } from "./health.js";
+export type {
+  AggregatedServiceHealth,
+  Ms0WorkerHeartbeat,
+  ServiceProcessId,
+} from "./service-health.js";
 export type { Result } from "./result.js";
