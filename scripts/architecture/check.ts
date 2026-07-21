@@ -72,6 +72,7 @@ const TEXT_EXTENSIONS = new Set([
 ]);
 const MAX_TEXT_BYTES = 4 * 1024 * 1024;
 const BUILD_FILE_NAME = /^(?:Dockerfile|Containerfile|Makefile)(?:[._-].*)?$/u;
+const MODULE_ROOT_GENERATED_DIRECTORIES = new Set(["dist", "out", "release"]);
 
 function regularContainedFile(repositoryRoot: string, moduleRoot: string, path: string): boolean {
   try {
@@ -576,7 +577,13 @@ function collectModuleTextTargets(
       return;
     }
     for (const entry of entries) {
-      if (["coverage", "node_modules"].includes(entry.name)) continue;
+      if (
+        entry.name === "coverage" ||
+        entry.name === "node_modules" ||
+        (directory === verifiedModuleRoot && MODULE_ROOT_GENERATED_DIRECTORIES.has(entry.name))
+      ) {
+        continue;
+      }
       const path = join(directory, entry.name);
       if (entry.name === ".local-secrets") {
         violations.push(violation(repositoryRoot, "forbidden_secret_path", path));

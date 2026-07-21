@@ -201,11 +201,78 @@ function resolveCanonicalModuleSource(
   return undefined;
 }
 
+type VerifiedExternalPackage = {
+  readonly canonicalRoot: string;
+  readonly identity: string;
+};
+
+function definitelyTypedIdentity(importKey: string): string {
+  if (!importKey.startsWith("@")) return `@types/${importKey}`;
+  const [scope, name] = importKey.slice(1).split("/");
+  return scope && name ? `@types/${scope}__${name}` : "";
+}
+
+function verifiedExternalPackage(args: {
+  readonly repositoryRoot: string;
+  readonly canonicalNodeModulesRoot: string;
+  readonly importKey: string;
+}): VerifiedExternalPackage | undefined {
+  const keySegments = args.importKey.split("/");
+  let logicalEntry = join(args.repositoryRoot, "node_modules", ...keySegments);
+  let entryStat: Stats;
+  try {
+    entryStat = lstatSync(logicalEntry);
+  } catch (error) {
+    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+      return undefined;
+    }
+    logicalEntry = join(args.repositoryRoot, "node_modules/.pnpm/node_modules", ...keySegments);
+    try {
+      entryStat = lstatSync(logicalEntry);
+    } catch {
+      return undefined;
+    }
+  }
+
+  try {
+    const canonicalPackageRoot = realpathSync(logicalEntry);
+    const packageRootStat = lstatSync(canonicalPackageRoot);
+    if (
+      (!entryStat.isDirectory() && !entryStat.isSymbolicLink()) ||
+      !packageRootStat.isDirectory() ||
+      packageRootStat.isSymbolicLink() ||
+      !isContained(args.canonicalNodeModulesRoot, canonicalPackageRoot)
+    ) {
+      return undefined;
+    }
+
+    const packageJson = join(canonicalPackageRoot, "package.json");
+    const packageJsonStat = lstatSync(packageJson);
+    const canonicalPackageJson = realpathSync(packageJson);
+    if (
+      !packageJsonStat.isFile() ||
+      packageJsonStat.isSymbolicLink() ||
+      !isContained(canonicalPackageRoot, canonicalPackageJson)
+    ) {
+      return undefined;
+    }
+    const manifest = JSON.parse(readFileSync(canonicalPackageJson, "utf8")) as unknown;
+    if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) return undefined;
+    const identity = (manifest as Record<string, unknown>).name;
+    return typeof identity === "string" && EXACT_PACKAGE_NAME.test(identity)
+      ? { canonicalRoot: canonicalPackageRoot, identity }
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function resolvedExternalPackageMatches(args: {
   repositoryRoot: string;
   importKey: string;
   expectedActualIdentity: string;
   resolvedPath: ResolvedPath;
+  declaredDependencies: ReadonlyMap<string, string>;
 }): boolean {
   let canonicalRepositoryRoot: string;
   let canonicalNodeModulesRoot: string;
@@ -227,57 +294,32 @@ function resolvedExternalPackageMatches(args: {
     return false;
   }
 
-  const keySegments = args.importKey.split("/");
-  let logicalEntry = join(args.repositoryRoot, "node_modules", ...keySegments);
-  let entryStat: Stats;
-  try {
-    entryStat = lstatSync(logicalEntry);
-  } catch (error) {
-    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
-      return false;
-    }
-    logicalEntry = join(args.repositoryRoot, "node_modules/.pnpm/node_modules", ...keySegments);
-    try {
-      entryStat = lstatSync(logicalEntry);
-    } catch {
-      return false;
-    }
-  }
+  const runtimePackage = verifiedExternalPackage({
+    repositoryRoot: args.repositoryRoot,
+    canonicalNodeModulesRoot,
+    importKey: args.importKey,
+  });
+  if (!runtimePackage || runtimePackage.identity !== args.expectedActualIdentity) return false;
+  if (isContained(runtimePackage.canonicalRoot, args.resolvedPath.canonical)) return true;
 
-  try {
-    const canonicalPackageRoot = realpathSync(logicalEntry);
-    const packageRootStat = lstatSync(canonicalPackageRoot);
-    if (
-      (!entryStat.isDirectory() && !entryStat.isSymbolicLink()) ||
-      !packageRootStat.isDirectory() ||
-      packageRootStat.isSymbolicLink() ||
-      !isContained(canonicalNodeModulesRoot, canonicalPackageRoot) ||
-      !isContained(canonicalPackageRoot, args.resolvedPath.canonical)
-    ) {
-      return false;
-    }
-
-    const packageJson = join(canonicalPackageRoot, "package.json");
-    const packageJsonStat = lstatSync(packageJson);
-    const canonicalPackageJson = realpathSync(packageJson);
-    if (
-      !packageJsonStat.isFile() ||
-      packageJsonStat.isSymbolicLink() ||
-      !isContained(canonicalPackageRoot, canonicalPackageJson)
-    ) {
-      return false;
-    }
-    const manifest = JSON.parse(readFileSync(canonicalPackageJson, "utf8")) as unknown;
-    if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) return false;
-    const name = (manifest as Record<string, unknown>).name;
-    return (
-      typeof name === "string" &&
-      EXACT_PACKAGE_NAME.test(name) &&
-      name === args.expectedActualIdentity
-    );
-  } catch {
+  const typeIdentity = definitelyTypedIdentity(args.importKey);
+  if (
+    args.expectedActualIdentity !== args.importKey ||
+    !typeIdentity ||
+    args.declaredDependencies.get(typeIdentity) !== typeIdentity
+  ) {
     return false;
   }
+  const typePackage = verifiedExternalPackage({
+    repositoryRoot: args.repositoryRoot,
+    canonicalNodeModulesRoot,
+    importKey: typeIdentity,
+  });
+  return Boolean(
+    typePackage &&
+      typePackage.identity === typeIdentity &&
+      isContained(typePackage.canonicalRoot, args.resolvedPath.canonical),
+  );
 }
 
 function isTestSource(file: string): boolean {
@@ -718,6 +760,7 @@ function dependencyViolations(
           importKey: packageIdentity,
           expectedActualIdentity,
           resolvedPath: resolvedFile,
+          declaredDependencies,
         })
       ) {
         violations.push(

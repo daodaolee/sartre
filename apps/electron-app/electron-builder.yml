@@ -1,0 +1,27 @@
+{
+  "appId": "com.quvideo.sartre",
+  "productName": "Sartre",
+  "artifactName": "Sartre-${version}-${arch}.${ext}",
+  "asar": true,
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/main/index.js",
+    "dist/preload/index.cjs",
+    "dist/renderer/index.html",
+    "dist/renderer/index.js",
+    "dist/renderer/styles.css",
+    "package.json"
+  ],
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["arm64"]
+      }
+    ],
+    "minimumSystemVersion": "14.0",
+    "identity": null
+  }
+}

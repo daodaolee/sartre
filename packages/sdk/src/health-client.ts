@@ -9,7 +9,10 @@ import {
 } from "@sartre/contracts";
 
 export interface HealthClient {
-  readAggregatedHealth(electronSnapshot: HealthSnapshot): Promise<AggregatedServiceHealth>;
+  readAggregatedHealth(
+    electronSnapshot: HealthSnapshot,
+    signal?: AbortSignal,
+  ): Promise<AggregatedServiceHealth>;
 }
 
 export interface HealthClientOptions {
@@ -54,13 +57,15 @@ async function readSnapshot(options: {
   service: "hub-api" | "hub-worker" | "local-runtime";
   timeoutMs: number;
   authorization?: string;
+  signal?: AbortSignal;
 }): Promise<HealthSnapshot> {
   try {
+    const timeoutSignal = AbortSignal.timeout(options.timeoutMs);
     const response = await fetch(options.url, {
       ...(options.authorization
         ? { headers: { "x-sartre-ms0-session": options.authorization } }
         : {}),
-      signal: AbortSignal.timeout(options.timeoutMs),
+      signal: options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal,
     });
     if (response.status !== 200 && response.status !== 503) return unavailable(options.service);
     return options.parser.parse(await response.json());
@@ -84,7 +89,7 @@ export function createHealthClient(options: HealthClientOptions): HealthClient {
   }
 
   return {
-    async readAggregatedHealth(electronSnapshot) {
+    async readAggregatedHealth(electronSnapshot, signal) {
       const electron = ElectronHealthSnapshotSchema.parse(electronSnapshot);
       const [hub, worker, runtime] = await Promise.all([
         readSnapshot({
@@ -92,6 +97,7 @@ export function createHealthClient(options: HealthClientOptions): HealthClient {
           parser: HubApiHealthSnapshotSchema,
           service: "hub-api",
           timeoutMs: options.timeoutMs,
+          ...(signal ? { signal } : {}),
         }),
         readSnapshot({
           url: `${hubBaseUrl}/__ms0/self-test/worker-health`,
@@ -99,12 +105,14 @@ export function createHealthClient(options: HealthClientOptions): HealthClient {
           service: "hub-worker",
           timeoutMs: options.timeoutMs,
           authorization: options.ms0SelfTestToken,
+          ...(signal ? { signal } : {}),
         }),
         readSnapshot({
           url: `${localRuntimeBaseUrl}/readyz`,
           parser: LocalRuntimeHealthSnapshotSchema,
           service: "local-runtime",
           timeoutMs: options.timeoutMs,
+          ...(signal ? { signal } : {}),
         }),
       ]);
       const processes = {

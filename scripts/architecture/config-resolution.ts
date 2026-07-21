@@ -31,14 +31,8 @@ const WINDOWS_ABSOLUTE_PATH = /^[A-Za-z]:[\\/]/u;
 const URL_LIKE_PATH = /^[A-Za-z][A-Za-z0-9+.-]*:/u;
 const UNSUPPORTED_GLOB_ESCAPE = /[[\]{}\\]/u;
 const GLOB_MAGIC = /[*?]/u;
-const PREFLIGHT_SKIP_DIRECTORIES = new Set([
-  ".git",
-  ".local-secrets",
-  "coverage",
-  "dist",
-  "node_modules",
-  "out",
-]);
+const PREFLIGHT_SKIP_DIRECTORIES = new Set([".git", ".local-secrets", "coverage", "node_modules"]);
+const MODULE_ROOT_GENERATED_DIRECTORIES = new Set(["dist", "out", "release"]);
 
 export type LoadedTsConfig = {
   readonly path: string;
@@ -534,6 +528,7 @@ function preflightDirectoryTree(
   directory: string,
   configPath: string,
   violations: ArchitectureViolation[],
+  generatedDirectoryParents: ReadonlySet<string>,
   visited = new Set<string>(),
 ): boolean {
   const absoluteDirectory = resolve(directory);
@@ -569,7 +564,13 @@ function preflightDirectoryTree(
   }
   let safe = true;
   for (const entry of entries) {
-    if (PREFLIGHT_SKIP_DIRECTORIES.has(entry.name)) continue;
+    if (
+      PREFLIGHT_SKIP_DIRECTORIES.has(entry.name) ||
+      (generatedDirectoryParents.has(canonicalDirectory) &&
+        MODULE_ROOT_GENERATED_DIRECTORIES.has(entry.name))
+    ) {
+      continue;
+    }
     const path = join(absoluteDirectory, entry.name);
     if (entry.isSymbolicLink()) {
       recordUnsafeAccess(repositoryRoot, configPath, violations);
@@ -577,7 +578,15 @@ function preflightDirectoryTree(
       continue;
     }
     if (entry.isDirectory()) {
-      safe = preflightDirectoryTree(repositoryRoot, path, configPath, violations, visited) && safe;
+      safe =
+        preflightDirectoryTree(
+          repositoryRoot,
+          path,
+          configPath,
+          violations,
+          generatedDirectoryParents,
+          visited,
+        ) && safe;
     }
   }
   return safe;
@@ -587,6 +596,7 @@ function createSafeTypeScriptHost(
   repositoryRoot: string,
   configPath: string,
   violations: ArchitectureViolation[],
+  generatedDirectoryParents: ReadonlySet<string>,
 ): SafeTypeScriptHost {
   const canonicalRepositoryRoot = realpathSync(repositoryRoot);
   const absolutePathStatus = (path: string): PathMetadataStatus => {
@@ -674,7 +684,13 @@ function createSafeTypeScriptHost(
       const canonicalRoot = canonicalExistingPath(rootDir, "directory");
       if (
         !canonicalRoot ||
-        !preflightDirectoryTree(repositoryRoot, canonicalRoot, configPath, violations)
+        !preflightDirectoryTree(
+          repositoryRoot,
+          canonicalRoot,
+          configPath,
+          violations,
+          generatedDirectoryParents,
+        )
       ) {
         return [];
       }
@@ -707,7 +723,21 @@ export function loadTsConfig(
 ): LoadedTsConfig | undefined {
   const absolutePath = resolve(path);
   const violations: ArchitectureViolation[] = [];
-  const safeHost = createSafeTypeScriptHost(repositoryRoot, absolutePath, violations);
+  const generatedDirectoryParents = new Set(
+    modules.flatMap((module) => {
+      try {
+        return [realpathSync(module.root)];
+      } catch {
+        return [];
+      }
+    }),
+  );
+  const safeHost = createSafeTypeScriptHost(
+    repositoryRoot,
+    absolutePath,
+    violations,
+    generatedDirectoryParents,
+  );
   if (!regularContainedFile(repositoryRoot, absolutePath)) {
     return {
       path: absolutePath,
@@ -743,7 +773,13 @@ export function loadTsConfig(
   }
 
   const sourceTreeSafe = sourceModule
-    ? preflightDirectoryTree(repositoryRoot, sourceModule.root, absolutePath, violations)
+    ? preflightDirectoryTree(
+        repositoryRoot,
+        sourceModule.root,
+        absolutePath,
+        violations,
+        generatedDirectoryParents,
+      )
     : true;
   const entries = readConfigChain(repositoryRoot, absolutePath, new Set(), violations).pathEntries;
   violations.push(

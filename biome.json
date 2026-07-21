@@ -5,10 +5,12 @@
       "**",
       "!!**/node_modules",
       "!!**/dist",
+      "!!**/release",
       "!!**/out",
       "!!**/coverage",
       "!!**/.local-secrets",
-      "!!reports/**/raw"
+      "!!reports/**/raw",
+      "!!test-results"
     ]
   },
   "formatter": {

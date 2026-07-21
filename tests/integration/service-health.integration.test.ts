@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { type ChildProcess, spawn } from "node:child_process";
-import { createServer } from "node:net";
+import { createServer, type Socket } from "node:net";
 import { fileURLToPath } from "node:url";
 
 import { afterAll, describe, expect, test } from "vitest";
@@ -49,7 +49,10 @@ interface RunningHarness {
 }
 
 interface HealthClient {
-  readAggregatedHealth: (electronSnapshot: HealthSnapshot) => Promise<unknown>;
+  readAggregatedHealth: (
+    electronSnapshot: HealthSnapshot,
+    signal?: AbortSignal,
+  ) => Promise<unknown>;
 }
 
 type HealthClientFactory = (options: {
@@ -705,6 +708,62 @@ describe.sequential("MS0 real service health processes", () => {
     expect(calls).toEqual(["first", "second", "third"]);
     expect(error).toBeInstanceOf(AggregateError);
     expect((error as AggregateError).errors).toEqual([firstFailure, thirdFailure]);
+  });
+
+  test("propagates an external abort signal to real loopback health fetches", async () => {
+    const sockets = new Set<Socket>();
+    const connected = Promise.withResolvers<void>();
+    const server = createServer((socket) => {
+      sockets.add(socket);
+      socket.once("close", () => sockets.delete(socket));
+      connected.resolve();
+    });
+    await new Promise<void>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(0, LOOPBACK_HOST, resolve);
+    });
+    const address = server.address();
+    if (!address || typeof address === "string") {
+      throw new Error("health_abort_loopback_unavailable");
+    }
+    const baseUrl = `http://${LOOPBACK_HOST}:${address.port}`;
+    const client = healthClientFactory()({
+      hubBaseUrl: baseUrl,
+      localRuntimeBaseUrl: baseUrl,
+      ms0SelfTestToken: "a".repeat(64),
+      timeoutMs: 10_000,
+    });
+    const controller = new AbortController();
+
+    try {
+      const pending = client.readAggregatedHealth(electronHealth(), controller.signal);
+      await Promise.race([
+        connected.promise,
+        delay(1_000).then(() => {
+          throw new Error("health_abort_request_not_observed");
+        }),
+      ]);
+      controller.abort();
+      const aggregate = parseAggregatedHealth(
+        await Promise.race([
+          pending,
+          delay(250).then(() => {
+            throw new Error("health_external_abort_not_propagated");
+          }),
+        ]),
+      );
+
+      expect(aggregate.status).toBe("degraded");
+      expect(aggregate.processes.electron.status).toBe("healthy");
+      expect(aggregate.processes["hub-api"].status).toBe("unavailable");
+      expect(aggregate.processes["hub-worker"].status).toBe("unavailable");
+      expect(aggregate.processes["local-runtime"].status).toBe("unavailable");
+    } finally {
+      for (const socket of sockets) socket.destroy();
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+    }
   });
 
   test(

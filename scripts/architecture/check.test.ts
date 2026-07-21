@@ -1356,6 +1356,43 @@ describe("fifth specification re-review - resolved external package identity", (
 
     expect(checkArchitecture(root)).toEqual([]);
   });
+
+  it("accepts a declared runtime package whose declarations come from its exact @types package", () => {
+    const root = createFixture();
+    const manifest = readFixtureJson(root, "apps/electron-app/package.json");
+    writeFixtureJson(root, "apps/electron-app/package.json", {
+      ...manifest,
+      devDependencies: {
+        ...(manifest.dependencies as Record<string, string>),
+        "ui-runtime": "1.2.3",
+        "@types/ui-runtime": "1.2.3",
+      },
+      dependencies: {},
+    });
+    writeFixtureJson(root, "node_modules/ui-runtime/package.json", {
+      name: "ui-runtime",
+      version: "1.2.3",
+      main: "index.js",
+    });
+    writeFixtureFile(root, "node_modules/ui-runtime/index.js", "module.exports = {};\n");
+    writeFixtureJson(root, "node_modules/@types/ui-runtime/package.json", {
+      name: "@types/ui-runtime",
+      version: "1.2.3",
+      types: "index.d.ts",
+    });
+    writeFixtureFile(
+      root,
+      "node_modules/@types/ui-runtime/index.d.ts",
+      "export const fixture: true;\n",
+    );
+    writeFixtureFile(
+      root,
+      "apps/electron-app/src/renderer/ui.ts",
+      'import { fixture } from "ui-runtime"; export { fixture };\n',
+    );
+
+    expect(checkArchitecture(root)).toEqual([]);
+  });
 });
 
 describe("sixth specification re-review - root package entry binding", () => {
@@ -1432,6 +1469,50 @@ describe("Electron renderer boundaries", () => {
 });
 
 describe("fail-closed renderer classification", () => {
+  it.each(["dist", "out", "release"])(
+    "does not treat source-nested %s as a generated module-root directory",
+    (directory) => {
+      const root = createFixture();
+      writeFixtureFile(
+        root,
+        `apps/electron-app/src/${directory}/renderer/source-bypass.ts`,
+        'import path from "node:path"; export { path };\n',
+      );
+
+      expectRule(root, "renderer_node_access_forbidden");
+    },
+  );
+
+  it("ignores generated Electron outputs while retaining source renderer controls", () => {
+    const root = createFixture();
+    writeFixtureFile(
+      root,
+      "apps/electron-app/dist/renderer/index.js",
+      'import path from "node:path"; export const generated = path;\n',
+    );
+    writeFixtureFile(
+      root,
+      "apps/electron-app/release/mac-arm64/Sartre.app/Contents/Frameworks/Fixture.framework/Versions/A/fixture",
+      "generated\n",
+    );
+    symlinkSync(
+      "A",
+      join(
+        root,
+        "apps/electron-app/release/mac-arm64/Sartre.app/Contents/Frameworks/Fixture.framework/Versions/Current",
+      ),
+    );
+
+    expect(checkArchitecture(root)).toEqual([]);
+
+    writeFixtureFile(
+      root,
+      "apps/electron-app/src/renderer/source-bypass.ts",
+      'import path from "node:path"; export { path };\n',
+    );
+    expectRule(root, "renderer_node_access_forbidden");
+  });
+
   it.each([
     ["apps/electron-app/renderer/index.ts", 'import { ipcRenderer } from "electron";\n'],
     ["apps/electron-app/src/ui/renderer/view.ts", 'import path from "node:path";\n'],
