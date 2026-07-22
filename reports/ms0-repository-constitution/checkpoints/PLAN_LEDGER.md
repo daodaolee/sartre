@@ -2,17 +2,38 @@
 
 - Goal: MS0 Repository Constitution and evidence baseline
 - Plan: `docs/superpowers/plans/2026-07-17-ms0-repository-constitution.md`
-- Status: IN_PROGRESS
-- Current task: Task 8 is DONE. Freeze/verifier/import/Porting behavior and the ledger-only recovery rebound received independent specification and quality approval at reviewed candidate `352c15f67d0675bcb0ae2d563cf0129074fd4df2`, tree `cd93fcd039beaeea3bb0f14b749e1f91f7ca9edf`, sole Task 7 parent `f3f558b43021ebe95d2ac770ad9c6134e3a78660`. Task 9 is ready but has not started, MS0 remains IN_PROGRESS, and MS1 remains prohibited
-- Last verified action: the ledger-only final reviewer reported Critical `0`, Important `0`, Minor `0`, specification APPROVED, quality APPROVED; it confirmed the old-to-reviewed-candidate delta is exactly this ledger, `git diff --check` passes, the worktree is clean, and the active recovery instructions supersede the historical stale stage/commit text
-- Evidence level: Task 8 freeze regression and independent real-source re-verification are REAL_TEST / PASS. Exact import-set/hash and PortingLedger audits are STRUCTURAL_CHECK / PASS. Independent specification and quality review are APPROVED. Task 8 is DONE; no Task 9 or MS0 closeout claim is made
+- Status: DONE pending the mandatory final verifier over the replacement evidence-only child. A
+  nonzero verifier result reopens Task 9 and prohibits tag movement, remote `main`, and MS1.
+- Current task: Task 9 replacement evidence-only child assembly. Immutable subject
+  `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a` is unchanged. Replacement same-SHA GitHub Actions
+  run `29973452109` and all three required jobs PASS; official GitHub CLI download, exact file-set,
+  uploaded checksum, DMG hash, and extracted artifact Secret checks now PASS.
+- Last verified action: the downloaded 119,861,503-byte DMG hashes to
+  `27c55682f89e1e34b95d7aab159493c5f5e1b48bf6aaaee41b6f4908a374a997`, exactly matching
+  `artifact-sha256.txt`. The replacement artifact digest is
+  `sha256:f65ef41b41a94ce7498082996d1259f21eeb7e75d8f0c745d0d92ee42377c5e3`.
+- Evidence level: required behavioral gates are REAL_TEST / PASS and declared structural gates
+  remain STRUCTURAL_CHECK / PASS. `architecture:check` is not relabeled REAL_TEST. No verified-tag
+  movement, remote `main` update, or MS1 start is permitted until
+  `pnpm run verify:ms0 -- --evidence-commit HEAD --subject-commit HEAD^` exits 0.
 - Required dependency: PostgreSQL 17.6 container `sartre-postgres-17-6` on `127.0.0.1:54326`
 - Secret source: ignored `/.local-secrets/development.env`; values must never be recorded here. Task 4 did not read it: the repo-owned database uses explicit loopback-only local-integration `trust`, guarded by a fail-closed compose policy that prohibits production reuse
 - Resume procedure:
-  1. Read root `AGENTS.md`, the authority chain, `plan/00-master-plan.md`, the active implementation plan, and this ledger. Do not read ignored credential input.
-  2. Run `git status --short --branch` and `git log -9 --format='%H %P %s'`. Expect branch `codex/ms0-repository-constitution`, a clean Task 8 subject `docs(ms0): audit legacy porting boundary`, and sole Task 7 parent `f3f558b43021ebe95d2ac770ad9c6134e3a78660`. Run `git diff --name-only f3f558b43021ebe95d2ac770ad9c6134e3a78660..HEAD` and require exactly `plan/PORTING_LEDGER.md` plus this ledger.
-  3. Task 8 is DONE. Begin Task 9 only at Step 1 of the active implementation plan: write the RED clean-clone/evidence-chain tests, then run the exact first validation command `pnpm exec vitest run scripts/harness/verify-clean-clone.test.ts` and require the planned missing-verifier failure before implementation.
-  4. Do not begin MS1, push, read ignored credential input, inspect container environments, copy or print legacy source content, or run the freeze generator.
+  1. Read root `AGENTS.md`, the authority chain, `plan/00-master-plan.md`, the active
+     implementation plan, and this ledger. Do not read ignored credential input.
+  2. Require subject `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`, sole parent
+     `16bb67b054cd71a7e05e70e203621d1a560465ab`, tree
+     `c424d56fd77fe5d0069f191102176abd29ed1546`, and replacement run `29973452109` with digest
+     `sha256:f65ef41b41a94ce7498082996d1259f21eeb7e75d8f0c745d0d92ee42377c5e3`.
+  3. Require the evidence delta to contain exactly the five allowlisted paths named in the latest
+     checkpoint. Run format/whitespace and full Secret checks, stage exactly those paths, then
+     repeat cached exact-path/whitespace and immutable-index/full Secret checks.
+  4. Create or restore the sole evidence child `test(ms0): bind repository constitution evidence`
+     with `daodaolee <im@daodaolee.cn>`. Its only parent must be the immutable subject; the handoff
+     commit must not enter the final chain.
+  5. Run `pnpm run verify:ms0 -- --evidence-commit HEAD --subject-commit HEAD^`. Only exit 0 permits
+     the annotated `ms0-verified` tag and exact force-with-lease publication. Do not push or perform
+     MS1 implementation without the user's explicit authorization.
 
 ## Entries
 
@@ -1966,3 +1987,424 @@
 - Fresh review evidence: the delta from pre-rebound candidate `cd3df76c778b8e9136a754caa3cba06d71b972a4` is exactly this ledger; `git diff --check` passed; the worktree was clean; top state, Resume procedure, and the latest checkpoint consistently supersede the historical stale stage/commit instruction. The reviewer did not rerun unchanged behavior audits or read ignored credential input.
 - Scope: this DONE closeout changes only the ledger and does not alter `plan/PORTING_LEDGER.md`, freeze/import manifests, verifier/tests, source/config/package files, Task 9, or MS1. The final amended commit SHA cannot self-reference; recover it from Git and require the recorded sole parent and exact two-ledger Task 8 path set.
 - Next command: after writing Task 9 Step 1 RED clean-clone/evidence-chain tests, run `pnpm exec vitest run scripts/harness/verify-clean-clone.test.ts` and require the planned missing-verifier failure. Do not skip RED, begin MS1, push, or regenerate the freeze manifest.
+
+### 2026-07-22 17:17 CST - Task 9 subject approved locally; required CI BLOCKED
+
+- Status: `BLOCKED` on the required same-subject GitHub Actions run only. Task 9 is not
+  `DONE`, MS0 remains IN_PROGRESS, no evidence-only child or verified tag exists, and MS1 remains
+  prohibited.
+- Immutable subject: `d6ae2e02df81d2a40096ab51c79196249db9ce80`, tree
+  `2b4612b9cc64b02cb51bb6fc23089c0737bb7dfa`, sole parent
+  `16bb67b054cd71a7e05e70e203621d1a560465ab`, subject message
+  `chore(ms0): freeze repository constitution subject`. The base-to-subject delta is exactly the
+  approved eleven Task 9 paths.
+- Final checksum repair TDD: the new active-workflow control in
+  `scripts/harness/verify-clean-clone.test.ts` first failed with `1 failed | 28 passed` because
+  the workflow wrote the repository-relative DMG path. After the one-line workflow repair,
+  `pnpm exec vitest run scripts/harness/verify-clean-clone.test.ts` exited 0 with
+  `1 file | 29/29`. The workflow now runs `shasum` from
+  `apps/electron-app/release`, so its uploaded checksum is exactly
+  `<sha256>  Sartre-0.1.0-arm64.dmg`, matching both the fake GitHub fixture and final verifier.
+- Fresh affected/static boundary after the repair: `pnpm run format:check` exited 0 with 155
+  files and no fixes; `pnpm run lint` exited 0 with 156 files and no fixes;
+  `pnpm run typecheck` exited 0 across the eight declared workspaces;
+  `git diff --check` and `git diff --cached --check` exited 0; the staged repair was exactly
+  `.github/workflows/ms0-required.yml` and
+  `scripts/harness/verify-clean-clone.test.ts`; immutable-index and full
+  `pnpm run secret:check` both exited 0. The repair was amended into the immutable subject, after
+  which the worktree was clean.
+- Fresh subject reproducibility:
+  `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres SARTRE_POSTGRES_NEGATIVE_URL=postgresql://postgres@127.0.0.1:55432/postgres pnpm exec tsx scripts/harness/verify-clean-clone.ts --subject d6ae2e02df81d2a40096ab51c79196249db9ce80`
+  exited 0 with
+  `Clean-clone verification passed for d6ae2e02df81d2a40096ab51c79196249db9ce80.`
+  This is the fresh clean-clone result for the current subject; no historical PASS was reused.
+- Independent reviews: final specification review reported Critical 0, Important 0, Minor 0,
+  Ready YES and accepted the exact producer/fixture/verifier checksum contract. Final code-quality
+  review reported Critical 0, Important 0, Minor 0, Ready YES; its fresh minimal checks included
+  `verify-ci-run.test.ts` 20/20, the checksum-contract control 1/1, the valid evidence-child
+  control 1/1, and `git diff --check` PASS. Neither review authorizes MS0 closeout without CI.
+- Required external gate:
+  `pnpm run ci:verify -- --subject d6ae2e02df81d2a40096ab51c79196249db9ce80`
+  exited 1 with stable error `ci_unavailable`. `git remote -v` returned no entries. A local
+  clean-clone PASS is not a substitute for this required real CI run and artifact download.
+- Read-only remote routing: the authority-referenced legacy checkout has GitHub remote
+  `https://github.com/daodaolee/sartre.git`; the connected GitHub account is `daodaolee`, and
+  an exact owner/name repository search returned the single non-archived public repository
+  `daodaolee/sartre` with default branch `main`. This is a strong remote candidate only; it has
+  not been configured, written, or treated as push authorization.
+- Evidence/topology guard: do not create a PASS evidence child, change the Master Plan MS0 status,
+  run the final verifier as if CI passed, or create `ms0-verified` while this checkpoint is
+  blocked. This ledger append remains uncommitted so the branch still points at the exact subject
+  that CI must run; after CI PASS it belongs in the sole evidence child with the closeout records.
+- Required human input: confirm `https://github.com/daodaolee/sartre.git` (or provide a different
+  Git remote URL) and explicitly authorize configuring that remote and pushing branch
+  `codex/ms0-repository-constitution`. No push authority is inferred from local commit/tag
+  authority or read-only repository discovery.
+- Next command after that input: first re-check
+  `git show -s --format='%H %P %T %s' HEAD`, require subject
+  `d6ae2e02df81d2a40096ab51c79196249db9ce80`, and require this ledger as the only worktree delta;
+  then configure the approved remote and push the subject branch. Wait for the same-SHA
+  `.github/workflows/ms0-required.yml` run and execute
+  `pnpm run ci:verify -- --subject d6ae2e02df81d2a40096ab51c79196249db9ce80`.
+  Only a zero result permits Task 9 Step 7 evidence generation. Do not begin MS1, regenerate the
+  legacy freeze manifest, or read ignored credential input.
+
+### 2026-07-22 18:07 CST - First real CI failure repaired in a new subject
+
+- Status: IN_PROGRESS. GitHub remote authorization is now available, but the first required run
+  failed and is not PASS evidence. Task 9/MS0 remain open; MS1 remains prohibited.
+- Remote boundary: repo-local identity is `daodaolee <im@daodaolee.cn>`; the only configured
+  remote is `origin=https://github.com/daodaolee/sartre.git`. No GitLab remote was configured or
+  pushed. The first subject branch push was verified at exact SHA
+  `d6ae2e02df81d2a40096ab51c79196249db9ce80`.
+- Failed real CI: GitHub Actions run `29910022993`,
+  `https://github.com/daodaolee/sartre/actions/runs/29910022993`, completed with
+  `conclusion=failure` for head SHA `d6ae2e02df81d2a40096ab51c79196249db9ce80`.
+  Jobs `constitution` and `electron-macos-arm64` passed. Job `postgresql-17-6` passed setup,
+  exact-version/migration checks, and four PostgreSQL tests, then failed `health:smoke` because
+  `@sartre/contracts` exports `dist/index.js` but that job had not run the workspace build.
+  Its Playwright and diagnostic-timeline steps were consequently SKIPPED. This run is retained as
+  nonPASS evidence and cannot close any gate.
+- Repair TDD: an active-workflow control requiring `pnpm run build` before the PostgreSQL
+  `health:smoke` gate first exited 1 with `1 failed | 29 passed` and
+  `expected -1 to be greater than -1`. Adding the single build step to that job made
+  `pnpm exec vitest run scripts/harness/verify-clean-clone.test.ts` exit 0 with
+  `1 file | 30/30`.
+- Fresh affected verification: `pnpm run build` exited 0 across the eight declared workspaces;
+  `pnpm run health:smoke` exited 0 with `1 file | 11/11`; format, lint, typecheck,
+  `git diff --check`, exact two-path cached whitespace/index enumeration, immutable-index Secret,
+  and full Secret checks all exited 0.
+- Replacement immutable subject:
+  `93fac5f3f3981d0eac6e184af3871fb4ba5747b0`, tree
+  `d1d9a0c639de653aafa3c1cfbb706180e1481521`, sole parent
+  `16bb67b054cd71a7e05e70e203621d1a560465ab`, author and committer
+  `daodaolee <im@daodaolee.cn>`. The only worktree delta after amend is this ledger.
+- Evidence invalidation: all PASS claims tied to `d6ae2e02...` are superseded for final closeout.
+  The new subject requires fresh clean-clone and same-SHA real CI. Do not reuse run
+  `29910022993` or its artifact as PASS evidence.
+- Next command:
+  `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres SARTRE_POSTGRES_NEGATIVE_URL=postgresql://postgres@127.0.0.1:55432/postgres pnpm exec tsx scripts/harness/verify-clean-clone.ts --subject 93fac5f3f3981d0eac6e184af3871fb4ba5747b0`.
+  On zero, require clean ledger-only status, then update remote branch with an exact
+  `--force-with-lease` against old SHA `d6ae2e02df81d2a40096ab51c79196249db9ce80`, wait for the
+  new same-SHA workflow, and run `pnpm run ci:verify -- --subject
+  93fac5f3f3981d0eac6e184af3871fb4ba5747b0`. Do not update remote `main`, create evidence/tag,
+  or begin MS1 before required CI PASS.
+
+### 2026-07-22 18:31 CST - Second real CI failure repaired in a new subject
+
+- Status: IN_PROGRESS. Run 2 is required nonPASS evidence; Task 9/MS0 remain open and MS1 remains
+  prohibited. Remote `main` remains unchanged at observed lease
+  `e0f21543d6c0c05d7d7374318f0410bd4d03a2af`.
+- Pre-run subject reproducibility: after temporarily isolating this ledger, the first clean-clone
+  attempt returned `clean_clone_gate_failed:test:pnpm`. Direct diagnosis without database inputs
+  was non-equivalent and was stopped; its database-required failures are not subject findings.
+  The two timeout-sensitive focused controls then passed `21/21` and `1/1`. A second unchanged,
+  clean, database-bound execution of the exact clean-clone command exited 0 with
+  `Clean-clone verification passed for 93fac5f3f3981d0eac6e184af3871fb4ba5747b0.`
+  No timeout or assertion was weakened.
+- Second real CI: GitHub Actions run `29911740717`,
+  `https://github.com/daodaolee/sartre/actions/runs/29911740717`, ran head SHA
+  `93fac5f3f3981d0eac6e184af3871fb4ba5747b0`. Jobs `constitution` and
+  `electron-macos-arm64` passed. The `postgresql-17-6` job proved the previous repair by passing
+  workspace build, PostgreSQL/migrations, and `health:smoke` `11/11`, then failed the Electron
+  Playwright test with `Missing X server or $DISPLAY`; the diagnostic-timeline step was SKIPPED.
+  GitHub Actions UI was also inspected through Computer Use and showed run 2 failed on the exact
+  `93fac5f` commit. This run and artifact cannot be PASS closeout evidence.
+- Root cause: `xvfb-run` correctly created an X11 display, but
+  `tests/e2e/ms0-health.spec.ts` intentionally constructed a minimal `electron.launch` env and
+  dropped `DISPLAY` and `XAUTHORITY`.
+- Repair TDD: the new X11 allowlist test first failed with
+  `ReferenceError: electronX11Environment is not defined`. The implementation now forwards only a
+  validated `DISPLAY=:<number>[.<screen>]` and optional absolute `XAUTHORITY`; an injected
+  `GH_TOKEN` sentinel is rejected by exact-object assertion, so the fix does not inherit the
+  caller environment.
+- Fresh repair evidence: the focused X11 test passed `1/1`; complete local development Electron
+  E2E passed `3/3`, including real child timeout cleanup and four-process Worker loss/recovery.
+  Format, lint, typecheck, cached whitespace, exact one-path index enumeration, immutable-index
+  Secret, and full Secret checks all exited 0.
+- Replacement immutable subject:
+  `22fb622949d2374ab0aa18af57b68ddab059e698`, tree
+  `798de82f55bff2271da27101771959d340c1a254`, sole parent
+  `16bb67b054cd71a7e05e70e203621d1a560465ab`, author/committer
+  `daodaolee <im@daodaolee.cn>`. The only worktree delta after amend is this ledger.
+- Next command: temporarily isolate this ledger, require a clean checkout, then run
+  `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres SARTRE_POSTGRES_NEGATIVE_URL=postgresql://postgres@127.0.0.1:55432/postgres pnpm exec tsx scripts/harness/verify-clean-clone.ts --subject 22fb622949d2374ab0aa18af57b68ddab059e698`.
+  On zero, restore this ledger and update the remote subject branch with exact
+  `--force-with-lease` against `93fac5f3f3981d0eac6e184af3871fb4ba5747b0`; wait for the new
+  same-SHA workflow and run `pnpm run ci:verify -- --subject
+  22fb622949d2374ab0aa18af57b68ddab059e698`. Do not update `main`, create evidence/tag, or enter
+  MS1 before required CI PASS.
+
+### 2026-07-22 18:54 CST - Required CI passed; real artifact download timeout repaired locally
+
+- Status: IN_PROGRESS. GitHub Actions run `29912555370` completed successfully for subject
+  `22fb622949d2374ab0aa18af57b68ddab059e698`; all required jobs `constitution`,
+  `postgresql-17-6`, and `electron-macos-arm64` passed. Fresh
+  `pnpm run ci:verify -- --subject 22fb622949d2374ab0aa18af57b68ddab059e698` exited 0 and bound
+  artifact digest `sha256:d577268e6832ef9c1eba8e2c24bf26f1d906ada43e15641015abecadc5c04ee3`.
+  This run becomes superseded as final closeout evidence when the timeout repair changes the
+  subject; it remains retained as successful historical attempt evidence.
+- Real artifact observation: `gh run download 29912555370 -n
+  ms0-required-22fb622949d2374ab0aa18af57b68ddab059e698` downloaded the 119,861,636-byte DMG plus
+  checksum. Directory creation at `18:41:26 CST` and file completion at `18:51:19 CST` prove an
+  approximate 9m53s transfer. The prior final-verifier limit was 120,000ms, so it could not accept
+  this successful real transfer. DMG SHA-256
+  `6d4187ac5ee766da722ec2a894e89c8a17a2fe17a0c0489547566a3ed3f14316` exactly matched
+  `artifact-sha256.txt`; the temporary download directory was deleted after observation.
+- Repair TDD: fresh focused command
+  `pnpm exec vitest run scripts/harness/verify-ms0.test.ts -t "keeps the required CI artifact
+  download bounded with a 15-minute budget"` first exited 1 with the expected missing-constant
+  assertion. Adding only `CI_ARTIFACT_DOWNLOAD_TIMEOUT_MS = 900_000` and using it in
+  `downloadCiArtifactEvidence` made the same command exit 0 with `1/1`. Artifact content,
+  checksum, subject, run/job, digest, evidence-path, and Secret validations are unchanged.
+- Fresh affected verification: the complete `scripts/harness/verify-ms0.test.ts` suite exited 0
+  with `47/47`; `pnpm run format:check` exited 0 for 155 files; `pnpm run lint` exited 0 for 156
+  files; `pnpm run typecheck` exited 0 across all eight target workspaces; `pnpm run secret:check`
+  exited 0; and `git diff --check` exited 0.
+- Subject invalidation: the repair changes `scripts/harness/verify-ms0.ts` and its regression test,
+  so subject `22fb6229...`, its clean-clone result, and run `29912555370` cannot be reused for final
+  closeout. A replacement immutable subject, fresh clean-clone, and fresh same-SHA CI are required.
+- Next command: precisely stage only `scripts/harness/verify-ms0.ts` and
+  `scripts/harness/verify-ms0.test.ts`; run cached whitespace, exact two-path index enumeration,
+  `pnpm run secret:check -- --index`, and fresh `pnpm run secret:check`; then amend
+  `chore(ms0): freeze repository constitution subject` while preserving sole parent
+  `16bb67b054cd71a7e05e70e203621d1a560465ab` and repository-local identity
+  `daodaolee <im@daodaolee.cn>`. Do not stage this ledger into the subject, update remote `main`,
+  create evidence/tag, or enter MS1.
+
+### 2026-07-22 18:56 CST - Artifact-timeout repair amended into replacement subject
+
+- Status: IN_PROGRESS. The exact two-path repair was staged without this ledger. Cached whitespace,
+  exact path enumeration, immutable-index Secret, and fresh full Secret checks all exited 0.
+- Replacement immutable subject: `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`, tree
+  `c424d56fd77fe5d0069f191102176abd29ed1546`, sole parent
+  `16bb67b054cd71a7e05e70e203621d1a560465ab`, subject
+  `chore(ms0): freeze repository constitution subject`, author/committer
+  `daodaolee <im@daodaolee.cn>`. This ledger is the only worktree delta and the index is empty.
+- Base-to-subject path set is exactly the expected thirteen Task 9 paths: the prior eleven-path
+  subject plus `scripts/harness/verify-ms0.ts` and `scripts/harness/verify-ms0.test.ts`. Task 1-8,
+  authority specs, freeze/Porting artifacts, application business scope, and MS1 are unchanged.
+- Evidence invalidation: run `29912555370`, its artifact, and the prior clean-clone result remain
+  historical PASS for `22fb6229...`; none may be presented as final same-subject evidence for
+  `eab7d4ae...`.
+- Next command: temporarily stash only this ledger, require `git status --porcelain` to be empty,
+  then run
+  `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres SARTRE_POSTGRES_NEGATIVE_URL=postgresql://postgres@127.0.0.1:55432/postgres pnpm exec tsx scripts/harness/verify-clean-clone.ts --subject eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`.
+  Restore the ledger immediately after the command. Do not push the replacement subject, update
+  remote `main`, generate evidence/tag, or enter MS1 unless this fresh clean-clone exits 0.
+
+### 2026-07-22 19:01 CST - Replacement subject clean-clone PASS
+
+- Status: IN_PROGRESS. Only this ledger was stashed; `git status --porcelain` was empty before the
+  verifier started. The exact database-bound command from the preceding checkpoint exited 0 with
+  `Clean-clone verification passed for eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a.` No historical
+  clean-clone output was reused.
+- Recovery integrity: the ledger stash was immediately popped without conflict; the worktree again
+  contains only this ledger delta, the index is empty, and `git stash list` is empty.
+- Live remote lease observation: `origin/codex/ms0-repository-constitution` is exactly
+  `22fb622949d2374ab0aa18af57b68ddab059e698`; remote `main` remains exactly
+  `e0f21543d6c0c05d7d7374318f0410bd4d03a2af`. No GitLab remote exists and no GitLab push is
+  permitted.
+- Next command: update only `refs/heads/codex/ms0-repository-constitution` with
+  `git push --force-with-lease=refs/heads/codex/ms0-repository-constitution:22fb622949d2374ab0aa18af57b68ddab059e698 origin eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a:refs/heads/codex/ms0-repository-constitution`.
+  Require the remote ref to equal `eab7d4ae...`, wait for the same-SHA `ms0-required` workflow, and
+  run `pnpm run ci:verify -- --subject eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`. Do not update
+  remote `main`, generate evidence/tag, or enter MS1 before this fresh CI exits 0.
+
+### 2026-07-22 19:26 CST - Task 9 close signals assembled for evidence-only child
+
+- Status: DONE subject to the mandatory final verifier over the committed evidence child. A
+  nonzero verifier result reopens Task 9 and prohibits the tag, remote `main` update, and MS1.
+- Remote subject update: the exact force-with-lease against `22fb6229...` succeeded; live
+  `origin/codex/ms0-repository-constitution` became
+  `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`. Remote `main` remained
+  `e0f21543d6c0c05d7d7374318f0410bd4d03a2af`; no GitLab remote or push exists.
+- Required same-subject CI: GitHub Actions run `29914173418` completed `success` for exact head SHA
+  `eab7d4ae...`. Jobs `constitution`, `postgresql-17-6`, and `electron-macos-arm64` all completed
+  successfully. Fresh `pnpm run ci:verify -- --subject eab7d4ae...` exited 0 and returned artifact
+  digest `sha256:9ad1fee7c43514e41ebc7a54e416c2454c303287d77e2453a61f20483b9a2e5b`.
+  The Actions Node-20 deprecation annotation is a future action-version risk, not a failed gate;
+  this workflow executed under the pinned Node 24 toolchain and every required step completed.
+- Electron artifact binding: the run 4 artifact contained exactly the DMG and checksum file. The
+  119,861,524-byte DMG SHA-256 is
+  `9192b160770e8530c1d1d076ab3ce0ed5c4d85756bcb329c59fd4210997ff94c`, exactly matching the
+  uploaded checksum. The artifact digest and DMG content hash remain distinct bindings.
+- Fresh Migration Job build: full Secret boundary passed before build. Docker used the exact
+  digest-pinned Node 24.11.0 base and emitted manifest-list/image digest
+  `sha256:30e38e3551c10fd04eebdfdf9b00298ecb4ae75fead52589b8a1c42f2791257c`, config digest
+  `sha256:48b0927cece7f33c49e3f336996d5cf47dca28638cf3e92e843e71c6479ebc89`, `user=node`, and exact
+  entrypoint `/usr/local/bin/sartre-migrate`. One registry tarball hit `ECONNRESET`, retried, and
+  completed; the final build exited 0 and is not relabeled as a clean network attempt.
+- Fresh Migration Job REAL_TEST:
+  `SARTRE_MIGRATION_JOB_IMAGE=sartre-migration-job:ms0-closeout-eab7
+  SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres pnpm exec vitest run
+  tests/integration/migration-job-image.integration.test.ts --disableConsoleIntercept` exited 0
+  with `2/2`. It proved exactly four nonsymlink repository-owned payloads, byte equality, artifact
+  Secret PASS, nonroot/entrypoint/no-node_modules policy, first apply `true,true`, second no-op
+  `false,false`, exact `000001`/`000002` rows and checksums, plus database/container/temp cleanup.
+- Subject observation: clean subject tree is `c424d56fd77fe5d0069f191102176abd29ed1546` and the
+  repository-owned clean worktree input hashes to
+  `3d02e558e41751d730c4db6f5ce19b14977179de1b101e2f4780d9fe772b8ac9`. The ledger-only stash used
+  for this observation was immediately restored and no stash remains.
+- Tool versions were freshly observed through explicit allowlisted commands only: Node `v24.11.0`,
+  pnpm `10.33.2`, and gitleaks `8.28.0`. An initial mistaken attempt addressed the gitleaks
+  directory rather than its contained binary and exited 126; it changed no state and is not gate
+  evidence. No environment/config dump, credential helper, shell profile, or ignored credential
+  input was read.
+- Negative controls: the fresh clean-clone/CI root test suite executed the committed fail-closed
+  controls for missing command, required SKIPPED, wrong-CI subject, PostgreSQL 17.10, stopped Worker,
+  degraded dependency, missing/mismatched gitleaks, root-pack success, unpacked artifact Secret,
+  and extracted payload Secret. These controls remain REAL_TEST behavior and are not replaced by a
+  structural manifest assertion.
+- Accepted residual risks: GitHub artifact transfer is network-variable but bounded at 15 minutes;
+  the Migration Job digest is local platform-specific unsigned test evidence, not Release evidence;
+  Actions v4 Node-20 deprecation requires a future workflow dependency update; diagnostics retention
+  is schema metadata without an MS0 purge worker; self-test routes are not MS1 identity/authorization.
+- Evidence-only path set must be exactly:
+  `plan/00-master-plan.md`, this ledger,
+  `reports/ms0-repository-constitution/checkpoints/closeout.md`,
+  `reports/ms0-repository-constitution/evidence/closeout.json`, and
+  `reports/ms0-repository-constitution/evidence/manifest.json`.
+- Next command: create those closeout records, run format/whitespace and full Secret checks, stage
+  exactly the five paths, repeat cached whitespace/exact enumeration and immutable-index/full Secret
+  checks, then commit `test(ms0): bind repository constitution evidence`. Immediately run
+  `pnpm run verify:ms0 -- --evidence-commit HEAD --subject-commit HEAD^`. Do not tag, update remote
+  `main`, create the MS1 task, or clean up the local image/artifact inputs before verifier exit 0.
+
+### 2026-07-23 11:13 CST - authorized evidence-rebind cross-device handoff
+
+- Status: BLOCKED at replacement artifact content recovery. This handoff made the interruption
+  remotely recoverable; it was not MS0 closeout evidence and did not authorize MS1.
+- Authority and scope:
+  - The user explicitly authorized a narrow MS0 evidence rebind after the original bound GitHub run
+    and artifact disappeared, then requested an immediate stop for a device switch and required
+    remote repository documentation sufficient for another AI to continue without chat history.
+  - The immutable subject and its implementation were unchanged. The rebind could update only the
+    five final evidence paths after replacement facts were verified. No MS0 feature repair, legacy
+    compatibility, MS1 implementation, or MS2 work was authorized in the handoff.
+- Remote topology observed fresh:
+  - GitHub origin only: `https://github.com/daodaolee/sartre.git`; no GitLab remote or push.
+  - Immutable subject branch: `origin/codex/ms0-repository-constitution` at
+    `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`, tree
+    `c424d56fd77fe5d0069f191102176abd29ed1546`, sole parent
+    `16bb67b054cd71a7e05e70e203621d1a560465ab`.
+  - Remote `main` and `ms0-verified^{commit}` remained the old evidence child
+    `8174869ae58f90ee1a3dae5d48d75d73d5285533`; annotated tag object was
+    `4e3b930d1fcb8d8fd1086f1e0d63ee67a9f4ebff`.
+  - The ledger-only handoff branch was `codex/ms0-evidence-rebind-handoff`, rooted at the old
+    evidence child. It must never be used as the parent of replacement evidence.
+- Replacement CI evidence:
+  - Pushing the existing immutable subject to `codex/ms0-repository-constitution` triggered GitHub
+    Actions run `29973452109` for exact head SHA `eab7d4ae...`.
+  - Jobs `constitution`, `postgresql-17-6`, and `electron-macos-arm64` all completed successfully.
+    Actions v4 emitted the already-known Node-20 deprecation annotation while the workflow remained
+    pinned to Node `24.11.0`; the annotation was residual risk, not a skipped or failed gate.
+  - Fresh `pnpm run ci:verify -- --subject eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`
+    exited 0 and selected run `29973452109` with artifact digest
+    `sha256:f65ef41b41a94ce7498082996d1259f21eeb7e75d8f0c745d0d92ee42377c5e3`.
+  - Live artifact metadata: id `8550574084`, size `119654174` bytes, `expired=false`, expiration
+    `2026-08-22T02:05:56Z`. Metadata alone did not prove DMG contents or checksum.
+- Preserved download attempt history:
+  - The original fresh verifier passed Git/tag binding but exited 1 with
+    `final_ci_artifact_download_failed`; live GitHub queries returned 404 for historical run
+    `29914173418` and zero matching artifacts.
+  - A first top-level `gh run download` diagnostic was transparently rewritten by the desktop
+    command-output proxy to `rtk gh`, produced no artifact, and was manually stopped at the
+    15-minute boundary. This was not an official-CLI artifact attempt or PASS evidence.
+  - The first official GitHub CLI `2.92.0` download failed after roughly five and a half minutes
+    with `connection reset by peer`; no checksum assertion ran.
+  - The second official CLI download produced no final artifact within 15 minutes and was manually
+    terminated at the approved boundary; no checksum assertion ran.
+  - A direct official-CLI archive diagnostic was stopped immediately when the user requested the
+    device switch. It was cancelled, not PASS or timeout evidence.
+- Local safety and cleanup:
+  - Dependencies were restored only with `pnpm install --frozen-lockfile
+    --strict-peer-dependencies`. Pinned gitleaks `8.28.0` was checksum-bootstrapped; fresh
+    `toolchain:check` and repository `secret:check` exited 0 before the subject branch push.
+  - Every bounded temporary download path was removed after stop/failure. No partial archive, DMG,
+    checksum, token, endpoint, credential, ignored input, raw environment/config dump, or local
+    absolute path was persisted in Git.
+  - The source worktree was clean before creating the branch; the only intended handoff change was
+    this PLAN_LEDGER.
+- Evidence classification:
+  - Replacement same-SHA CI metadata/jobs/artifact digest: REAL_TEST / PASS.
+  - Replacement artifact file set, DMG hash, uploaded checksum, evidence-only child, final verifier,
+    verified tag, remote `main`, and the original MS1 prerequisite command: BLOCKED / not executed.
+  - Historical run/artifact facts were stale and must not be copied into replacement closeout.
+- Cross-device plan policy:
+  - `plan/00-master-plan.md` remained the remote roadmap for MS0-MS8.
+  - After the complete MS0 binding command exits 0, MS1 must begin by creating its tracked
+    implementation plan, OpenSpec/BDD, and independent PLAN_LEDGER, committing and pushing those
+    artifacts before implementation. Later MS detailed plans are created and pushed one milestone
+    at a time after the preceding verified tag; chat context is never the recovery authority.
+- Next command at interruption: follow the top Resume procedure, beginning with
+  `pnpm run ci:verify -- --subject eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`. Only exit 0 could
+  resume artifact download/checksum recovery.
+
+### 2026-07-31 15:42 CST - replacement artifact recovered; evidence child ready to verify
+
+- Status: DONE subject to the mandatory final verifier over the committed replacement evidence
+  child. No tag, remote `main`, or MS1 action is authorized before verifier exit 0.
+- Local toolchain recovery:
+  - `pnpm install --frozen-lockfile --strict-peer-dependencies` succeeded with the machine's Node
+    `v22.14.0`, but `pnpm run toolchain:check` correctly failed `node_version_mismatch`. Node 22 can
+    install the dependencies but cannot satisfy this repository's exact reproducibility gate.
+  - The latest LTS observed was Node `v24.18.1`; the lower-cost compatible choice was the repository
+    pin `v24.11.0`, installed with fnm. Under exact Node `v24.11.0`, pnpm `10.33.2`, and pinned
+    gitleaks `8.28.0`, `pnpm run toolchain:check`, `pnpm run build`, and `pnpm run typecheck` all
+    exited 0.
+- PostgreSQL and full local behavior:
+  - Docker Desktop was started locally. Docker Hub timed out during TLS handshakes, so the exact
+    PostgreSQL 17.6 digest was pulled from the AWS Public ECR Docker Library mirror and run as the
+    policy-equivalent loopback fixture on port `54326`; PostgreSQL 17.10 was also run on port
+    `55432` for the rejection control. Both containers were healthy.
+  - With only the two explicit database inputs, `pnpm run pg:verify` exited 0 and proved
+    `server_version_num=170006` plus the 17.10 rejection. `pnpm run test` exited 0 with the scripts
+    suite `565/565` and workspace/app suites `87/87`, for `652/652` total tests.
+- Official replacement CI binding:
+  - Authenticated GitHub CLI `2.97.0` was used. The fresh exact command
+    `pnpm run ci:verify -- --subject eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a` exited 0, selecting
+    run `29973452109` for the immutable subject with all three required jobs successful and artifact
+    digest `sha256:f65ef41b41a94ce7498082996d1259f21eeb7e75d8f0c745d0d92ee42377c5e3`.
+  - Official `gh run download 29973452109 --repo daodaolee/sartre --name
+    ms0-required-eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a --dir "$artifact_dir"` completed from
+    `2026-07-31T07:37:58Z` to `2026-07-31T07:38:16Z`. The directory contained exactly
+    `Sartre-0.1.0-arm64.dmg` and `artifact-sha256.txt`; `shasum -a 256 -c artifact-sha256.txt`
+    returned `Sartre-0.1.0-arm64.dmg: OK`.
+  - The DMG is 119,861,503 bytes and hashes to
+    `27c55682f89e1e34b95d7aab159493c5f5e1b48bf6aaaee41b6f4908a374a997`. Live artifact metadata
+    remained id `8550574084`, `expired=false`, 119,654,174 archive bytes, with expiration
+    `2026-08-22T02:05:56Z`.
+- Fresh artifact Secret boundary:
+  - The first extracted-payload scan fail-closed because pinned gitleaks was not yet bootstrapped in
+    the isolated worktree; it exited 1 with `gitleaks_archive_missing`,
+    `gitleaks_binary_missing`, and `gitleaks_secret_detected`. It is retained as nonPASS setup
+    evidence and did not weaken the boundary.
+  - `pnpm run toolchain:bootstrap` checksum-installed gitleaks `8.28.0`, and
+    `pnpm run toolchain:check` then exited 0. The repeated `pnpm run secret:artifacts --
+    <downloaded-dmg> <extracted-app>` ran from `2026-07-31T07:42:02Z` to
+    `2026-07-31T07:42:13Z`, exited 0, and reported `Artifact Secret boundary passed for 2 explicit
+    path(s).` No temporary absolute path is persisted in evidence.
+- Preserved recovery nonPASS:
+  - Before dependencies were installed in the isolated worktree, one repeat `ci:verify` exited 1 at
+    `tsx: command not found`. `pnpm install --frozen-lockfile --strict-peer-dependencies` then
+    succeeded with 424 packages, and the exact repeat exited 0. Only the repeat is PASS evidence.
+  - A process-inspection diagnostic earlier in recovery produced transient credential-bearing tool
+    output. No value was copied, staged, logged into repository files, or reused; credential
+    rotation remains an external safety action.
+- Evidence update scope: immutable subject code, source tests, configuration, lockfile, freeze
+  manifest, PortingLedger, and Migration Job digest are unchanged. The replacement evidence delta
+  remains exactly `plan/00-master-plan.md`, this ledger,
+  `reports/ms0-repository-constitution/checkpoints/closeout.md`,
+  `reports/ms0-repository-constitution/evidence/closeout.json`, and
+  `reports/ms0-repository-constitution/evidence/manifest.json`.
+- Accepted residual risks: replacement artifact retention ends on 2026-08-22; GitHub artifact
+  transfer remains network-variable but verifier-bounded at 15 minutes; Docker Hub was unreachable
+  on this machine and the local exact-digest fixture used the AWS mirror; the Migration Job digest
+  remains a local platform-specific unsigned test artifact; Actions v4 Node-20 deprecation,
+  schema-only retention without an MS0 purge worker, and self-test-only routes remain unchanged.
+- Next command: run format/whitespace and full Secret checks, stage exactly the five evidence paths,
+  repeat cached exact-path/whitespace plus immutable-index/full Secret checks, amend the old evidence
+  commit so its sole parent remains `eab7d4ae...`, then execute
+  `pnpm run verify:ms0 -- --evidence-commit HEAD --subject-commit HEAD^`. Do not tag or push without
+  explicit user authorization.
