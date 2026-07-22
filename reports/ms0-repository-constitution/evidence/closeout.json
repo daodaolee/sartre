@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1",
+  "subject": {
+    "commitSha": "eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a",
+    "treeHash": "c424d56fd77fe5d0069f191102176abd29ed1546",
+    "dirtyWorktreeHash": "3d02e558e41751d730c4db6f5ce19b14977179de1b101e2f4780d9fe772b8ac9"
+  },
+  "cleanClone": {
+    "status": "PASS",
+    "subjectCommit": "eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a",
+    "subjectTreeHash": "c424d56fd77fe5d0069f191102176abd29ed1546",
+    "beforeDirtyWorktreeHash": "3d02e558e41751d730c4db6f5ce19b14977179de1b101e2f4780d9fe772b8ac9",
+    "afterDirtyWorktreeHash": "3d02e558e41751d730c4db6f5ce19b14977179de1b101e2f4780d9fe772b8ac9",
+    "requiredSubgates": [
+      "toolchain-bootstrap",
+      "toolchain-check",
+      "format",
+      "lint",
+      "build",
+      "typecheck",
+      "test",
+      "architecture",
+      "secret",
+      "docker-context",
+      "sast",
+      "dependency",
+      "license",
+      "openspec",
+      "contract",
+      "spec"
+    ]
+  },
+  "requiredCi": {
+    "status": "PASS",
+    "subjectCommit": "eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a",
+    "runId": 29914173418,
+    "workflowPath": ".github/workflows/ms0-required.yml",
+    "requiredJobs": ["constitution", "postgresql-17-6", "electron-macos-arm64"],
+    "artifactDigest": "sha256:9ad1fee7c43514e41ebc7a54e416c2454c303287d77e2453a61f20483b9a2e5b",
+    "run": {
+      "id": 29914173418,
+      "headSha": "eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a",
+      "workflowPath": ".github/workflows/ms0-required.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "htmlUrl": "https://github.com/daodaolee/sartre/actions/runs/29914173418",
+      "jobs": [
+        {
+          "name": "electron-macos-arm64",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "constitution",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "postgresql-17-6",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "artifacts": [
+        {
+          "name": "ms0-required-eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a",
+          "expired": false,
+          "digest": "sha256:9ad1fee7c43514e41ebc7a54e416c2454c303287d77e2453a61f20483b9a2e5b"
+        }
+      ]
+    }
+  },
+  "environment": {
+    "id": "ms0-local-postgresql-17.6+github-actions-run-29914173418",
+    "databaseSchemaVersion": "000002_ms0_diagnostics",
+    "postgresServerVersion": 170006
+  },
+  "toolVersions": {
+    "node": "v24.11.0",
+    "pnpm": "10.33.2",
+    "gitleaks": "8.28.0"
+  },
+  "artifacts": {
+    "migrationImageDigest": "sha256:30e38e3551c10fd04eebdfdf9b00298ecb4ae75fead52589b8a1c42f2791257c",
+    "electronArtifactHash": "9192b160770e8530c1d1d076ab3ce0ed5c4d85756bcb329c59fd4210997ff94c"
+  }
+}

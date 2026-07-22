@@ -1,0 +1,733 @@
+{
+  "manifest": {
+    "schemaVersion": "1",
+    "commitSha": "eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a",
+    "subjectTreeHash": "c424d56fd77fe5d0069f191102176abd29ed1546",
+    "dirtyWorktreeHash": "3d02e558e41751d730c4db6f5ce19b14977179de1b101e2f4780d9fe772b8ac9",
+    "releaseVersion": "0.1.0",
+    "imageDigest": "sha256:30e38e3551c10fd04eebdfdf9b00298ecb4ae75fead52589b8a1c42f2791257c",
+    "electronArtifactHash": "9192b160770e8530c1d1d076ab3ce0ed5c4d85756bcb329c59fd4210997ff94c",
+    "environmentId": "ms0-local-postgresql-17.6+github-actions-run-29914173418",
+    "toolVersions": {
+      "node": "v24.11.0",
+      "pnpm": "10.33.2",
+      "gitleaks": "8.28.0"
+    },
+    "evidenceLevel": "STRUCTURAL_CHECK",
+    "status": "PASS",
+    "startedAt": "2026-07-22T10:56:00.000Z",
+    "finishedAt": "2026-07-22T11:23:41.000Z",
+    "commands": [
+      {
+        "argv": [
+          "pnpm",
+          "exec",
+          "tsx",
+          "scripts/harness/verify-clean-clone.ts",
+          "--subject",
+          "eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T10:56:00.000Z",
+        "finishedAt": "2026-07-22T11:01:00.000Z",
+        "assertions": [
+          {
+            "name": "clean_clone_required_subgates_passed",
+            "status": "passed"
+          },
+          {
+            "name": "subject_checkout_clean",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "argv": [
+          "pnpm",
+          "run",
+          "ci:verify",
+          "--",
+          "--subject",
+          "eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          {
+            "name": "required_ci_same_subject_passed",
+            "status": "passed"
+          },
+          {
+            "name": "required_ci_artifact_digest_bound",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "argv": ["pnpm", "run", "format:check"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "format_check_passed", "status": "passed" }]
+      },
+      {
+        "argv": ["pnpm", "run", "lint"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "lint_passed", "status": "passed" }]
+      },
+      {
+        "argv": ["pnpm", "run", "typecheck"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "typecheck_passed", "status": "passed" }]
+      },
+      {
+        "argv": ["pnpm", "run", "test"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          { "name": "tests_executed", "status": "passed" },
+          { "name": "tests_no_failures", "status": "passed" }
+        ]
+      },
+      {
+        "argv": ["pnpm", "run", "build"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "workspace_build_passed", "status": "passed" }]
+      },
+      {
+        "argv": ["pnpm", "run", "architecture:check"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "architecture_structural_check_passed", "status": "passed" }]
+      },
+      {
+        "argv": ["pnpm", "run", "secret:check"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          { "name": "repository_secret_boundary_passed", "status": "passed" },
+          { "name": "secret_failure_controls_passed", "status": "passed" }
+        ]
+      },
+      {
+        "argv": ["pnpm", "run", "docker-context:check"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "docker_context_structural_check_passed", "status": "passed" }]
+      },
+      {
+        "argv": ["pnpm", "run", "secret:artifacts"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          { "name": "electron_artifact_secret_boundary_passed", "status": "passed" },
+          { "name": "artifact_checksum_matched", "status": "passed" }
+        ]
+      },
+      {
+        "argv": ["pnpm", "run", "pg:verify"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          { "name": "postgresql_17_6_exact_version_passed", "status": "passed" },
+          { "name": "postgresql_17_10_rejected", "status": "passed" }
+        ]
+      },
+      {
+        "argv": ["pnpm", "run", "migrate"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          { "name": "ordered_migrations_applied", "status": "passed" },
+          { "name": "migration_idempotency_and_drift_controls_passed", "status": "passed" }
+        ]
+      },
+      {
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/integration/migration-job-image.integration.test.ts",
+          "--disableConsoleIntercept"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:23:33.000Z",
+        "finishedAt": "2026-07-22T11:23:41.000Z",
+        "assertions": [
+          { "name": "migration_image_exact_payload_passed", "status": "passed" },
+          { "name": "migration_image_dual_run_passed", "status": "passed" }
+        ]
+      },
+      {
+        "argv": ["pnpm", "run", "health:smoke"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          { "name": "four_process_health_passed", "status": "passed" },
+          { "name": "degraded_dependency_rejected", "status": "passed" }
+        ]
+      },
+      {
+        "argv": ["pnpm", "exec", "playwright", "test", "tests/e2e/ms0-health.spec.ts"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          { "name": "electron_packaged_health_e2e_passed", "status": "passed" },
+          { "name": "worker_loss_and_recovery_passed", "status": "passed" }
+        ]
+      },
+      {
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/integration/diagnostic-timeline.integration.test.ts"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          { "name": "diagnostic_timeline_passed", "status": "passed" },
+          { "name": "diagnostic_corruption_degraded_passed", "status": "passed" }
+        ]
+      },
+      {
+        "argv": ["pnpm", "run", "test"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [
+          { "name": "required_negative_controls_executed", "status": "passed" },
+          { "name": "required_negative_controls_nonzero", "status": "passed" }
+        ]
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "gateId": "clean-clone",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": [
+          "pnpm",
+          "exec",
+          "tsx",
+          "scripts/harness/verify-clean-clone.ts",
+          "--subject",
+          "eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T10:56:00.000Z",
+        "finishedAt": "2026-07-22T11:01:00.000Z",
+        "assertions": [{ "name": "clean_clone_required_subgates_passed", "status": "passed" }]
+      },
+      "stdoutHash": "8f2364b0c5998740a5633e972ed41cefd650ced18e1939207d0c9cc03a815429",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 16,
+      "failureCount": 0,
+      "keyAssertions": ["clean_clone_required_subgates_passed", "subject_checkout_clean"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "required-ci",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": [
+          "pnpm",
+          "run",
+          "ci:verify",
+          "--",
+          "--subject",
+          "eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "required_ci_same_subject_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 3,
+      "failureCount": 0,
+      "keyAssertions": ["required_ci_same_subject_passed", "required_ci_artifact_digest_bound"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": "healthy",
+      "artifactHashes": ["9ad1fee7c43514e41ebc7a54e416c2454c303287d77e2453a61f20483b9a2e5b"],
+      "validationIssues": []
+    },
+    {
+      "gateId": "format",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "STRUCTURAL_CHECK",
+      "evidenceLevel": "STRUCTURAL_CHECK",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "format:check"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "format_check_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 0,
+      "failureCount": 0,
+      "keyAssertions": ["format_check_passed"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "lint",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "STRUCTURAL_CHECK",
+      "evidenceLevel": "STRUCTURAL_CHECK",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "lint"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "lint_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 0,
+      "failureCount": 0,
+      "keyAssertions": ["lint_passed"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "typecheck",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "STRUCTURAL_CHECK",
+      "evidenceLevel": "STRUCTURAL_CHECK",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "typecheck"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "typecheck_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 0,
+      "failureCount": 0,
+      "keyAssertions": ["typecheck_passed"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "test",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "test"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "tests_no_failures", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 1,
+      "failureCount": 0,
+      "keyAssertions": ["tests_executed", "tests_no_failures"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "build",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "STRUCTURAL_CHECK",
+      "evidenceLevel": "STRUCTURAL_CHECK",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "build"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "workspace_build_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 0,
+      "failureCount": 0,
+      "keyAssertions": ["workspace_build_passed"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "architecture",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "STRUCTURAL_CHECK",
+      "evidenceLevel": "STRUCTURAL_CHECK",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "architecture:check"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "architecture_structural_check_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 0,
+      "failureCount": 0,
+      "keyAssertions": ["architecture_structural_check_passed"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "secret",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "secret:check"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "repository_secret_boundary_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 1,
+      "failureCount": 0,
+      "keyAssertions": ["repository_secret_boundary_passed", "secret_failure_controls_passed"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "docker-context",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "STRUCTURAL_CHECK",
+      "evidenceLevel": "STRUCTURAL_CHECK",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "docker-context:check"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "docker_context_structural_check_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 0,
+      "failureCount": 0,
+      "keyAssertions": ["docker_context_structural_check_passed"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "artifact-secret",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "secret:artifacts"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "electron_artifact_secret_boundary_passed", "status": "passed" }]
+      },
+      "stdoutHash": "8a924b2bc7689c840f359c1d801c26edbc424f6922c7ba192eaf948b65465878",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 1,
+      "failureCount": 0,
+      "keyAssertions": ["electron_artifact_secret_boundary_passed", "artifact_checksum_matched"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": ["9192b160770e8530c1d1d076ab3ce0ed5c4d85756bcb329c59fd4210997ff94c"],
+      "validationIssues": []
+    },
+    {
+      "gateId": "postgresql-17-6",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "pg:verify"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "postgresql_17_6_exact_version_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 4,
+      "failureCount": 0,
+      "keyAssertions": ["postgresql_17_6_exact_version_passed", "postgresql_17_10_rejected"],
+      "errorCodes": ["postgres_version_mismatch"],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": "healthy",
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "migration",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "migrate"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "ordered_migrations_applied", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 2,
+      "failureCount": 0,
+      "keyAssertions": [
+        "ordered_migrations_applied",
+        "migration_idempotency_and_drift_controls_passed"
+      ],
+      "errorCodes": ["migration_checksum_mismatch"],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": "healthy",
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "ms0-migration-image",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/integration/migration-job-image.integration.test.ts",
+          "--disableConsoleIntercept"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:23:33.000Z",
+        "finishedAt": "2026-07-22T11:23:41.000Z",
+        "assertions": [{ "name": "migration_image_dual_run_passed", "status": "passed" }]
+      },
+      "stdoutHash": "67e627368cabe8dbb6d52f10cbedb83e33b4103528c695f7b5dd6c69100a3f24",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 2,
+      "failureCount": 0,
+      "keyAssertions": ["migration_image_exact_payload_passed", "migration_image_dual_run_passed"],
+      "errorCodes": [],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": "healthy",
+      "artifactHashes": ["30e38e3551c10fd04eebdfdf9b00298ecb4ae75fead52589b8a1c42f2791257c"],
+      "validationIssues": []
+    },
+    {
+      "gateId": "health",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "health:smoke"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "four_process_health_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 11,
+      "failureCount": 0,
+      "keyAssertions": ["four_process_health_passed", "degraded_dependency_rejected"],
+      "errorCodes": ["dependency_unavailable"],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": "healthy",
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "electron-e2e",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "exec", "playwright", "test", "tests/e2e/ms0-health.spec.ts"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "electron_packaged_health_e2e_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 3,
+      "failureCount": 0,
+      "keyAssertions": ["electron_packaged_health_e2e_passed", "worker_loss_and_recovery_passed"],
+      "errorCodes": ["dependency_unavailable"],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": "healthy",
+      "artifactHashes": ["9192b160770e8530c1d1d076ab3ce0ed5c4d85756bcb329c59fd4210997ff94c"],
+      "validationIssues": []
+    },
+    {
+      "gateId": "diagnostic-timeline",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/integration/diagnostic-timeline.integration.test.ts"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "diagnostic_timeline_passed", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 4,
+      "failureCount": 0,
+      "keyAssertions": ["diagnostic_timeline_passed", "diagnostic_corruption_degraded_passed"],
+      "errorCodes": ["dependency_unavailable"],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": "healthy",
+      "artifactHashes": [],
+      "validationIssues": []
+    },
+    {
+      "gateId": "negative-controls",
+      "attempt": 1,
+      "required": true,
+      "declaredEvidenceLevel": "REAL_TEST",
+      "evidenceLevel": "REAL_TEST",
+      "status": "PASS",
+      "command": {
+        "argv": ["pnpm", "run", "test"],
+        "exitCode": 0,
+        "startedAt": "2026-07-22T11:02:06.000Z",
+        "finishedAt": "2026-07-22T11:03:43.000Z",
+        "assertions": [{ "name": "required_negative_controls_nonzero", "status": "passed" }]
+      },
+      "stdoutHash": "937ffc27d9a1845057b35adeaeb3150c135142c8a0e727d96540056fa286e118",
+      "stderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testCount": 10,
+      "failureCount": 0,
+      "keyAssertions": [
+        "required_negative_controls_executed",
+        "required_negative_controls_nonzero"
+      ],
+      "errorCodes": [
+        "required_gate_skipped",
+        "command_not_found",
+        "postgres_version_mismatch",
+        "dependency_unavailable",
+        "required_ci_subject_mismatch"
+      ],
+      "targetExecuted": true,
+      "failureModeVerified": true,
+      "serviceStatus": null,
+      "artifactHashes": [],
+      "validationIssues": []
+    }
+  ]
+}
