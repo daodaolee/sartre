@@ -3,16 +3,16 @@
 - Goal: MS0 Repository Constitution and evidence baseline
 - Plan: `docs/superpowers/plans/2026-07-17-ms0-repository-constitution.md`
 - Status: IN_PROGRESS
-- Current task: Task 7 is DONE at reviewed subject `2cb95bf3a4977467c1c9525347d043da7ae773b8`, tree `30734c26d12d2df329b3290524f64f2f5d6a8ffe`, sole Task 6 parent `1f0eb1cb5fc597026a1f791992f71f718524f701`. Final code-quality re-review reported Critical `0`, Important `0`, Minor `0`, Ready `YES`; specification remains APPROVED. Task 8 has not started, MS0 remains IN_PROGRESS, and MS1 remains prohibited
-- Last verified action: the same quality reviewer freshly passed focused contracts/diagnostics `3 files | 67/67`, confirmed exact seven-path repair topology and a clean worktree, and accepted immutable chain/time enforcement plus row-decode-only corruption mapping to redacted `degraded`
-- Evidence level: Task 7 contracts, real Hub/SDK/CLI, PostgreSQL 17.6 schema/catalog, self-contained Migration Job, actual-image exact-four payload, Task 6 asar guard, lifecycle, and cleanup evidence are REAL_TEST / PASS. `architecture:check` remains STRUCTURAL_CHECK / PASS only. Specification and code-quality review are closed. No Task 8 or MS0 closeout claim is made
+- Current task: Task 8 is DONE. Freeze/verifier/import/Porting behavior and the ledger-only recovery rebound received independent specification and quality approval at reviewed candidate `352c15f67d0675bcb0ae2d563cf0129074fd4df2`, tree `cd93fcd039beaeea3bb0f14b749e1f91f7ca9edf`, sole Task 7 parent `f3f558b43021ebe95d2ac770ad9c6134e3a78660`. Task 9 is ready but has not started, MS0 remains IN_PROGRESS, and MS1 remains prohibited
+- Last verified action: the ledger-only final reviewer reported Critical `0`, Important `0`, Minor `0`, specification APPROVED, quality APPROVED; it confirmed the old-to-reviewed-candidate delta is exactly this ledger, `git diff --check` passes, the worktree is clean, and the active recovery instructions supersede the historical stale stage/commit text
+- Evidence level: Task 8 freeze regression and independent real-source re-verification are REAL_TEST / PASS. Exact import-set/hash and PortingLedger audits are STRUCTURAL_CHECK / PASS. Independent specification and quality review are APPROVED. Task 8 is DONE; no Task 9 or MS0 closeout claim is made
 - Required dependency: PostgreSQL 17.6 container `sartre-postgres-17-6` on `127.0.0.1:54326`
 - Secret source: ignored `/.local-secrets/development.env`; values must never be recorded here. Task 4 did not read it: the repo-owned database uses explicit loopback-only local-integration `trust`, guarded by a fail-closed compose policy that prohibits production reuse
 - Resume procedure:
   1. Read root `AGENTS.md`, the authority chain, `plan/00-master-plan.md`, the active implementation plan, and this ledger. Do not read ignored credential input.
-  2. Run `git status --short --branch` and `git log -9 --format='%H %P %s'`. Expect branch `codex/ms0-repository-constitution`, a clean Task 7 subject `feat(ms0): add correlation diagnostic timeline`, and sole parent `1f0eb1cb5fc597026a1f791992f71f718524f701`. Run `git diff --name-only 2cb95bf3a4977467c1c9525347d043da7ae773b8..HEAD` and accept an empty delta or exactly this ledger, never source/test/config/package drift.
-  3. Begin Task 8 with `pnpm exec vitest run scripts/legacy/create-freeze-manifest.test.ts`. Do not regenerate `reference/legacy-freeze/manifest.json`; require the regression suite to prove fact-level mutation rejection before running the independent verifier against the recorded source facts.
-  4. Do not rerun Task 6's full/package/E2E matrix unless Task 6 source or artifacts drift. Do not begin MS1, push, read ignored credential input, inspect container environments, or regenerate the legacy freeze manifest.
+  2. Run `git status --short --branch` and `git log -9 --format='%H %P %s'`. Expect branch `codex/ms0-repository-constitution`, a clean Task 8 subject `docs(ms0): audit legacy porting boundary`, and sole Task 7 parent `f3f558b43021ebe95d2ac770ad9c6134e3a78660`. Run `git diff --name-only f3f558b43021ebe95d2ac770ad9c6134e3a78660..HEAD` and require exactly `plan/PORTING_LEDGER.md` plus this ledger.
+  3. Task 8 is DONE. Begin Task 9 only at Step 1 of the active implementation plan: write the RED clean-clone/evidence-chain tests, then run the exact first validation command `pnpm exec vitest run scripts/harness/verify-clean-clone.test.ts` and require the planned missing-verifier failure before implementation.
+  4. Do not begin MS1, push, read ignored credential input, inspect container environments, copy or print legacy source content, or run the freeze generator.
 
 ## Entries
 
@@ -1892,3 +1892,77 @@
 - Closeout scope: only this `PLAN_LEDGER.md` changes after the reviewed subject. No Task 1-7 source/test/config/package/lock/SQL/Docker/image, authority, freeze, Task 8/9, or MS1 path changes.
 - Next command: `pnpm exec vitest run scripts/legacy/create-freeze-manifest.test.ts`. Do not regenerate the freeze manifest. Accept only the fresh regression suite proving tracked/modified/untracked/deleted/symlink/ignored facts and path/state/kind/size/hash mutation rejection; zero discovery, SKIPPED, or count-only checks are not PASS.
 - Resume: use the active top procedure. Preserve the clean seven-commit chain, do not rerun Task 7's root/image/Job matrix without Task 7 drift, and do not begin MS1, push, read ignored credential input, inspect container environments, or regenerate the legacy freeze manifest.
+
+### 2026-07-22 12:26 CST - Task 8 immutable legacy freeze and porting audit candidate
+
+- Status: `IN_PROGRESS`. The immutable-freeze and PortingLedger audit is locally verified and ready
+  for a precise two-ledger subject commit followed by independent specification review. Task 8 is
+  not `DONE`; Task 9 has not started, MS0 remains IN_PROGRESS, and MS1/push remain out of scope.
+- Scope: only `plan/PORTING_LEDGER.md` and this ledger change. Legacy generator/verifier source,
+  regression tests, `reference/legacy-freeze/manifest.json`, its README, imported documents,
+  `reference/spec-import-manifest.json`, Task 1-7 source/test/config/package/lock/artifacts, Task 9,
+  and MS1 are unchanged.
+- Freeze regression: `pnpm exec vitest run scripts/legacy/create-freeze-manifest.test.ts` exited 0
+  with `1 file | 9/9`. The fixture explicitly discovers tracked, modified, untracked, deleted,
+  symlink, and ignored facts; independent-verifier controls reject path/fact-set, `gitState`, `kind`,
+  `size`, and `sha256` mutation, plus duplicate/order/schema corruption. The equal-count different-set
+  control rejects both the missing real path and invented path, so this is not count-only evidence.
+- Recorded-fact re-verification:
+  `pnpm exec tsx scripts/legacy/verify-freeze-manifest.ts --source "/Users/xy/personal/Sartre(agent-workspace-design)" --manifest reference/legacy-freeze/manifest.json`
+  exited 0 with `Legacy freeze manifest verified across 835 path facts.` No
+  `legacy_source_drift` was detected. Recorded metadata remains source HEAD
+  `f8f859a85cb7fed2200bb7aee7a6407131fbb30e`, dirty-fact hash
+  `dd88d6466ef0645143360a383b91fdd2bf5cfaa38e718cd8dfaaf1c1aed23724`, and generatedAt
+  `2026-07-17T10:29:52.250Z`.
+- Manifest immutability: `shasum -a 256 reference/legacy-freeze/manifest.json` returned
+  `36c68900761bb48a2638ebfbc346980a38f1285f7f5641afa69254cee6236c6f` both before and after the
+  independent verifier. `git diff --exit-code -- reference/legacy-freeze/manifest.json` exited 0
+  before and after verification. The generator was not run; the manifest was not rewritten.
+- Imported-document audit: `pnpm run spec:verify` exited 0 with `Verified 27 approved target
+  document hashes.` Explicit provenance command
+  `pnpm exec tsx scripts/constitution/verify-spec-import.ts --verify-source` exited 0 with
+  `Verified 27 approved source and target document hashes.` These are STRUCTURAL_CHECK / PASS, not
+  application behavior evidence.
+- Exact mapping audit: the corrected schema-aware read-only JSON audit exited 0 with exactly 27
+  entries, 27 unique source paths, 27 unique target paths, 27 unique exact source-target pairs, zero
+  wildcard paths, and zero target hash mismatches. A first ad hoc helper attempt referred to absent
+  `sourcePath`/`targetPath` keys and exited 1 with `ERR_INVALID_ARG_TYPE`; it was not a product gate,
+  changed no file, and was replaced by the schema-aware audit over `source`/`target`/`sha256`.
+- Porting boundary audit: the Markdown-table read-only audit exited 0 with zero code candidate rows
+  and confirmed the separate spec-import-manifest governance, mandatory `PENDING_REVIEW` start,
+  file-specific reason, completed security review, named behavior tests, accountable owner, and
+  directory-wildcard/blanket-approval prohibition. No legacy-derived code mapping was invented.
+- Content boundary: no legacy source content was copied, printed, staged, or persisted. The external
+  verifier operated only through the approved path/hash-fact mechanism; this checkpoint records only
+  source path/hash/state metadata.
+- Static and repository boundary: `git diff --check` exited 0;
+  `pnpm run format:check` exited 0 with 148 files checked and no fixes;
+  `pnpm run lint` exited 0 with 149 files checked and no fixes; fresh
+  `pnpm run secret:check` exited 0 with `Secret boundary check passed.` These commands ran against
+  the complete two-ledger worktree delta before precise staging.
+- Risks: the legacy worktree may drift after this observation; a future nonzero verifier must record
+  old/current HEAD and dirty-hash metadata and stop without rewriting the immutable manifest. The
+  explicit source-provenance check depends on the recorded source checkout; default target-only
+  `spec:verify` remains clean-clone independent. Zero code rows means no code port is approved, not
+  that future candidates may bypass review.
+- Next: precisely stage only the two ledgers, run cached whitespace, exact index enumeration,
+  immutable-index and full Secret checks, then commit
+  `docs(ms0): audit legacy porting boundary`. After fresh post-commit regression/verifier/manifest
+  immutability/clean-topology/self-review evidence, request independent Task 8 specification review.
+  Do not start Task 9 or MS1.
+
+### 2026-07-22 12:38 CST - Task 8 behavior accepted, ledger-only specification rebound
+
+- Status: IN_PROGRESS. The independent specification reviewer accepted the freeze regression, immutable recorded-fact verification, exact document-import mapping, and deny-by-default Porting behavior. The sole remaining Important was the stale latest `Next`, repaired by this ledger-only checkpoint. Task 9 has not started, MS0 remains IN_PROGRESS, and MS1 remains out of scope.
+- Pre-ledger-closeout reviewed subject: `cd3df76c778b8e9136a754caa3cba06d71b972a4`, tree `180a56ce279d6be1fffaf11cbc85f548999c158d`, subject `docs(ms0): audit legacy porting boundary`, sole parent `f3f558b43021ebe95d2ac770ad9c6134e3a78660`.
+- Fresh reviewer evidence: freeze `9/9`; independent verifier `835` facts with no drift; manifest base/candidate blob and SHA-256 `36c68900761bb48a2638ebfbc346980a38f1285f7f5641afa69254cee6236c6f` unchanged with zero diff and no generator invocation; target-only and explicit-source import verification `27/27`; exact unique source/target/pair mapping with zero wildcard/hash mismatch; zero code rows with all deny-by-default prerequisites present. Zero rows means no code approval, not a completed similarity audit.
+- Scope: only `reports/ms0-repository-constitution/checkpoints/PLAN_LEDGER.md` changes from the reviewed subject. `plan/PORTING_LEDGER.md`, freeze/import manifests, verifier/tests, Task 1-7 source/config/package, authority, Task 9, and MS1 remain unchanged. The final amended SHA cannot self-reference.
+- Next command: run `git diff --name-only cd3df76c778b8e9136a754caa3cba06d71b972a4..HEAD` and require exactly this ledger; verify clean status and unchanged sole parent, then request ledger-only final specification re-review from the same reviewer. Do not rerun behavior audits, begin code-quality review before approval, start Task 9/MS1, or push.
+
+### 2026-07-22 12:51 CST - Task 8 DONE after ledger-only final review
+
+- Status: DONE. The final independent ledger-only review reported Critical `0`, Important `0`, Minor `0`, specification APPROVED, quality APPROVED, and Ready YES. Task 9 is ready but has not started; MS0 remains IN_PROGRESS and MS1 remains prohibited.
+- Reviewed candidate: `352c15f67d0675bcb0ae2d563cf0129074fd4df2`, tree `cd93fcd039beaeea3bb0f14b749e1f91f7ca9edf`, subject `docs(ms0): audit legacy porting boundary`, sole parent `f3f558b43021ebe95d2ac770ad9c6134e3a78660`.
+- Fresh review evidence: the delta from pre-rebound candidate `cd3df76c778b8e9136a754caa3cba06d71b972a4` is exactly this ledger; `git diff --check` passed; the worktree was clean; top state, Resume procedure, and the latest checkpoint consistently supersede the historical stale stage/commit instruction. The reviewer did not rerun unchanged behavior audits or read ignored credential input.
+- Scope: this DONE closeout changes only the ledger and does not alter `plan/PORTING_LEDGER.md`, freeze/import manifests, verifier/tests, source/config/package files, Task 9, or MS1. The final amended commit SHA cannot self-reference; recover it from Git and require the recorded sole parent and exact two-ledger Task 8 path set.
+- Next command: after writing Task 9 Step 1 RED clean-clone/evidence-chain tests, run `pnpm exec vitest run scripts/harness/verify-clean-clone.test.ts` and require the planned missing-verifier failure. Do not skip RED, begin MS1, push, or regenerate the freeze manifest.
