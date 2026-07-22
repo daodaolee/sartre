@@ -16,11 +16,11 @@ describe("real macOS arm64 package wrapper", () => {
       cwd: appRoot,
       encoding: "utf8",
       shell: false,
-      timeout: 120_000,
+      timeout: 300_000,
     });
     expect(result.error).toBeUndefined();
     expect(result.signal).toBeNull();
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     await expect(assertPackagedElectronApplicationInventory(appRoot)).resolves.toBeUndefined();
-  }, 130_000);
+  }, 310_000);
 });

@@ -33,7 +33,8 @@
     "ops:trace-correlation": "tsx scripts/ops/trace-correlation.ts",
     "package:mac:arm64": "pnpm --filter @sartre/electron-app package:mac:arm64",
     "harness:ms0": "tsx scripts/harness/run-required-gates.ts --config scripts/harness/ms0.config.ts",
-    "verify:ms0": "pnpm run harness:ms0",
+    "ci:verify": "tsx scripts/harness/verify-ci-run.ts",
+    "verify:ms0": "tsx scripts/harness/verify-ms0.ts",
     "prepack": "tsx scripts/constitution/forbid-root-pack.ts"
   },
   "devDependencies": {

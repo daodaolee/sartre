@@ -1,0 +1,163 @@
+name: MS0 Required
+
+on:
+  push:
+    branches:
+      - "codex/ms0-repository-constitution"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 24.11.0
+  PNPM_VERSION: 10.33.2
+  GITLEAKS_VERSION: 8.28.0
+
+jobs:
+  constitution:
+    name: constitution
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      SARTRE_DATABASE_URL: postgresql://postgres@127.0.0.1:54326/postgres
+      SARTRE_POSTGRES_NEGATIVE_URL: postgresql://postgres@127.0.0.1:55432/postgres
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Start exact PostgreSQL fixtures
+        run: |
+          docker run --detach --name sartre-postgres-17-6 --publish 54326:5432 --env POSTGRES_HOST_AUTH_METHOD=trust postgres:17.6@sha256:00bc86618629af00d2937fdc5a5d63db3ff8450acf52f0636ec813c7f4902929
+          docker run --detach --name sartre-postgres-17-10 --publish 55432:5432 --env POSTGRES_HOST_AUTH_METHOD=trust postgres:17.10
+          for container in sartre-postgres-17-6 sartre-postgres-17-10; do
+            for attempt in $(seq 1 60); do
+              docker exec "$container" pg_isready --username postgres --dbname postgres && break
+              test "$attempt" -lt 60
+              sleep 1
+            done
+          done
+      - run: pnpm install --frozen-lockfile --strict-peer-dependencies
+      - run: pnpm run toolchain:bootstrap
+      - run: pnpm run toolchain:check
+      - run: pnpm run format:check
+      - run: pnpm run lint
+      - run: pnpm run build
+      - run: pnpm run typecheck
+      - run: pnpm run test
+      - run: pnpm run architecture:check
+      - run: pnpm run secret:check
+      - run: pnpm run docker-context:check
+      - run: pnpm run sast
+      - run: pnpm run dependency:check
+      - run: pnpm run license:check
+      - run: pnpm run openspec:validate
+      - run: pnpm run contract:compatibility
+      - run: pnpm run spec:verify
+      - name: Reject root packaging
+        run: |
+          mkdir -p "$RUNNER_TEMP/root-pack"
+          if pnpm pack --pack-destination "$RUNNER_TEMP/root-pack"; then
+            echo root_packaging_allowed >&2
+            exit 1
+          fi
+      - name: Reject generated source or configuration drift
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+      - name: Stop PostgreSQL fixtures
+        if: always()
+        run: docker rm --force sartre-postgres-17-6 sartre-postgres-17-10 || true
+
+  postgresql-17-6:
+    name: postgresql-17-6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      SARTRE_DATABASE_URL: postgresql://postgres@127.0.0.1:54326/postgres
+      SARTRE_POSTGRES_NEGATIVE_URL: postgresql://postgres@127.0.0.1:55432/postgres
+      SARTRE_E2E_TARGET: development
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Start exact PostgreSQL fixtures
+        run: |
+          docker run --detach --name sartre-postgres-17-6 --publish 54326:5432 --env POSTGRES_HOST_AUTH_METHOD=trust postgres:17.6@sha256:00bc86618629af00d2937fdc5a5d63db3ff8450acf52f0636ec813c7f4902929
+          docker run --detach --name sartre-postgres-17-10 --publish 55432:5432 --env POSTGRES_HOST_AUTH_METHOD=trust postgres:17.10
+          for container in sartre-postgres-17-6 sartre-postgres-17-10; do
+            for attempt in $(seq 1 60); do
+              docker exec "$container" pg_isready --username postgres --dbname postgres && break
+              test "$attempt" -lt 60
+              sleep 1
+            done
+          done
+      - run: pnpm install --frozen-lockfile --strict-peer-dependencies
+      - run: pnpm run toolchain:bootstrap
+      - run: pnpm run toolchain:check
+      - run: pnpm run build
+      - run: pnpm run pg:verify
+      - run: pnpm run migrate
+      - run: pnpm exec vitest run scripts/postgres/postgres.integration.test.ts scripts/postgres/schema-compatibility.test.ts scripts/postgres/migration-registry.test.ts scripts/postgres/migration-job-policy.test.ts
+      - run: pnpm run health:smoke
+      - run: xvfb-run --auto-servernum pnpm exec playwright test tests/e2e/ms0-health.spec.ts
+      - run: pnpm exec vitest run tests/integration/diagnostic-timeline.integration.test.ts
+      - name: Stop PostgreSQL fixtures
+        if: always()
+        run: docker rm --force sartre-postgres-17-6 sartre-postgres-17-10 || true
+
+  electron-macos-arm64:
+    name: electron-macos-arm64
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --strict-peer-dependencies
+      - run: pnpm run toolchain:bootstrap
+      - run: pnpm run toolchain:check
+      - run: pnpm run build
+      - run: pnpm run package:mac:arm64 -- --dir
+      - run: pnpm run package:mac:arm64 -- --publish never
+      - name: Scan unpacked and packaged payloads
+        run: |
+          extracted_payload_dir="$(mktemp -d "${TMPDIR:-/tmp}/sartre-electron-payload.XXXXXX")"
+          trap 'rm -rf "$extracted_payload_dir"' EXIT
+          pnpm exec tsx scripts/constitution/extract-electron-payload.ts --input apps/electron-app/release/Sartre-0.1.0-arm64.dmg --output "$extracted_payload_dir"
+          pnpm run secret:artifacts -- apps/electron-app/dist apps/hub-api/dist apps/hub-worker/dist apps/local-runtime/dist packages/contracts/dist packages/domain/dist packages/runtime-core/dist packages/sdk/dist apps/electron-app/release/mac-arm64/Sartre.app apps/electron-app/release/Sartre-0.1.0-arm64.dmg "$extracted_payload_dir/Sartre.app"
+      - name: Hash required artifacts
+        run: |
+          mkdir -p "$RUNNER_TEMP/ms0-required"
+          (cd apps/electron-app/release && shasum -a 256 Sartre-0.1.0-arm64.dmg) > "$RUNNER_TEMP/ms0-required/artifact-sha256.txt"
+          cp apps/electron-app/release/Sartre-0.1.0-arm64.dmg "$RUNNER_TEMP/ms0-required/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ms0-required-${{ github.sha }}
+          path: ${{ runner.temp }}/ms0-required
+          if-no-files-found: error
+          retention-days: 30

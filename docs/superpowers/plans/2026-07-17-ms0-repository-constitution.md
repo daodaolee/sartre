@@ -704,7 +704,7 @@ pnpm run pg:verify
 pnpm run migrate
 pnpm run health:smoke
 pnpm exec playwright test tests/e2e/ms0-health.spec.ts
-pnpm run ops:trace-correlation -- --self-test
+pnpm exec vitest run tests/integration/diagnostic-timeline.integration.test.ts
 ```
 
 - [ ] **Step 6: Run required negative controls**

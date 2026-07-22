@@ -3,7 +3,7 @@ import { type ChildProcess, spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { createServer } from "node:net";
-import { resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 
 import { _electron as electron, expect, test } from "@playwright/test";
 
@@ -52,6 +52,28 @@ type CleanupTask = () => Promise<void>;
 
 function delay(milliseconds: number): Promise<void> {
   return new Promise((resolveDelay) => setTimeout(resolveDelay, milliseconds));
+}
+
+function electronX11Environment(source: NodeJS.ProcessEnv): Record<string, string> {
+  const display = source.DISPLAY;
+  const xauthority = source.XAUTHORITY;
+  if (display === undefined && xauthority === undefined) return {};
+  if (!display || display.length > 64 || !/^:[0-9]+(?:\.[0-9]+)?$/u.test(display)) {
+    throw new Error("electron_e2e_display_invalid");
+  }
+  if (
+    xauthority !== undefined &&
+    (xauthority.length === 0 ||
+      xauthority.length > 4_096 ||
+      !isAbsolute(xauthority) ||
+      /[\0\r\n]/u.test(xauthority))
+  ) {
+    throw new Error("electron_e2e_xauthority_invalid");
+  }
+  return {
+    DISPLAY: display,
+    ...(xauthority === undefined ? {} : { XAUTHORITY: xauthority }),
+  };
 }
 
 function selectedElectronTarget(): ElectronTarget {
@@ -254,6 +276,19 @@ async function startWorker(options: {
   );
 }
 
+test("forwards only the allowlisted X11 variables to Electron", () => {
+  expect(
+    electronX11Environment({
+      DISPLAY: ":99",
+      XAUTHORITY: "/tmp/xvfb-auth",
+      GH_TOKEN: "must-not-be-forwarded",
+    }),
+  ).toEqual({
+    DISPLAY: ":99",
+    XAUTHORITY: "/tmp/xvfb-auth",
+  });
+});
+
 test("stops a real child that stays alive but never becomes healthy", async () => {
   const port = await reserveEphemeralPort();
   const baseUrl = `http://${LOOPBACK_HOST}:${port}`;
@@ -311,6 +346,7 @@ test(
           executablePath: electronTarget.executablePath,
           args: [...electronTarget.args],
           env: {
+            ...electronX11Environment(process.env),
             NODE_ENV: "test",
             PATH: MINIMAL_CHILD_PATH,
             SARTRE_HUB_BASE_URL: hub.baseUrl,
