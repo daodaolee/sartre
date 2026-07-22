@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 
 import { Client } from "pg";
 
+import type { DatabaseQueryParameter } from "../../apps/hub-api/src/infrastructure/database/schema-compatibility.js";
+
 const SAFE_DATABASE_NAME = /^[a-z][a-z0-9_]{0,62}$/;
 
 export interface DisposableDatabase {
@@ -11,7 +13,10 @@ export interface DisposableDatabase {
 }
 
 export interface DatabaseQueryClient {
-  query: (text: string) => Promise<{ rows: unknown[] }>;
+  query: (
+    text: string,
+    parameters?: readonly DatabaseQueryParameter[],
+  ) => Promise<{ rows: unknown[] }>;
 }
 
 export interface DisposableDatabaseClient {
@@ -188,8 +193,8 @@ export async function withDatabaseQueryClient<Result>(
   await client.connect();
   try {
     return await operation({
-      query: async (text) => {
-        const result = await client.query(text);
+      query: async (text, parameters) => {
+        const result = await client.query(text, parameters ? [...parameters] : undefined);
         return { rows: result.rows as unknown[] };
       },
     });

@@ -6,7 +6,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run src/module-boundary.test.ts",
-    "build": "tsc -p tsconfig.json && mkdir -p dist/infrastructure/database/migrations && cp src/infrastructure/database/migrations/000001_ms0_baseline.sql dist/infrastructure/database/migrations/000001_ms0_baseline.sql"
+    "build": "tsc -p tsconfig.json && mkdir -p dist/infrastructure/database/migrations && cp src/infrastructure/database/migrations/*.sql dist/infrastructure/database/migrations/"
   },
   "dependencies": {
     "@nestjs/common": "11.1.28",

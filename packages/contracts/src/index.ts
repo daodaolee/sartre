@@ -5,6 +5,18 @@ export {
   DiagnosticContextSchema,
   DiagnosticStatusSchema,
 } from "./diagnostics.js";
+export {
+  DIAGNOSTIC_RECOVERY_ACTIONS,
+  DIAGNOSTIC_STAGES,
+  DiagnosticCurrentStateSchema,
+  DiagnosticDependencyOutcomeSchema,
+  DiagnosticProbeContextSchema,
+  DiagnosticProbeRequestSchema,
+  DiagnosticRecoveryActionSchema,
+  DiagnosticStageRecordSchema,
+  DiagnosticStageSchema,
+  DiagnosticTimelineSchema,
+} from "./diagnostic-timeline.js";
 export { ERROR_CODES, ErrorCodeSchema } from "./error-catalog.js";
 export {
   EvidenceAssertionSchema,
@@ -34,6 +46,14 @@ export type {
   DiagnosticContext,
   DiagnosticStatus,
 } from "./diagnostics.js";
+export type {
+  DiagnosticDependencyOutcome,
+  DiagnosticProbeRequest,
+  DiagnosticRecoveryAction,
+  DiagnosticStage,
+  DiagnosticStageRecord,
+  DiagnosticTimeline,
+} from "./diagnostic-timeline.js";
 export type { ErrorCode } from "./error-catalog.js";
 export type {
   EvidenceAssertion,

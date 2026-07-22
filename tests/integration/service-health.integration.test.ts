@@ -12,7 +12,7 @@ import {
   type DisposableDatabase,
   withDisposableDatabase,
 } from "../../scripts/postgres/create-test-database.js";
-import { loadBaselineMigration, migrateDatabase } from "../../scripts/postgres/migrate.js";
+import { migrateApprovedMigrations } from "../../scripts/postgres/migrate.js";
 
 const LOOPBACK_HOST = "127.0.0.1";
 const POSTGRES_ADMIN_URL = "postgresql://postgres@127.0.0.1:54326/postgres";
@@ -510,8 +510,7 @@ async function withHarness(operation: (harness: RunningHarness) => Promise<void>
     let runtime: RunningProcess | undefined;
 
     await runWithCleanup(async () => {
-      const baseline = await loadBaselineMigration();
-      await migrateDatabase({ connectionString: database.connectionString, artifact: baseline });
+      await migrateApprovedMigrations({ connectionString: database.connectionString });
       const selfTestToken = randomBytes(32).toString("hex");
       hub = await startHub({
         databaseUrl: database.connectionString,

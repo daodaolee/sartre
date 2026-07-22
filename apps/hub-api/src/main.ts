@@ -10,6 +10,9 @@ import {
 import type { ArgumentsHost } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 
+import { DiagnosticsController } from "./diagnostics/diagnostics.controller.js";
+import { DiagnosticsRepository } from "./diagnostics/diagnostics.repository.js";
+import { DiagnosticsService } from "./diagnostics/diagnostics.service.js";
 import { readHubHealthConfig, type HubHealthConfig } from "./health/config.js";
 import { HealthController, Ms0SelfTestController } from "./health/health.controller.js";
 import { HUB_HEALTH_CONFIG, HubHealthService } from "./health/health.service.js";
@@ -37,11 +40,16 @@ class HubApplicationModule {}
 function createHubModule(config: HubHealthConfig): DynamicModule {
   return {
     module: HubApplicationModule,
-    controllers: [HealthController, ...(config.selfTestEnabled ? [Ms0SelfTestController] : [])],
+    controllers: [
+      HealthController,
+      ...(config.selfTestEnabled ? [Ms0SelfTestController, DiagnosticsController] : []),
+    ],
     providers: [
       { provide: HUB_HEALTH_CONFIG, useValue: config },
       HubHealthService,
-      ...(config.selfTestEnabled ? [WorkerHeartbeatStore] : []),
+      ...(config.selfTestEnabled
+        ? [WorkerHeartbeatStore, DiagnosticsRepository, DiagnosticsService]
+        : []),
     ],
   };
 }

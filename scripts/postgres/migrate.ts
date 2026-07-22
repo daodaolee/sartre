@@ -6,10 +6,26 @@ import { Client } from "pg";
 
 import { verifyConnectedPostgresVersion } from "./verify-version.js";
 
-export const BASELINE_MIGRATION_PATH = new URL(
-  "../../apps/hub-api/src/infrastructure/database/migrations/000001_ms0_baseline.sql",
-  import.meta.url,
-);
+const MODULE_URL =
+  typeof __filename === "string" ? pathToFileURL(__filename).href : import.meta.url;
+
+export const APPROVED_MIGRATION_DEFINITIONS = [
+  {
+    version: "000001_ms0_baseline",
+    path: new URL(
+      "../../apps/hub-api/src/infrastructure/database/migrations/000001_ms0_baseline.sql",
+      MODULE_URL,
+    ),
+  },
+  {
+    version: "000002_ms0_diagnostics",
+    path: new URL(
+      "../../apps/hub-api/src/infrastructure/database/migrations/000002_ms0_diagnostics.sql",
+      MODULE_URL,
+    ),
+  },
+] as const;
+export const BASELINE_MIGRATION_PATH = APPROVED_MIGRATION_DEFINITIONS[0].path;
 const MIGRATION_ADVISORY_LOCK_KEY = "73812170006";
 
 export interface MigrationArtifact {
@@ -49,6 +65,14 @@ export function createMigrationArtifact(version: string, sql: string): Migration
 export async function loadBaselineMigration(): Promise<MigrationArtifact> {
   const sql = await readFile(BASELINE_MIGRATION_PATH, "utf8");
   return createMigrationArtifact("000001_ms0_baseline", sql);
+}
+
+export async function loadApprovedMigrations(): Promise<readonly MigrationArtifact[]> {
+  return Promise.all(
+    APPROVED_MIGRATION_DEFINITIONS.map(async (definition) =>
+      createMigrationArtifact(definition.version, await readFile(definition.path, "utf8")),
+    ),
+  );
 }
 
 async function rollbackPreservingFailure(client: Client, migrationError: unknown): Promise<never> {
@@ -121,6 +145,27 @@ export async function migrateDatabase(options: {
   }
 }
 
+export async function migrateApprovedMigrations(options: {
+  connectionString: string;
+  artifacts?: readonly MigrationArtifact[];
+}): Promise<readonly MigrationResult[]> {
+  const artifacts = options.artifacts ?? (await loadApprovedMigrations());
+  const versions = artifacts.map((artifact) => artifact.version);
+  if (
+    versions.length === 0 ||
+    new Set(versions).size !== versions.length ||
+    versions.some((version, index) => index > 0 && version <= (versions[index - 1] ?? ""))
+  ) {
+    throw new Error("migration_registry_invalid");
+  }
+
+  const results: MigrationResult[] = [];
+  for (const artifact of artifacts) {
+    results.push(await migrateDatabase({ connectionString: options.connectionString, artifact }));
+  }
+  return results;
+}
+
 function requiredDatabaseUrl(): string {
   const value = process.env.SARTRE_DATABASE_URL;
   if (!value) {
@@ -147,12 +192,14 @@ function stableMigrationError(error: unknown): string {
 
 export async function runMigrationCli(): Promise<number> {
   try {
-    const result = await migrateDatabase({
+    const results = await migrateApprovedMigrations({
       connectionString: requiredDatabaseUrl(),
     });
-    console.info(`migration_version=${result.version}`);
-    console.info(`migration_checksum=${result.checksum}`);
-    console.info(`migration_applied=${String(result.applied)}`);
+    for (const result of results) {
+      console.info(`migration_version=${result.version}`);
+      console.info(`migration_checksum=${result.checksum}`);
+      console.info(`migration_applied=${String(result.applied)}`);
+    }
     return 0;
   } catch (error) {
     console.error(stableMigrationError(error));
@@ -161,6 +208,8 @@ export async function runMigrationCli(): Promise<number> {
 }
 
 const executedPath = process.argv[1];
-if (executedPath && import.meta.url === pathToFileURL(executedPath).href) {
-  process.exitCode = await runMigrationCli();
+if (executedPath && MODULE_URL === pathToFileURL(executedPath).href) {
+  void runMigrationCli().then((exitCode) => {
+    process.exitCode = exitCode;
+  });
 }

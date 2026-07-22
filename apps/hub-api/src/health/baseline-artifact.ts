@@ -3,18 +3,30 @@ import { readFile } from "node:fs/promises";
 
 import type { ExpectedMigrationArtifact } from "../infrastructure/database/schema-compatibility.js";
 
-const BASELINE_VERSION = "000001_ms0_baseline";
-const BASELINE_PATH = new URL(
-  "../infrastructure/database/migrations/000001_ms0_baseline.sql",
-  import.meta.url,
-);
+const APPROVED_MIGRATIONS = [
+  {
+    version: "000001_ms0_baseline",
+    path: new URL("../infrastructure/database/migrations/000001_ms0_baseline.sql", import.meta.url),
+  },
+  {
+    version: "000002_ms0_diagnostics",
+    path: new URL(
+      "../infrastructure/database/migrations/000002_ms0_diagnostics.sql",
+      import.meta.url,
+    ),
+  },
+] as const;
 
-let cachedArtifact: Promise<ExpectedMigrationArtifact> | undefined;
+let cachedArtifacts: Promise<readonly ExpectedMigrationArtifact[]> | undefined;
 
-export function loadExpectedBaselineArtifact(): Promise<ExpectedMigrationArtifact> {
-  cachedArtifact ??= readFile(BASELINE_PATH, "utf8").then((sql) => ({
-    version: BASELINE_VERSION,
-    checksum: createHash("sha256").update(sql, "utf8").digest("hex"),
-  }));
-  return cachedArtifact;
+export function loadExpectedMigrationArtifacts(): Promise<readonly ExpectedMigrationArtifact[]> {
+  cachedArtifacts ??= Promise.all(
+    APPROVED_MIGRATIONS.map(async (migration) => ({
+      version: migration.version,
+      checksum: createHash("sha256")
+        .update(await readFile(migration.path, "utf8"), "utf8")
+        .digest("hex"),
+    })),
+  );
+  return cachedArtifacts;
 }

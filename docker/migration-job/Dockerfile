@@ -1,4 +1,4 @@
-FROM node:24.11.0-bookworm-slim@sha256:76d0ed0ed93bed4f4376211e9d8fddac4d8b3fbdb54cc45955696001a3c91152 AS base
+FROM node:24.11.0-bookworm-slim@sha256:76d0ed0ed93bed4f4376211e9d8fddac4d8b3fbdb54cc45955696001a3c91152 AS build
 
 RUN corepack enable
 
@@ -14,18 +14,16 @@ COPY packages/domain/package.json packages/domain/package.json
 COPY packages/runtime-core/package.json packages/runtime-core/package.json
 COPY packages/sdk/package.json packages/sdk/package.json
 
-FROM base AS build
-
 RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY tsconfig.base.json ./
 COPY scripts/postgres scripts/postgres
-RUN pnpm exec tsc -p scripts/postgres/tsconfig.job.json
+RUN pnpm exec esbuild scripts/postgres/migrate.ts --bundle --platform=node --format=cjs --target=node24 --packages=bundle --outfile=.migration-job-build/runner.cjs --define:import.meta.url=undefined --log-level=warning
 
-FROM base AS runtime
+FROM node:24.11.0-bookworm-slim@sha256:76d0ed0ed93bed4f4376211e9d8fddac4d8b3fbdb54cc45955696001a3c91152 AS runtime
 
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+WORKDIR /app
 
-COPY --from=build /app/.migration-job-build/scripts/postgres scripts/postgres
+COPY --from=build /app/.migration-job-build/runner.cjs scripts/postgres/runner.cjs
 COPY apps/hub-api/src/infrastructure/database/migrations apps/hub-api/src/infrastructure/database/migrations
 COPY docker/migration-job/entrypoint.sh /usr/local/bin/sartre-migrate
 

@@ -7,7 +7,13 @@ import {
   withDisposableDatabase as runWithDisposableDatabase,
   withDatabaseQueryClient,
 } from "./create-test-database.js";
-import { createMigrationArtifact, loadBaselineMigration, migrateDatabase } from "./migrate.js";
+import {
+  createMigrationArtifact,
+  loadApprovedMigrations,
+  loadBaselineMigration,
+  migrateApprovedMigrations,
+  migrateDatabase,
+} from "./migrate.js";
 import { verifyPostgresVersion } from "./verify-version.js";
 
 const EXPECTED_SERVER_VERSION_NUM = "170006";
@@ -71,6 +77,88 @@ async function readMigrationRows(
 
 describe.sequential("PostgreSQL 17.6 migration boundary", () => {
   test(
+    "applies the exact ordered approved migration set idempotently and rejects row-set drift",
+    async () => {
+      await withDisposableDatabase("approved_set", async (database) => {
+        const artifacts = await loadApprovedMigrations();
+        const first = await migrateApprovedMigrations({
+          connectionString: database.connectionString,
+          artifacts,
+        });
+        const second = await migrateApprovedMigrations({
+          connectionString: database.connectionString,
+          artifacts,
+        });
+
+        expect(first.map((result) => result.applied)).toEqual([true, true]);
+        expect(second.map((result) => result.applied)).toEqual([false, false]);
+        expect(await readPublicTables(database.connectionString)).toEqual([
+          "diagnostic_records",
+          "schema_migrations",
+        ]);
+        expect(await readMigrationRows(database.connectionString)).toEqual(
+          artifacts.map(({ version, checksum }) => ({ version, checksum })),
+        );
+        await expect(
+          withDatabaseQueryClient(database.connectionString, (databaseClient) =>
+            assertDatabaseSchemaCompatible({ database: databaseClient, artifacts }),
+          ),
+        ).resolves.toEqual({
+          compatible: true,
+          schemaVersion: artifacts[1]?.version,
+          checksum: artifacts[1]?.checksum,
+        });
+
+        const diagnostics = artifacts[1];
+        if (!diagnostics) throw new Error("diagnostics_migration_missing");
+        await queryDatabase(
+          database.connectionString,
+          "DELETE FROM schema_migrations WHERE version = $1",
+          [diagnostics.version],
+        );
+        await expect(
+          withDatabaseQueryClient(database.connectionString, (databaseClient) =>
+            assertDatabaseSchemaCompatible({ database: databaseClient, artifacts }),
+          ),
+        ).rejects.toMatchObject({ code: "schema_incompatible" });
+
+        await queryDatabase(
+          database.connectionString,
+          "INSERT INTO schema_migrations (version, checksum) VALUES ($1, $2)",
+          [diagnostics.version, diagnostics.checksum],
+        );
+        await queryDatabase(
+          database.connectionString,
+          "INSERT INTO schema_migrations (version, checksum) VALUES ($1, $2)",
+          ["999999_unapproved", "unapproved"],
+        );
+        await expect(
+          withDatabaseQueryClient(database.connectionString, (databaseClient) =>
+            assertDatabaseSchemaCompatible({ database: databaseClient, artifacts }),
+          ),
+        ).rejects.toMatchObject({ code: "schema_incompatible" });
+
+        await queryDatabase(
+          database.connectionString,
+          "DELETE FROM schema_migrations WHERE version = $1",
+          ["999999_unapproved"],
+        );
+        await queryDatabase(
+          database.connectionString,
+          "UPDATE schema_migrations SET checksum = $1 WHERE version = $2",
+          ["drifted", diagnostics.version],
+        );
+        await expect(
+          withDatabaseQueryClient(database.connectionString, (databaseClient) =>
+            assertDatabaseSchemaCompatible({ database: databaseClient, artifacts }),
+          ),
+        ).rejects.toMatchObject({ code: "schema_incompatible" });
+      });
+    },
+    INTEGRATION_TIMEOUT_MS,
+  );
+
+  test(
     "creates the empty baseline exactly once with the exact artifact checksum",
     async () => {
       await withDisposableDatabase("baseline", async (database) => {
@@ -98,6 +186,39 @@ describe.sequential("PostgreSQL 17.6 migration boundary", () => {
         expect(await readMigrationRows(database.connectionString)).toEqual([
           { version: baseline.version, checksum: baseline.checksum },
         ]);
+      });
+    },
+    INTEGRATION_TIMEOUT_MS,
+  );
+
+  test.each([
+    ["missing_index", "DROP INDEX diagnostic_records_correlation_lookup_idx"],
+    [
+      "missing_constraint",
+      "ALTER TABLE diagnostic_records DROP CONSTRAINT diagnostic_records_initiator_check",
+    ],
+    [
+      "column_type",
+      "ALTER TABLE diagnostic_records ALTER COLUMN retryable TYPE text USING retryable::text",
+    ],
+    ["column_nullability", "ALTER TABLE diagnostic_records ALTER COLUMN workspace_id SET NOT NULL"],
+    ["column_default", "ALTER TABLE diagnostic_records ALTER COLUMN retryable SET DEFAULT false"],
+  ])(
+    "rejects real PostgreSQL diagnostic catalog drift: %s",
+    async (label, mutation) => {
+      await withDisposableDatabase(`catalog_${label}`, async (database) => {
+        const artifacts = await loadApprovedMigrations();
+        await migrateApprovedMigrations({
+          connectionString: database.connectionString,
+          artifacts,
+        });
+        await queryDatabase(database.connectionString, mutation);
+
+        await expect(
+          withDatabaseQueryClient(database.connectionString, (databaseClient) =>
+            assertDatabaseSchemaCompatible({ database: databaseClient, artifacts }),
+          ),
+        ).rejects.toMatchObject({ code: "schema_incompatible" });
       });
     },
     INTEGRATION_TIMEOUT_MS,
@@ -195,50 +316,50 @@ SELECT pg_sleep(0.35);`,
     "fails Hub database readiness without automatically migrating schema",
     async () => {
       await withDisposableDatabase("readiness", async (database) => {
-        const baseline = await loadBaselineMigration();
+        const artifacts = await loadApprovedMigrations();
 
         await expect(
           withDatabaseQueryClient(database.connectionString, (databaseClient) =>
             assertDatabaseSchemaCompatible({
               database: databaseClient,
-              artifact: baseline,
+              artifacts,
             }),
           ),
         ).rejects.toMatchObject({ code: "schema_incompatible" });
         expect(await readPublicTables(database.connectionString)).toEqual([]);
 
-        await migrateDatabase({
-          connectionString: database.connectionString,
-          artifact: baseline,
-        });
+        await migrateApprovedMigrations({ connectionString: database.connectionString, artifacts });
         await expect(
           withDatabaseQueryClient(database.connectionString, (databaseClient) =>
             assertDatabaseSchemaCompatible({
               database: databaseClient,
-              artifact: baseline,
+              artifacts,
             }),
           ),
         ).resolves.toEqual({
           compatible: true,
-          schemaVersion: baseline.version,
-          checksum: baseline.checksum,
+          schemaVersion: artifacts[1]?.version,
+          checksum: artifacts[1]?.checksum,
         });
+        const latest = artifacts[1];
+        if (!latest) throw new Error("diagnostics_migration_missing");
         await queryDatabase(
           database.connectionString,
           "UPDATE schema_migrations SET checksum = 'incompatible' WHERE version = $1",
-          [baseline.version],
+          [latest.version],
         );
 
         await expect(
           withDatabaseQueryClient(database.connectionString, (databaseClient) =>
             assertDatabaseSchemaCompatible({
               database: databaseClient,
-              artifact: baseline,
+              artifacts,
             }),
           ),
         ).rejects.toMatchObject({ code: "schema_incompatible" });
         expect(await readMigrationRows(database.connectionString)).toEqual([
-          { version: baseline.version, checksum: "incompatible" },
+          { version: artifacts[0]?.version ?? "", checksum: artifacts[0]?.checksum ?? "" },
+          { version: latest.version, checksum: "incompatible" },
         ]);
       });
     },
@@ -249,11 +370,8 @@ SELECT pg_sleep(0.35);`,
     "rejects applied_at default drift without changing the schema",
     async () => {
       await withDisposableDatabase("default_drift", async (database) => {
-        const baseline = await loadBaselineMigration();
-        await migrateDatabase({
-          connectionString: database.connectionString,
-          artifact: baseline,
-        });
+        const artifacts = await loadApprovedMigrations();
+        await migrateApprovedMigrations({ connectionString: database.connectionString, artifacts });
         await queryDatabase(
           database.connectionString,
           "ALTER TABLE schema_migrations ALTER COLUMN applied_at SET DEFAULT clock_timestamp()",
@@ -263,7 +381,7 @@ SELECT pg_sleep(0.35);`,
           withDatabaseQueryClient(database.connectionString, (databaseClient) =>
             assertDatabaseSchemaCompatible({
               database: databaseClient,
-              artifact: baseline,
+              artifacts,
             }),
           ),
         ).rejects.toMatchObject({ code: "schema_incompatible" });

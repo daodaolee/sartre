@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
+import * as contracts from "./index.js";
+import type { DiagnosticStageRecord } from "./diagnostic-timeline.js";
 import { DiagnosticContextSchema } from "./diagnostics.js";
 import { ERROR_CODES, ErrorCodeSchema } from "./error-catalog.js";
 import { EvidenceManifestSchema } from "./evidence.js";
@@ -341,5 +343,236 @@ describe("MS0 stable ErrorCode inventory", () => {
   it.each(requiredMs0Codes)("includes approved MS0 code %s", (code) => {
     expect(ERROR_CODES).toContain(code);
     expect(ErrorCodeSchema.parse(code)).toBe(code);
+  });
+});
+
+describe("MS0 DiagnosticTimeline contract", () => {
+  const diagnosticContracts = contracts as typeof contracts & {
+    DIAGNOSTIC_RECOVERY_ACTIONS?: readonly string[];
+    DIAGNOSTIC_STAGES?: readonly string[];
+    DiagnosticProbeRequestSchema?: z.ZodType;
+    DiagnosticTimelineSchema?: z.ZodType;
+  };
+
+  it("uses finite stage and recovery catalogs with an exact probe DTO", () => {
+    expect(diagnosticContracts.DIAGNOSTIC_STAGES).toEqual([
+      "request_received",
+      "context_validated",
+      "dependency_check",
+      "probe_completed",
+    ]);
+    expect(diagnosticContracts.DIAGNOSTIC_RECOVERY_ACTIONS).toEqual([
+      "none",
+      "restore_dependency_and_retry",
+    ]);
+    expect(diagnosticContracts.DiagnosticProbeRequestSchema).toBeDefined();
+
+    const userId = randomUUID();
+    const request = {
+      context: {
+        ...validDiagnosticContext(),
+        userId,
+        initiatedByUserId: userId,
+        actorId: "ms0-diagnostic-self-test",
+        operation: "diagnostics.probe",
+        stage: "request_received",
+        status: "started",
+        errorCode: null,
+        retryable: false,
+      },
+      dependencyOutcome: "healthy",
+    } as const;
+
+    expect(diagnosticContracts.DiagnosticProbeRequestSchema?.parse(request)).toEqual(request);
+    expect(() =>
+      diagnosticContracts.DiagnosticProbeRequestSchema?.parse({
+        ...request,
+        messageBody: "not-allowed",
+      }),
+    ).toThrow();
+    expect(() =>
+      diagnosticContracts.DiagnosticProbeRequestSchema?.parse({
+        ...request,
+        context: { ...request.context, initiatedByUserId: randomUUID() },
+      }),
+    ).toThrow();
+  });
+
+  it("requires ordered retained stage records and rejects unsafe passthrough fields", () => {
+    expect(diagnosticContracts.DiagnosticTimelineSchema).toBeDefined();
+    const userId = randomUUID();
+    const correlationId = randomUUID();
+    const occurredAt = "2026-07-21T10:00:00.000Z";
+    const context = {
+      ...validDiagnosticContext(),
+      correlationId,
+      userId,
+      initiatedByUserId: userId,
+      operation: "diagnostics.probe",
+      stage: "request_received",
+      status: "succeeded",
+      occurredAt,
+      errorCode: null,
+      retryable: false,
+    } as const;
+    const stages = [
+      "request_received",
+      "context_validated",
+      "dependency_check",
+      "probe_completed",
+    ] as const;
+    const timelineItems: DiagnosticStageRecord[] = stages.map((stage, index) => {
+      const itemOccurredAt = new Date(Date.parse(occurredAt) + index * 2).toISOString();
+      const itemRecordedAt = new Date(Date.parse(itemOccurredAt) + 1).toISOString();
+      return {
+        recordId: randomUUID(),
+        sequence: index + 1,
+        context: { ...context, stage, occurredAt: itemOccurredAt },
+        recordedAt: itemRecordedAt,
+        retentionExpiresAt: new Date(
+          Date.parse(itemRecordedAt) + 24 * 60 * 60 * 1_000,
+        ).toISOString(),
+      };
+    });
+    const timeline = {
+      correlationId,
+      timelineItems,
+      lastSuccessfulStage: "probe_completed",
+      firstFailedStage: null,
+      currentState: "completed",
+      suggestedRecoveryAction: "none",
+      evidenceRefs: [],
+      correlationIds: [correlationId],
+    } as const;
+
+    expect(diagnosticContracts.DiagnosticTimelineSchema?.parse(timeline)).toEqual(timeline);
+    expect(() =>
+      diagnosticContracts.DiagnosticTimelineSchema?.parse({
+        ...timeline,
+        timelineItems: [
+          {
+            ...timelineItems[0],
+            retentionExpiresAt: "2026-07-21T09:00:00.000Z",
+          },
+          ...timelineItems.slice(1),
+        ],
+      }),
+    ).toThrow();
+
+    const replaceContext = (
+      index: number,
+      replacement: Partial<DiagnosticStageRecord["context"]>,
+    ): DiagnosticStageRecord[] =>
+      timelineItems.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, context: { ...item.context, ...replacement } } : item,
+      );
+    const differentUserId = randomUUID();
+    const mixedChainItems: readonly (readonly [string, DiagnosticStageRecord[]])[] = [
+      ["requestId", replaceContext(1, { requestId: randomUUID() })],
+      ["causationId", replaceContext(1, { causationId: randomUUID() })],
+      ["workspaceId", replaceContext(1, { workspaceId: randomUUID() })],
+      [
+        "user chain",
+        replaceContext(1, {
+          userId: differentUserId,
+          initiatedByUserId: differentUserId,
+        }),
+      ],
+      ["actorType", replaceContext(1, { actorType: "human" })],
+      ["actorId", replaceContext(1, { actorId: "different-actor" })],
+      ["component", replaceContext(1, { component: "local-runtime" })],
+      ["operation", replaceContext(1, { operation: "diagnostics.other" })],
+      ["resourceType", replaceContext(1, { resourceType: "project" })],
+      ["resourceId", replaceContext(1, { resourceId: randomUUID() })],
+      ["requirementId", replaceContext(1, { requirementId: randomUUID() })],
+      ["sessionId", replaceContext(1, { sessionId: randomUUID() })],
+      ["executionId", replaceContext(1, { executionId: randomUUID() })],
+      ["leaseId", replaceContext(1, { leaseId: randomUUID() })],
+      ["endpointId", replaceContext(1, { endpointId: randomUUID() })],
+    ];
+    const mixedChainAcceptance = mixedChainItems
+      .filter(
+        ([, items]) =>
+          diagnosticContracts.DiagnosticTimelineSchema?.safeParse({
+            ...timeline,
+            timelineItems: items,
+          }).success,
+      )
+      .map(([label]) => label);
+    const reverseOccurredAt = replaceContext(1, {
+      occurredAt: "2026-07-21T09:59:59.999Z",
+    });
+    const reverseRecordedAt = timelineItems.map((item, index) =>
+      index === 0 ? { ...item, recordedAt: "2026-07-21T10:00:00.005Z" } : item,
+    );
+    const recordedBeforeOccurredAt = timelineItems.map((item, index) =>
+      index === 1 ? { ...item, recordedAt: "2026-07-21T10:00:00.001Z" } : item,
+    );
+    const invalidClockAcceptance = [
+      ["reverse occurredAt", reverseOccurredAt],
+      ["reverse recordedAt", reverseRecordedAt],
+      ["recordedAt before occurredAt", recordedBeforeOccurredAt],
+    ]
+      .filter(
+        ([, items]) =>
+          diagnosticContracts.DiagnosticTimelineSchema?.safeParse({
+            ...timeline,
+            timelineItems: items,
+          }).success,
+      )
+      .map(([label]) => label);
+    expect(
+      { mixedChainAcceptance, invalidClockAcceptance },
+      "mixed DiagnosticContext chain fields and invalid clock order must be rejected",
+    ).toEqual({ mixedChainAcceptance: [], invalidClockAcceptance: [] });
+    expect(() =>
+      diagnosticContracts.DiagnosticTimelineSchema?.parse({
+        ...timeline,
+        rawOutput: "not-allowed",
+      }),
+    ).toThrow();
+
+    const summarized = (items: readonly DiagnosticStageRecord[]) => {
+      const failed = items.find((item) => item.context.status === "failed");
+      const lastSuccessful = items.filter((item) => item.context.status === "succeeded").at(-1);
+      return {
+        ...timeline,
+        timelineItems: items,
+        lastSuccessfulStage: lastSuccessful?.context.stage ?? null,
+        firstFailedStage: failed?.context.stage ?? null,
+        currentState: failed ? "failed" : "completed",
+        suggestedRecoveryAction: failed ? "restore_dependency_and_retry" : "none",
+      };
+    };
+    const resequence = (items: readonly DiagnosticStageRecord[]): DiagnosticStageRecord[] =>
+      items.map((item, index) => ({ ...item, sequence: index + 1 }));
+    const recordAt = (index: number): DiagnosticStageRecord => {
+      const record = timelineItems[index];
+      if (!record) throw new Error("diagnostic_test_record_missing");
+      return record;
+    };
+    const failedAt = (index: number): DiagnosticStageRecord => ({
+      ...recordAt(index),
+      context: {
+        ...recordAt(index).context,
+        status: "failed" as const,
+        errorCode: "dependency_unavailable" as const,
+        retryable: true,
+      },
+    });
+
+    for (const [label, corrupt] of [
+      ["single request_received", resequence(timelineItems.slice(0, 1))],
+      ["stage gap", resequence([recordAt(0), recordAt(2)])],
+      ["out of order", resequence([recordAt(1), recordAt(0)])],
+      ["successful prefix", resequence(timelineItems.slice(0, 3))],
+      ["multiple failures", resequence([recordAt(0), failedAt(1), failedAt(2)])],
+      ["records after failure", resequence([recordAt(0), failedAt(1), recordAt(2)])],
+    ] as const) {
+      expect(
+        () => diagnosticContracts.DiagnosticTimelineSchema?.parse(summarized(corrupt)),
+        `expected ${label} to be rejected`,
+      ).toThrow();
+    }
   });
 });

@@ -55,6 +55,11 @@ describe("Hub MS0 self-test configuration", () => {
 
     expect(mainSource.match(/readHubHealthConfig\(/gu)).toHaveLength(1);
     expect(mainSource).toContain("createHubModule(config)");
-    expect(mainSource).toContain("config.selfTestEnabled ? [Ms0SelfTestController] : []");
+    expect(mainSource).toContain(
+      "config.selfTestEnabled ? [Ms0SelfTestController, DiagnosticsController] : []",
+    );
+    expect(mainSource).toContain(
+      "? [WorkerHeartbeatStore, DiagnosticsRepository, DiagnosticsService]",
+    );
   });
 });

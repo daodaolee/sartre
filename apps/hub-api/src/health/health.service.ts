@@ -3,7 +3,7 @@ import { HealthSnapshotSchema, type ErrorCode, type HealthSnapshot } from "@sart
 import postgres from "postgres";
 
 import { assertDatabaseSchemaCompatible } from "../infrastructure/database/schema-compatibility.js";
-import { loadExpectedBaselineArtifact } from "./baseline-artifact.js";
+import { loadExpectedMigrationArtifacts } from "./baseline-artifact.js";
 import type { HubHealthConfig } from "./config.js";
 
 export const HUB_HEALTH_CONFIG = Symbol("HUB_HEALTH_CONFIG");
@@ -43,9 +43,11 @@ export class HubHealthService {
     try {
       await assertDatabaseSchemaCompatible({
         database: {
-          query: async (text) => ({ rows: [...(await sql.unsafe(text))] }),
+          query: async (text, parameters) => ({
+            rows: [...(await sql.unsafe(text, parameters ? [...parameters] : []))],
+          }),
         },
-        artifact: await loadExpectedBaselineArtifact(),
+        artifacts: await loadExpectedMigrationArtifacts(),
       });
       snapshot = this.snapshot("healthy", [this.databaseDependency("healthy")]);
     } catch (error) {

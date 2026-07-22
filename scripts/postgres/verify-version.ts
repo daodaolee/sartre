@@ -83,6 +83,12 @@ export async function runVerifyVersionCli(): Promise<number> {
 }
 
 const executedPath = process.argv[1];
-if (executedPath && import.meta.url === pathToFileURL(executedPath).href) {
-  process.exitCode = await runVerifyVersionCli();
+if (
+  typeof __filename === "undefined" &&
+  executedPath &&
+  import.meta.url === pathToFileURL(executedPath).href
+) {
+  void runVerifyVersionCli().then((exitCode) => {
+    process.exitCode = exitCode;
+  });
 }

@@ -8,7 +8,7 @@ import { resolve } from "node:path";
 import { _electron as electron, expect, test } from "@playwright/test";
 
 import { withDisposableDatabase } from "../../scripts/postgres/create-test-database.js";
-import { loadBaselineMigration, migrateDatabase } from "../../scripts/postgres/migrate.js";
+import { migrateApprovedMigrations } from "../../scripts/postgres/migrate.js";
 
 const LOOPBACK_HOST = "127.0.0.1";
 const POSTGRES_ADMIN_URL = "postgresql://postgres@127.0.0.1:54326/postgres";
@@ -290,8 +290,7 @@ test(
   async () => {
     const electronTarget = selectedElectronTarget();
     await withDisposableDatabase(POSTGRES_ADMIN_URL, "electron_health", async (database) => {
-      const baseline = await loadBaselineMigration();
-      await migrateDatabase({ connectionString: database.connectionString, artifact: baseline });
+      await migrateApprovedMigrations({ connectionString: database.connectionString });
       const selfTestToken = randomBytes(32).toString("hex");
       let hub: RunningProcess | undefined;
       let worker: RunningProcess | undefined;
