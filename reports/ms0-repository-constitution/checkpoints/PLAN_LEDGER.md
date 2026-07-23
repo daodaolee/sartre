@@ -2,17 +2,21 @@
 
 - Goal: MS0 Repository Constitution and evidence baseline
 - Plan: `docs/superpowers/plans/2026-07-17-ms0-repository-constitution.md`
-- Status: DONE pending the mandatory final-verifier command and `ms0-verified` tag on the evidence-only child. If that command is nonzero, this closeout status is invalid and must be repaired before tagging or publishing `main`.
-- Current task: Task 9 evidence-only child assembly. Immutable subject `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a` has fresh clean-clone PASS, same-SHA GitHub Actions run `29914173418` PASS for all three required jobs, downloaded Electron artifact checksum PASS, and fresh Migration Job image payload/runtime `2/2` PASS.
-- Last verified action: fresh image `sha256:30e38e3551c10fd04eebdfdf9b00298ecb4ae75fead52589b8a1c42f2791257c` passed exact four-owned-payload, nonroot/entrypoint, artifact Secret, first-apply, second-no-op, migration-row/checksum, and cleanup assertions. The run 4 DMG hash `9192b160770e8530c1d1d076ab3ce0ed5c4d85756bcb329c59fd4210997ff94c` matched its uploaded checksum.
-- Evidence level: the required behavioral gates are REAL_TEST / PASS and the declared structural gates remain STRUCTURAL_CHECK / PASS. `architecture:check` is not relabeled REAL_TEST. Task 9/MS0 close signals are assembled, but no final PASS claim, verified tag, remote `main` update, or MS1 start is permitted until `pnpm run verify:ms0 -- --evidence-commit HEAD --subject-commit HEAD^` exits 0.
+- Status: BLOCKED at the authorized MS0 evidence-rebind artifact-content gate. The immutable subject and replacement same-SHA CI are valid, but the replacement artifact has not been downloaded and checksum-verified within the approved 15-minute boundary; no replacement evidence-only child, verified tag, `main` update, or MS1 start is permitted yet.
+- Current task: cross-device handoff for the narrow MS0 evidence rebind. Immutable subject `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`, tree `c424d56fd77fe5d0069f191102176abd29ed1546`, is published at `origin/codex/ms0-repository-constitution`. Replacement GitHub Actions run `29973452109` completed successfully for that exact SHA with all three required jobs PASS and artifact digest `sha256:f65ef41b41a94ce7498082996d1259f21eeb7e75d8f0c745d0d92ee42377c5e3`.
+- Last verified action: the user requested an immediate device-switch handoff. The active archive download was stopped, all bounded temporary download paths were removed, the repository worktree remained clean before this ledger-only handoff branch was created, and live GitHub state still reported run `29973452109` as `completed/success` for `eab7d4ae...`.
+- Evidence level: live `pnpm run ci:verify -- --subject eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a` is REAL_TEST / PASS for the replacement run metadata, jobs, subject, and artifact digest. Artifact content/checksum and the final evidence chain are BLOCKED, not PASS. Historical run `29914173418` now returns GitHub 404 with zero artifacts and cannot support fresh verification.
 - Required dependency: PostgreSQL 17.6 container `sartre-postgres-17-6` on `127.0.0.1:54326`
 - Secret source: ignored `/.local-secrets/development.env`; values must never be recorded here. Task 4 did not read it: the repo-owned database uses explicit loopback-only local-integration `trust`, guarded by a fail-closed compose policy that prohibits production reuse
 - Resume procedure:
-  1. Read root `AGENTS.md`, the authority chain, `plan/00-master-plan.md`, the active implementation plan, and this ledger. Do not read ignored credential input.
-  2. Before the evidence commit, expect subject `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`, sole parent `16bb67b054cd71a7e05e70e203621d1a560465ab`, tree `c424d56fd77fe5d0069f191102176abd29ed1546`, and exactly the five evidence-allowlisted worktree paths named in the latest checkpoint.
-  3. Precisely stage those five paths, run cached whitespace/exact enumeration and immutable-index/full Secret checks, then create the sole evidence child `test(ms0): bind repository constitution evidence` with `daodaolee <im@daodaolee.cn>`.
-  4. Run `pnpm run verify:ms0 -- --evidence-commit HEAD --subject-commit HEAD^`. Only exit 0 permits annotated tag `ms0-verified`, exact force-with-lease replacement of remote `main`, tag push, and creation of the MS1 handoff task. Do not perform MS1 implementation here.
+  1. Clone/fetch only `https://github.com/daodaolee/sartre.git`, then read root `AGENTS.md`, the authority chain, `plan/00-master-plan.md`, `docs/superpowers/plans/2026-07-17-ms0-repository-constitution.md`, and this ledger from branch `codex/ms0-evidence-rebind-handoff`. Do not read ignored credential input or any environment/config dump.
+  2. Fetch `origin/main`, `origin/codex/ms0-repository-constitution`, and tags. Require immutable subject `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`, tree `c424d56fd77fe5d0069f191102176abd29ed1546`, subject parent `16bb67b054cd71a7e05e70e203621d1a560465ab`, `origin/main=8174869ae58f90ee1a3dae5d48d75d73d5285533`, `ms0-verified^{commit}=8174869ae58f90ee1a3dae5d48d75d73d5285533`, and tag object `4e3b930d1fcb8d8fd1086f1e0d63ee67a9f4ebff`. Any drift stops the recorded force-with-lease procedure for review.
+  3. Bootstrap only the pinned repository toolchain: Node `v24.11.0`, pnpm `10.33.2`, `pnpm install --frozen-lockfile --strict-peer-dependencies`, `pnpm run toolchain:bootstrap`, and `pnpm run toolchain:check`. Never substitute a system gitleaks or regex-only fallback.
+  4. Run `pnpm run ci:verify -- --subject eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a` and require exit 0 selecting run `29973452109` and artifact digest `sha256:f65ef41b41a94ce7498082996d1259f21eeb7e75d8f0c745d0d92ee42377c5e3`.
+  5. Using the official GitHub CLI rather than a command-output proxy, download artifact `ms0-required-eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a` from run `29973452109` within 15 minutes. Require exactly `Sartre-0.1.0-arm64.dmg` and `artifact-sha256.txt`, then require `shasum -a 256 -c artifact-sha256.txt` to pass. Preserve every timeout/reset attempt; do not use the historical DMG hash.
+  6. In a clean isolated branch/worktree rooted directly at immutable subject `eab7d4ae...`, restore the five old evidence files only as drafting input, update them with the replacement run/artifact/DMG facts and this checkpoint lineage, and require the final evidence delta to contain exactly `plan/00-master-plan.md`, this ledger, `checkpoints/closeout.md`, `evidence/closeout.json`, and `evidence/manifest.json`.
+  7. Run format/whitespace plus full Secret checks, stage exactly those five paths, repeat cached exact-path/whitespace and immutable-index/full Secret checks, then create `test(ms0): bind repository constitution evidence` with `daodaolee <im@daodaolee.cn>`. Its sole parent must be `eab7d4ae...`; this handoff commit must not enter the final chain.
+  8. Run `pnpm run verify:ms0 -- --evidence-commit HEAD --subject-commit HEAD^`. Only fresh exit 0 permits annotated `ms0-verified`, exact force-with-lease updates of GitHub `main` and the tag from the leases in step 2, followed by the user's original full binding command. Only that command's exit 0 permits creation and immediate remote push of the MS1 implementation plan and independent PLAN_LEDGER. Do not enter MS2.
 
 ## Entries
 
@@ -2249,3 +2253,75 @@
   checks, then commit `test(ms0): bind repository constitution evidence`. Immediately run
   `pnpm run verify:ms0 -- --evidence-commit HEAD --subject-commit HEAD^`. Do not tag, update remote
   `main`, create the MS1 task, or clean up the local image/artifact inputs before verifier exit 0.
+
+### 2026-07-23 11:13 CST - authorized evidence-rebind cross-device handoff
+
+- Status: BLOCKED at replacement artifact content recovery. This handoff makes the interruption
+  remotely recoverable; it is not MS0 closeout evidence and does not authorize MS1.
+- Authority and scope:
+  - The user explicitly authorized a narrow MS0 evidence rebind after the original bound GitHub run
+    and artifact disappeared, then requested an immediate stop for a device switch and required
+    remote repository documentation sufficient for another AI to continue without chat history.
+  - The immutable subject and its implementation are unchanged. The rebind may update only the
+    five final evidence paths after replacement facts are verified. No MS0 feature repair, legacy
+    compatibility, MS1 implementation, or MS2 work is authorized in this handoff.
+- Remote topology observed fresh:
+  - GitHub origin only: `https://github.com/daodaolee/sartre.git`; no GitLab remote or push.
+  - Immutable subject branch: `origin/codex/ms0-repository-constitution` at
+    `eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`, tree
+    `c424d56fd77fe5d0069f191102176abd29ed1546`, sole parent
+    `16bb67b054cd71a7e05e70e203621d1a560465ab`.
+  - Current remote `main` and `ms0-verified^{commit}` remain the old evidence child
+    `8174869ae58f90ee1a3dae5d48d75d73d5285533`; annotated tag object is
+    `4e3b930d1fcb8d8fd1086f1e0d63ee67a9f4ebff`.
+  - This ledger-only handoff branch is `codex/ms0-evidence-rebind-handoff`, rooted at the old
+    evidence child. It must never be used as the parent of replacement evidence.
+- Replacement CI evidence:
+  - Pushing the existing immutable subject to `codex/ms0-repository-constitution` triggered GitHub
+    Actions run `29973452109` for exact head SHA `eab7d4ae...`.
+  - Jobs `constitution`, `postgresql-17-6`, and `electron-macos-arm64` all completed successfully.
+    Actions v4 emitted the already-known Node-20 deprecation annotation while the workflow remained
+    pinned to Node `24.11.0`; the annotation is residual risk, not a skipped or failed gate.
+  - Fresh `pnpm run ci:verify -- --subject eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`
+    exited 0 and selected run `29973452109` with artifact digest
+    `sha256:f65ef41b41a94ce7498082996d1259f21eeb7e75d8f0c745d0d92ee42377c5e3`.
+  - Live artifact metadata: id `8550574084`, size `119654174` bytes, `expired=false`, expiration
+    `2026-08-22T02:05:56Z`. Metadata does not prove DMG contents or checksum.
+- Preserved download attempt history:
+  - The original user-specified fresh verifier passed Git/tag binding but exited 1 with
+    `final_ci_artifact_download_failed`; live GitHub queries returned 404 for historical run
+    `29914173418` and zero matching artifacts.
+  - A first top-level `gh run download` diagnostic was transparently rewritten by the desktop
+    command-output proxy to `rtk gh`, produced no artifact, and was manually stopped at the
+    15-minute boundary. This is not an official-CLI artifact attempt or PASS evidence.
+  - The first official GitHub CLI `2.92.0` download failed after roughly five and a half minutes
+    with `connection reset by peer`; no checksum assertion ran.
+  - The second official CLI download produced no final artifact within 15 minutes and was manually
+    terminated at the approved boundary; no checksum assertion ran.
+  - A direct official-CLI archive diagnostic was stopped immediately when the user requested the
+    device switch. It is cancelled, not PASS or timeout evidence.
+- Local safety and cleanup:
+  - Dependencies were restored only with `pnpm install --frozen-lockfile
+    --strict-peer-dependencies`. Pinned gitleaks `8.28.0` was checksum-bootstrapped; fresh
+    `toolchain:check` and repository `secret:check` exited 0 before the subject branch push.
+  - Every bounded temporary download path was removed after stop/failure. No partial archive, DMG,
+    checksum, token, endpoint, credential, ignored input, raw environment/config dump, or local
+    absolute path was persisted in Git.
+  - The source worktree was clean before creating this branch; the only intended handoff change is
+    this PLAN_LEDGER.
+- Evidence classification:
+  - Replacement same-SHA CI metadata/jobs/artifact digest: REAL_TEST / PASS.
+  - Replacement artifact file set, DMG hash, uploaded checksum, evidence-only child, final verifier,
+    verified tag, remote `main`, and the original MS1 prerequisite command: BLOCKED / not executed.
+  - Historical run/artifact facts are stale and must not be copied into replacement closeout.
+- Cross-device plan policy:
+  - `plan/00-master-plan.md` remains the remote roadmap for MS0-MS8.
+  - After the complete MS0 binding command exits 0, MS1 must begin by creating its tracked
+    implementation plan, OpenSpec/BDD, and independent PLAN_LEDGER, committing and pushing those
+    artifacts before implementation. Later MS detailed plans are created and pushed one milestone
+    at a time after the preceding verified tag; chat context is never the recovery authority.
+- Next command: on the new device, follow the top Resume procedure exactly. The first executable
+  gate after toolchain bootstrap is
+  `pnpm run ci:verify -- --subject eab7d4aef7e344a6b06dcb64bb7cbde4f26e670a`.
+  Only after it exits 0 may artifact download/checksum recovery resume. Do not regenerate evidence,
+  move `main`/tag, or create MS1 artifacts before the remaining gates pass.
