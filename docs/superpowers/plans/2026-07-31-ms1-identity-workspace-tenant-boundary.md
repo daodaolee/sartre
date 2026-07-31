@@ -1,8 +1,7 @@
 # MS1 Identity, Workspace & Tenant Boundary implementation plan
 
-> Status: DRAFT / PENDING USER APPROVAL. This document authorizes no product implementation by
-> itself. After approval, execute one task at a time and update the independent PLAN_LEDGER before
-> every commit boundary.
+> Status: APPROVED FOR IMPLEMENTATION by explicit user instruction on 2026-07-31. Execute one task
+> at a time and update the independent PLAN_LEDGER before every commit boundary.
 
 ## 1. Outcome
 

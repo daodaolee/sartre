@@ -1,7 +1,7 @@
 # MS1 Identity, Workspace & Tenant Boundary PLAN_LEDGER
 
-- Status: PENDING user review and explicit implementation-plan approval. Product implementation has
-  not started.
+- Status: APPROVED for implementation by explicit user instruction on 2026-07-31. Task 2 is the
+  first authorized product checkpoint; no MS1 product implementation existed at approval time.
 - Goal: deliver Human authentication, Workspace/Membership/Invitation/ProjectAccess, Endpoint
   pairing, tenant RLS/authorization, Electron credential isolation, and ops-only identity
   diagnostics as the first production business boundary.
@@ -22,6 +22,10 @@
 - External dependencies pending inventory: Feishu OAuth test app/tenant/redirect, approved company
   email domains and test mail path, signing/rotation key source, internal TLS origin/callback, and
   platform operator test identities. Values must not be placed in this ledger or repository.
+- Approval checkpoint inventory: the local PostgreSQL 17.6 positive fixture and 17.10 rejection
+  control are available and healthy from the planning validation. Feishu, email transport,
+  signing/rotation, TLS callback, and platform-operator integration inputs remain unconfirmed and
+  are deferred until their corresponding Task 4/8 gates; they do not block pure Task 2 RED/GREEN.
 - Planning validator evidence:
   - A first shell structural wrapper used zsh's special `path` variable and caused `rg` lookup to
     fail with exit 127. It changed no state and is orchestration nonPASS.
@@ -64,4 +68,5 @@
   schema/auth/UI code first.
 - Resume procedure: read root `AGENTS.md`, the authority chain, this plan, all four OpenSpec files,
   and this ledger; verify MS0 tag and branch base; inventory ops inputs through allowlisted checks;
-  then request/confirm explicit plan approval before Task 1 implementation.
+  then continue Task 2 from the last recorded RED/GREEN command. Approval is already recorded and
+  must not be requested again unless the plan materially expands.

@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > Sartre production repository. Current active milestone: MS1 Identity, Workspace & Tenant Boundary
-> planning. MS0 is closed at annotated tag `ms0-verified`.
+> implementation. MS0 is closed at annotated tag `ms0-verified`.
 
 ## Language and collaboration
 
@@ -54,11 +54,8 @@ Apps may not import another app's source. Renderer may not access Hub, Runtime, 
 
 ## Current MS1 scope
 
-Until the MS1 implementation plan receives explicit user approval, only the MS1 plan, OpenSpec/BDD,
-independent PLAN_LEDGER, supporting design source, and the constitution tooling required to validate
-those artifacts may change. Product implementation must not start during planning.
-
-After approval, MS1 may implement Identity & Access, Workspace/Membership/Invitation/ProjectAccess,
-Human and Endpoint credentials, tenant RLS/authorization, Electron auth/workspace/pairing surfaces,
-and ops-only identity diagnostics. It must not implement Requirement, Session, Agent execution,
-Lease behavior, Steward behavior, or legacy compatibility.
+The MS1 implementation plan received explicit user approval on 2026-07-31. MS1 may implement
+Identity & Access, Workspace/Membership/Invitation/ProjectAccess, Human and Endpoint credentials,
+tenant RLS/authorization, Electron auth/workspace/pairing surfaces, and ops-only identity
+diagnostics. It must not implement Requirement, Session, Agent execution, Lease behavior, Steward
+behavior, or legacy compatibility.
