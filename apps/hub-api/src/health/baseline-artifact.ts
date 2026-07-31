@@ -15,6 +15,13 @@ const APPROVED_MIGRATIONS = [
       import.meta.url,
     ),
   },
+  {
+    version: "000003_ms1_identity_workspace",
+    path: new URL(
+      "../infrastructure/database/migrations/000003_ms1_identity_workspace.sql",
+      import.meta.url,
+    ),
+  },
 ] as const;
 
 let cachedArtifacts: Promise<readonly ExpectedMigrationArtifact[]> | undefined;

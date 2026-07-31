@@ -90,23 +90,24 @@ describe.sequential("PostgreSQL 17.6 migration boundary", () => {
           artifacts,
         });
 
-        expect(first.map((result) => result.applied)).toEqual([true, true]);
-        expect(second.map((result) => result.applied)).toEqual([false, false]);
-        expect(await readPublicTables(database.connectionString)).toEqual([
-          "diagnostic_records",
-          "schema_migrations",
-        ]);
+        expect(first.map((result) => result.applied)).toEqual([true, true, true]);
+        expect(second.map((result) => result.applied)).toEqual([false, false, false]);
+        expect(await readPublicTables(database.connectionString)).toEqual(
+          expect.arrayContaining(["diagnostic_records", "schema_migrations", "workspaces"]),
+        );
         expect(await readMigrationRows(database.connectionString)).toEqual(
           artifacts.map(({ version, checksum }) => ({ version, checksum })),
         );
+        const latest = artifacts.at(-1);
+        if (!latest) throw new Error("approved_migration_missing");
         await expect(
           withDatabaseQueryClient(database.connectionString, (databaseClient) =>
             assertDatabaseSchemaCompatible({ database: databaseClient, artifacts }),
           ),
         ).resolves.toEqual({
           compatible: true,
-          schemaVersion: artifacts[1]?.version,
-          checksum: artifacts[1]?.checksum,
+          schemaVersion: latest.version,
+          checksum: latest.checksum,
         });
 
         const diagnostics = artifacts[1];
@@ -318,6 +319,8 @@ SELECT pg_sleep(0.35);`,
       await withDisposableDatabase("readiness", async (database) => {
         const artifacts = await loadApprovedMigrations();
 
+        const latest = artifacts.at(-1);
+        if (!latest) throw new Error("approved_migration_missing");
         await expect(
           withDatabaseQueryClient(database.connectionString, (databaseClient) =>
             assertDatabaseSchemaCompatible({
@@ -338,11 +341,9 @@ SELECT pg_sleep(0.35);`,
           ),
         ).resolves.toEqual({
           compatible: true,
-          schemaVersion: artifacts[1]?.version,
-          checksum: artifacts[1]?.checksum,
+          schemaVersion: latest.version,
+          checksum: latest.checksum,
         });
-        const latest = artifacts[1];
-        if (!latest) throw new Error("diagnostics_migration_missing");
         await queryDatabase(
           database.connectionString,
           "UPDATE schema_migrations SET checksum = 'incompatible' WHERE version = $1",
@@ -357,10 +358,12 @@ SELECT pg_sleep(0.35);`,
             }),
           ),
         ).rejects.toMatchObject({ code: "schema_incompatible" });
-        expect(await readMigrationRows(database.connectionString)).toEqual([
-          { version: artifacts[0]?.version ?? "", checksum: artifacts[0]?.checksum ?? "" },
-          { version: latest.version, checksum: "incompatible" },
-        ]);
+        expect(await readMigrationRows(database.connectionString)).toEqual(
+          artifacts.map((artifact) => ({
+            version: artifact.version,
+            checksum: artifact.version === latest.version ? "incompatible" : artifact.checksum,
+          })),
+        );
       });
     },
     INTEGRATION_TIMEOUT_MS,

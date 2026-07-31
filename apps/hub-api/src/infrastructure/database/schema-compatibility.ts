@@ -42,6 +42,40 @@ type DiagnosticIndexCatalogRow = {
   index_definition: string;
 };
 
+type Ms1RoleCatalogRow = {
+  rolname: string;
+  rolsuper: boolean;
+  rolinherit: boolean;
+  rolcanlogin: boolean;
+  rolbypassrls: boolean;
+  outgoing_membership_count: string;
+};
+
+type Ms1GlobalCatalogRow = {
+  table_name: string;
+  owner_name: string;
+};
+
+type Ms1SensitiveColumnCatalogRow = {
+  table_name: string;
+  column_name: string;
+  data_type: string;
+  is_nullable: string;
+  character_maximum_length: number | null;
+};
+
+type Ms1TenantCatalogRow = {
+  table_name: string;
+  owner_name: string;
+  relrowsecurity: boolean;
+  relforcerowsecurity: boolean;
+  workspace_nullable: string;
+  policy_count: string;
+  policy_name: string;
+  policy_using: string;
+  policy_with_check: string;
+};
+
 const diagnosticColumn = (
   column_name: string,
   data_type: string,
@@ -159,6 +193,94 @@ const EXACT_DIAGNOSTIC_INDEXES: readonly DiagnosticIndexCatalogRow[] = [
       "CREATE UNIQUE INDEX diagnostic_records_pkey ON public.diagnostic_records USING btree (record_id)",
   },
 ];
+
+const EXACT_MS1_ROLES: readonly Ms1RoleCatalogRow[] = [
+  {
+    rolname: "sartre_app",
+    rolsuper: false,
+    rolinherit: false,
+    rolcanlogin: false,
+    rolbypassrls: false,
+    outgoing_membership_count: "0",
+  },
+  {
+    rolname: "sartre_migration",
+    rolsuper: false,
+    rolinherit: false,
+    rolcanlogin: false,
+    rolbypassrls: false,
+    outgoing_membership_count: "0",
+  },
+];
+
+const MS1_GLOBAL_TABLES = [
+  "auth_identities",
+  "endpoint_identities",
+  "global_security_events",
+  "platform_operator_grants",
+  "refresh_token_families",
+  "refresh_tokens",
+  "system_diagnostic_records",
+  "user_sessions",
+  "users",
+] as const;
+
+const EXACT_MS1_GLOBAL_CATALOG: readonly Ms1GlobalCatalogRow[] = MS1_GLOBAL_TABLES.map(
+  (table_name) => ({ table_name, owner_name: "sartre_migration" }),
+);
+
+const EXACT_MS1_SENSITIVE_COLUMNS: readonly Ms1SensitiveColumnCatalogRow[] = [
+  {
+    table_name: "endpoint_identities",
+    column_name: "credential_hash",
+    data_type: "character",
+    is_nullable: "NO",
+    character_maximum_length: 64,
+  },
+  {
+    table_name: "refresh_token_families",
+    column_name: "current_token_hash",
+    data_type: "character",
+    is_nullable: "NO",
+    character_maximum_length: 64,
+  },
+  {
+    table_name: "refresh_tokens",
+    column_name: "token_hash",
+    data_type: "character",
+    is_nullable: "NO",
+    character_maximum_length: 64,
+  },
+];
+
+const MS1_TENANT_TABLES = [
+  "audit_events",
+  "client_diagnostic_records",
+  "domain_events",
+  "endpoint_workspace_grants",
+  "invitations",
+  "memberships",
+  "outbox_events",
+  "project_access",
+  "projects",
+  "security_events",
+  "workspace_policies",
+  "workspaces",
+] as const;
+
+const EXACT_MS1_TENANT_CATALOG: readonly Ms1TenantCatalogRow[] = MS1_TENANT_TABLES.map(
+  (table_name) => ({
+    table_name,
+    owner_name: "sartre_migration",
+    relrowsecurity: true,
+    relforcerowsecurity: true,
+    workspace_nullable: "NO",
+    policy_count: "1",
+    policy_name: `${table_name}_tenant_isolation`,
+    policy_using: "sartre_tenant_matches(workspace_id)",
+    policy_with_check: "sartre_tenant_matches(workspace_id)",
+  }),
+);
 
 function normalizeCatalogDefinition(value: string): string {
   return value.trim().replace(/\s+/gu, " ");
@@ -342,6 +464,108 @@ export async function assertDatabaseSchemaCompatible(options: {
   });
   if (!isExactCatalog(normalizedIndexes, EXACT_DIAGNOSTIC_INDEXES)) {
     throw new SchemaIncompatibleError();
+  }
+
+  if (options.artifacts.some((artifact) => artifact.version === "000003_ms1_identity_workspace")) {
+    const roles = await options.database.query(
+      `SELECT role_row.rolname,
+              role_row.rolsuper,
+              role_row.rolinherit,
+              role_row.rolcanlogin,
+              role_row.rolbypassrls,
+              (
+                SELECT count(*)::text
+                  FROM pg_catalog.pg_auth_members AS membership_row
+                 WHERE membership_row.member = role_row.oid
+              ) AS outgoing_membership_count
+         FROM pg_catalog.pg_roles AS role_row
+        WHERE role_row.rolname IN ('sartre_app', 'sartre_migration')
+        ORDER BY role_row.rolname`,
+    );
+    if (!isExactCatalog(roles.rows, EXACT_MS1_ROLES)) {
+      throw new SchemaIncompatibleError();
+    }
+
+    const globalCatalog = await options.database.query(
+      `SELECT table_class.relname AS table_name,
+              owner_role.rolname AS owner_name
+         FROM pg_catalog.pg_class AS table_class
+         JOIN pg_catalog.pg_namespace AS namespace_row
+           ON namespace_row.oid = table_class.relnamespace
+         JOIN pg_catalog.pg_roles AS owner_role ON owner_role.oid = table_class.relowner
+        WHERE namespace_row.nspname = 'public'
+          AND table_class.relkind = 'r'
+          AND table_class.relname IN (
+            'auth_identities',
+            'endpoint_identities',
+            'global_security_events',
+            'platform_operator_grants',
+            'refresh_token_families',
+            'refresh_tokens',
+            'system_diagnostic_records',
+            'user_sessions',
+            'users'
+          )
+        ORDER BY table_class.relname`,
+    );
+    if (!isExactCatalog(globalCatalog.rows, EXACT_MS1_GLOBAL_CATALOG)) {
+      throw new SchemaIncompatibleError();
+    }
+
+    const sensitiveColumns = await options.database.query(
+      `SELECT table_name, column_name, data_type, is_nullable, character_maximum_length
+         FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name IN ('endpoint_identities', 'refresh_token_families', 'refresh_tokens')
+          AND (column_name LIKE '%token%' OR column_name LIKE '%credential%')
+        ORDER BY table_name, column_name`,
+    );
+    if (!isExactCatalog(sensitiveColumns.rows, EXACT_MS1_SENSITIVE_COLUMNS)) {
+      throw new SchemaIncompatibleError();
+    }
+
+    const tenantCatalog = await options.database.query(
+      `SELECT table_class.relname AS table_name,
+              owner_role.rolname AS owner_name,
+              table_class.relrowsecurity,
+              table_class.relforcerowsecurity,
+              column_row.is_nullable AS workspace_nullable,
+              count(policy_row.polname)::text AS policy_count,
+              min(policy_row.polname) AS policy_name,
+              min(pg_get_expr(policy_row.polqual, policy_row.polrelid, false)) AS policy_using,
+              min(pg_get_expr(policy_row.polwithcheck, policy_row.polrelid, false))
+                AS policy_with_check
+         FROM pg_catalog.pg_class AS table_class
+         JOIN pg_catalog.pg_namespace AS namespace_row
+           ON namespace_row.oid = table_class.relnamespace
+         JOIN pg_catalog.pg_roles AS owner_role ON owner_role.oid = table_class.relowner
+         JOIN information_schema.columns AS column_row
+           ON column_row.table_schema = namespace_row.nspname
+          AND column_row.table_name = table_class.relname
+          AND column_row.column_name = 'workspace_id'
+    LEFT JOIN pg_catalog.pg_policy AS policy_row ON policy_row.polrelid = table_class.oid
+        WHERE namespace_row.nspname = 'public'
+          AND table_class.relname IN (
+            'audit_events',
+            'client_diagnostic_records',
+            'domain_events',
+            'endpoint_workspace_grants',
+            'invitations',
+            'memberships',
+            'outbox_events',
+            'project_access',
+            'projects',
+            'security_events',
+            'workspace_policies',
+            'workspaces'
+          )
+        GROUP BY table_class.relname, owner_role.rolname, table_class.relrowsecurity,
+                 table_class.relforcerowsecurity, column_row.is_nullable
+        ORDER BY table_class.relname`,
+    );
+    if (!isExactCatalog(tenantCatalog.rows, EXACT_MS1_TENANT_CATALOG)) {
+      throw new SchemaIncompatibleError();
+    }
   }
 
   const migrations = await options.database.query(

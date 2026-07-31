@@ -117,3 +117,90 @@
 - Resume procedure: verify this checkpoint commit and clean status, read Task 3 in the approved
   plan, then write the PostgreSQL 17.6 migration/RLS integration test RED before creating
   `000003_ms1_identity_workspace.sql`. Do not start auth/UI code first.
+
+## 2026-07-31 - Task 3 PostgreSQL 17.6 identity/tenant boundary checkpoint
+
+- Scope: approved migration `000003_ms1_identity_workspace`, Hub readiness registry/catalog,
+  global Identity/Session/Endpoint/operator/security/diagnostic tables, 12 tenant tables, composite
+  keys/FKs, hash-only token/credential columns, two no-login/no-inherit/no-bypass roles, explicit
+  grants, RLS + FORCE RLS, append-only triggers, and real PostgreSQL 17.6 controls. No HTTP/auth
+  adapter, SDK, Electron, Runtime, mail, OAuth, or business command implementation was added.
+- Initial real RED:
+  - Tests and the migration registry expectation were written before the SQL artifact.
+  - `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres pnpm exec vitest run
+    scripts/postgres/migration-registry.test.ts scripts/postgres/ms1-rls.integration.test.ts
+    --disableConsoleIntercept`: exit 1, `5/5 failed`. The registry returned only MS0 migrations;
+    the catalog test lacked `000003`; the three behavioral fixtures reached PostgreSQL and failed
+    with missing `users`. Disposable databases were removed. This is accepted behavioral RED.
+- Migration GREEN progression, with nonPASS retained:
+  - First SQL rerun: registry passed, all four integration cases failed and the migration rolled
+    back because PostgreSQL auto-generated two CHECK names that collided with explicit cross-field
+    constraint names. After unique names, one CRUD case still failed because one parameter was
+    inferred as both text actor id and uuid initiator. Explicit casts fixed the contract; the first
+    focused result was `2 files | 5/5 tests`, exit 0.
+  - New readiness drift RED executed real mutated databases. Removing FORCE RLS, dropping a policy,
+    changing owner, or dropping a tenant table all returned false compatible: exit 1, `4/4 failed`.
+    Hub readiness now checks exact role attributes and exact tenant owner/RLS/FORCE/non-null/policy
+    catalog; the repeated drift target passed `4/4`.
+  - Replacing a policy with same-name `USING (true) WITH CHECK (true)` first resolved compatible and
+    failed `1/1`. Exact normalized USING/WITH CHECK expressions were added; all policy drift passed.
+  - Dropping `refresh_tokens` or renaming `credential_hash` to `credential` first resolved
+    compatible and failed `2/2`. Readiness now requires all nine global MS1 tables under the
+    migration owner and the exact three 64-character non-null hash columns; the repeat passed
+    `2/2`.
+  - A first parallel `scripts/postgres` run exposed cluster-global role catalog races as
+    `tuple concurrently updated`; 7/101 tests failed, including one stale three-row assertion. Role
+    creation now handles concurrent duplicate creation, role ALTER runs only for unsafe drift, a
+    competing ALTER is accepted only after exact safe revalidation, and outgoing role memberships
+    fail closed. The corrected full PostgreSQL suite passed `8 files | 101 tests`.
+  - A policy catalog probe first failed before execution because `tsx -e` CJS does not support
+    top-level await; it changed no state. The async-IIFE probe created/migrated/dropped one disposable
+    database and observed the exact normalized expression
+    `sartre_tenant_matches(workspace_id)` without reading Secret values.
+  - The first table-owner append-only trigger probe returned zero updated rows because an expected
+    application permission denial had aborted and rolled back the preceding fixture transaction.
+    The denial and owner-trigger probes were split into independent transactions so both execute
+    against committed audit data; the focused suite then passed.
+- Final PostgreSQL evidence:
+  - `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres pnpm exec vitest run
+    scripts/postgres/ms1-rls.integration.test.ts --disableConsoleIntercept`: exit 0, `1 file | 12
+    tests`. It proves exact catalog/roles/grants, every tenant table visible under correct context,
+    same Project UUID isolated across two Workspaces, cross-tenant join suppression, SET LOCAL pool
+    reset, missing-context write rejection `42501`, FORCE RLS against the table owner, composite FK
+    rejection `23503`, tenant create/read plus mutable update/delete, application permission and
+    owner-trigger append-only rejection, concurrent invitation exactly
+    once, transaction rollback, and seven readiness drift classes.
+  - `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres
+    SARTRE_POSTGRES_NEGATIVE_URL=postgresql://postgres@127.0.0.1:55432/postgres pnpm exec vitest
+    run scripts/postgres --disableConsoleIntercept`: exit 0, `8 files | 105 tests`, retaining the
+    PostgreSQL 17.10 read-only version rejection and every MS0 migration/checksum/rollback/catalog
+    control.
+  - Exact approved checksums: `000001` `ff57c5fa909fc4506e4a503c6ea2d39c4c3bb67d5bda1d9dfa1a7cf6f008b839`;
+    `000002` `fe75b3e93def7551a4e0b1d03419b72c0d7f39b251869d6fea32ecfbdf74d521`;
+    `000003` `a949e6493dfc5a7b2612f9a505d1d03752ff9ddbd1c74d9c978bc3742ac5f5c7`.
+- Repository validation:
+  - First `pnpm run format:check`: exit 1 on two mechanical formatter differences. Targeted Biome
+    write fixed only `schema-compatibility.ts` and `ms1-rls.integration.test.ts`; repeat passed.
+    After the CRUD/append-only transaction split, a later format check found one blank line in the
+    same integration test; targeted Biome removed it and the repeated full format check passed.
+  - `pnpm run lint`, `pnpm run typecheck`, `pnpm run build`, `pnpm run architecture:check`, and
+    `pnpm run secret:check`: exit 0. All 8 production workspaces built/typechecked and the packaged
+    Hub migration copy includes `000003`.
+  - `pnpm run sast`, `pnpm run dependency:check`, `pnpm run license:check`, `pnpm run
+    docker-context:check`, and `pnpm run openspec:validate`: exit 0; dependency audit reports no
+    known vulnerabilities.
+  - `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres
+    SARTRE_POSTGRES_NEGATIVE_URL=postgresql://postgres@127.0.0.1:55432/postgres pnpm run test`:
+    exit 0; scripts `26 files | 580 tests`, workspace packages/apps `108 tests`, total `688/688`.
+- Evidence level: Task 3 database targets are `REAL_TEST / PASS` on exact PostgreSQL 17.6 with real
+  SQLSTATE and catalog failure modes. This does not prove Task 4 authentication, centralized
+  application authorization, external OAuth/mail, production connection identities, or any full
+  MS1 BDD scenario.
+- Remaining risks: global identity tables intentionally require application-layer authorization;
+  Workspace selector and cross-Workspace operator queries need explicit Task 4/5/8 services rather
+  than weakening tenant policies; Outbox cross-tenant worker discovery requires a later
+  least-privilege design and must not use migration credentials. Roles are cluster-global and are
+  safe-checked, but production login-role membership wiring remains an ops contract.
+- Resume procedure: verify the Task 3 commit and clean status, read Task 4, then write Human auth
+  port/session/token RED tests. Do not add provider mocks that claim Feishu staging PASS and do not
+  place OAuth/mail/signing values in Git or the ledger.
