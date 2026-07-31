@@ -1,6 +1,7 @@
 # AGENTS.md
 
-> Sartre production repository. Current active milestone: MS0 Repository Constitution.
+> Sartre production repository. Current active milestone: MS1 Identity, Workspace & Tenant Boundary
+> planning. MS0 is closed at annotated tag `ms0-verified`.
 
 ## Language and collaboration
 
@@ -51,6 +52,13 @@ Apps may not import another app's source. Renderer may not access Hub, Runtime, 
 - Every commit and build must run the Secret boundary check.
 - Tool-version collection uses an explicit command allowlist such as `node --version` and `pnpm --version`. Never run or capture `env`, `printenv`, `npm config list`, `pnpm config list`, shell profiles, credential helpers, or full process environments.
 
-## Current MS0 scope
+## Current MS1 scope
 
-MS0 may implement repository constitution, module checks, evidence Harness, PostgreSQL 17.6 migration/version gate, process health, diagnostic skeleton, freeze manifest, and PortingLedger. It must not implement identity, Requirement, Session, Agent execution, Steward behavior, or legacy compatibility.
+Until the MS1 implementation plan receives explicit user approval, only the MS1 plan, OpenSpec/BDD,
+independent PLAN_LEDGER, supporting design source, and the constitution tooling required to validate
+those artifacts may change. Product implementation must not start during planning.
+
+After approval, MS1 may implement Identity & Access, Workspace/Membership/Invitation/ProjectAccess,
+Human and Endpoint credentials, tenant RLS/authorization, Electron auth/workspace/pairing surfaces,
+and ops-only identity diagnostics. It must not implement Requirement, Session, Agent execution,
+Lease behavior, Steward behavior, or legacy compatibility.
