@@ -70,3 +70,50 @@
   and this ledger; verify MS0 tag and branch base; inventory ops inputs through allowlisted checks;
   then continue Task 2 from the last recorded RED/GREEN command. Approval is already recorded and
   must not be requested again unless the plan materially expands.
+
+## 2026-07-31 - Task 2 Identity/Workspace domain and contract checkpoint
+
+- Branch/base: `codex/ms1-identity-workspace-tenant-boundary`, created from local approved-planning
+  commit `a932c93`. The approval commit and this implementation branch are not pushed; Draft PR #1
+  and remote `main` remain unchanged.
+- Scope: pure `packages/domain` AuthIdentity, RefreshTokenFamily, Invitation, Membership, and
+  ProjectAccess invariants; strict `packages/contracts` Human/Endpoint/System actors,
+  provider/access commands, controlled roles, and non-disclosing authorization Problem Details.
+  No app, HTTP handler, database/migration, SDK, Electron, Runtime, or external provider behavior
+  changed.
+- First RED command: `pnpm exec vitest run packages/domain/src/ms1-invariants.test.ts
+  packages/contracts/src/ms1-contracts.test.ts`: exit 1. Domain failed to load the intentionally
+  absent `errors.js` boundary and discovered zero domain tests; contracts discovered 7 tests and 6
+  failed because the new schemas were absent. The one apparent contract pass only observed an
+  undefined `.parse` throwing and is not behavioral evidence. This run is retained as structural
+  RED/nonPASS, not REAL_TEST.
+- GREEN implementation and focused evidence:
+  - `pnpm exec vitest run packages/domain/src/ms1-invariants.test.ts
+    packages/contracts/src/ms1-contracts.test.ts`: exit 0, `2 files | 21 tests`.
+  - Assertions cover approved Feishu tenant/company email, normalized identity uniqueness, hash-only
+    Refresh family rotation, idle/absolute expiry, stale version, reuse/race family revocation,
+    invitation role caps/exact identity/expiry/single acceptance, last-owner protection, Human-only
+    expectedVersion role mutation, explicit ProjectAccess, actor-chain spoof rejection, caller actor
+    omission from commands, controlled errors, and equal non-disclosing 403/404 messages.
+  - Evidence level for these isolated targets is `REAL_TEST / PASS`: executed domain functions and
+    Zod schemas have positive assertions, real rejection inputs, and non-zero RED. It does not close
+    any end-to-end MS1 BDD row.
+- Static and repository gates:
+  - First `pnpm run format:check`: exit 1 on six mechanical formatter differences. `pnpm exec biome
+    format --write packages/domain/src packages/contracts/src` fixed those six files; repeated
+    format and focused tests exited 0.
+  - `pnpm run lint`, `pnpm run typecheck`, `pnpm run build`, `pnpm run architecture:check`, and
+    `pnpm run secret:check`: exit 0. Repository policy passed, all 8 production workspaces built and
+    typechecked, and pure domain introduced no framework/I/O dependency.
+  - `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres
+    SARTRE_POSTGRES_NEGATIVE_URL=postgresql://postgres@127.0.0.1:55432/postgres pnpm run test`:
+    exit 0. Scripts passed `25 files | 568 tests`; domain passed `2 files | 15 tests`; contracts
+    passed `3 files | 66 tests`; remaining workspace suites passed `27 tests`, for `676/676` total.
+- Remaining risks: refresh race handling is a pure sequential state invariant and still needs the
+  Task 3 database lock/unique/transaction control; identity tenant/email facts still require Task 4
+  trusted adapter verification; no RLS, HTTP authorization, token storage, or external-provider
+  claim exists. Workspace role labels are intentionally separate from ProjectAccess and must remain
+  so in migration and application services.
+- Resume procedure: verify this checkpoint commit and clean status, read Task 3 in the approved
+  plan, then write the PostgreSQL 17.6 migration/RLS integration test RED before creating
+  `000003_ms1_identity_workspace.sql`. Do not start auth/UI code first.

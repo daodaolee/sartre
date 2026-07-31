@@ -1,6 +1,13 @@
 export const moduleBoundary = "contracts" as const;
 
 export {
+  ActorSchema,
+  EndpointActorSchema,
+  HumanActorSchema,
+  SystemActorSchema,
+} from "./authorization/actors.js";
+
+export {
   DiagnosticActorTypeSchema,
   DiagnosticContextSchema,
   DiagnosticStatusSchema,
@@ -18,6 +25,14 @@ export {
   DiagnosticTimelineSchema,
 } from "./diagnostic-timeline.js";
 export { ERROR_CODES, ErrorCodeSchema } from "./error-catalog.js";
+export {
+  AuthIdentityRegistrationSchema,
+  AuthProviderSchema,
+} from "./identity/auth-identity.js";
+export {
+  NonDisclosingAuthorizationProblemSchema,
+  ProblemDetailsSchema,
+} from "./http/problem-details.js";
 export {
   EvidenceAssertionSchema,
   EvidenceCommandSchema,
@@ -40,12 +55,25 @@ export {
   ServiceProcessIdSchema,
 } from "./service-health.js";
 export { createResultSchema } from "./result.js";
+export {
+  InvitationAcceptCommandSchema,
+  InvitationStatusSchema,
+  MembershipRoleChangeCommandSchema,
+  ProjectAccessRoleSchema,
+  WorkspaceRoleSchema,
+} from "./workspace/access.js";
 
 export type {
   DiagnosticActorType,
   DiagnosticContext,
   DiagnosticStatus,
 } from "./diagnostics.js";
+export type {
+  Actor,
+  EndpointActor,
+  HumanActor,
+  SystemActor,
+} from "./authorization/actors.js";
 export type {
   DiagnosticDependencyOutcome,
   DiagnosticProbeRequest,
@@ -55,6 +83,14 @@ export type {
   DiagnosticTimeline,
 } from "./diagnostic-timeline.js";
 export type { ErrorCode } from "./error-catalog.js";
+export type {
+  AuthIdentityRegistration,
+  AuthProvider,
+} from "./identity/auth-identity.js";
+export type {
+  NonDisclosingAuthorizationProblem,
+  ProblemDetails,
+} from "./http/problem-details.js";
 export type {
   EvidenceAssertion,
   EvidenceCommand,
@@ -69,3 +105,10 @@ export type {
   ServiceProcessId,
 } from "./service-health.js";
 export type { Result } from "./result.js";
+export type {
+  InvitationAcceptCommand,
+  InvitationStatus,
+  MembershipRoleChangeCommand,
+  ProjectAccessRole,
+  WorkspaceRole,
+} from "./workspace/access.js";
