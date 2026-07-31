@@ -26,6 +26,10 @@ allowBuilds:
 onlyBuiltDependencies:
   - electron
   - esbuild
+
+overrides:
+  brace-expansion: 5.0.8
+  tar: 7.5.21
 `;
 
 function writeJson(path: string, value: unknown): void {
@@ -117,6 +121,7 @@ describe("repository policy", () => {
         '  - "packages/*"\n  - "!packages/legacy"\n',
       ),
     ],
+    ["weakened security override", canonicalPnpmWorkspace.replace("5.0.8", "5.0.7")],
     ["extra key", `${canonicalPnpmWorkspace}catalog:\n  react: 19.2.7\n`],
   ])("rejects a %s pnpm workspace constitution", (_description, content) => {
     const root = createPolicyFixture();

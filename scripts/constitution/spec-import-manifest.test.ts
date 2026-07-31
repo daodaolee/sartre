@@ -35,7 +35,7 @@ function createApprovedEntries(
 }
 
 describe("spec import manifest", () => {
-  it("defines the immutable exact 27-document source-target allowlist", () => {
+  it("defines the immutable exact 26-document source-target allowlist", () => {
     expect(APPROVED_SPEC_IMPORT_SOURCE_ROOT).toBe(
       "/Users/xy/personal/Sartre(agent-workspace-design)",
     );
@@ -46,7 +46,6 @@ describe("spec import manifest", () => {
         source: "docs/plans/2026-07-16-multi-user-ai-native-workspace-design.md",
         target: "docs/plans/2026-07-16-multi-user-ai-native-workspace-design.md",
       },
-      { source: "plan/00-master-plan.md", target: "plan/00-master-plan.md" },
       {
         source: "plan/adr/ADR-0004-codex-sdk-work-agent-and-bounded-steward.md",
         target: "plan/adr/ADR-0004-codex-sdk-work-agent-and-bounded-steward.md",
@@ -83,6 +82,10 @@ describe("spec import manifest", () => {
       { source: "workflow/harness-sop.md", target: "workflow/harness-sop.md" },
       { source: "workflow/plan-ledger-sop.md", target: "workflow/plan-ledger-sop.md" },
     ]);
+    expect(APPROVED_SPEC_IMPORTS).not.toContainEqual({
+      source: "plan/00-master-plan.md",
+      target: "plan/00-master-plan.md",
+    });
     expect(Object.isFrozen(APPROVED_SPEC_IMPORTS)).toBe(true);
     expect(APPROVED_SPEC_IMPORTS.every(Object.isFrozen)).toBe(true);
   });

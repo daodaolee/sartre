@@ -22,11 +22,13 @@ review, named behavior tests, and an accountable owner.
   835 path facts. Its SHA-256 remained
   `36c68900761bb48a2638ebfbc346980a38f1285f7f5641afa69254cee6236c6f` before and after independent
   verification; the manifest was not regenerated or rewritten.
-- Imported-document boundary: `reference/spec-import-manifest.json` contains exactly 27 unique,
+- Imported-document boundary: `reference/spec-import-manifest.json` contains exactly 26 unique,
   wildcard-free source-to-target mappings. Target-only verification and explicit source
   provenance verification passed with exact target hashes. These specification, workflow, design,
   ADR, architecture, and database-schema targets are not code-porting candidates and are governed
-  only by that manifest.
+  only by that manifest. The living `plan/00-master-plan.md` is deliberately outside the immutable
+  import boundary because milestone status transitions must update it; its changes remain governed
+  by the repository authority order, review, Git history, and the active PLAN_LEDGER.
 - Code boundary: the table above still contains zero candidate rows. No legacy-derived application,
   domain, infrastructure, test, or configuration mapping is claimed. Any future exact-file row must
   begin at `PENDING_REVIEW`; `APPROVED` remains unavailable without its own file-specific reason,

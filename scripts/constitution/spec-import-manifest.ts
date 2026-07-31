@@ -17,7 +17,6 @@ export const APPROVED_SPEC_IMPORTS: readonly Readonly<SpecImportMapping>[] = Obj
       source: "docs/plans/2026-07-16-multi-user-ai-native-workspace-design.md",
       target: "docs/plans/2026-07-16-multi-user-ai-native-workspace-design.md",
     },
-    { source: "plan/00-master-plan.md", target: "plan/00-master-plan.md" },
     {
       source: "plan/adr/ADR-0004-codex-sdk-work-agent-and-bounded-steward.md",
       target: "plan/adr/ADR-0004-codex-sdk-work-agent-and-bounded-steward.md",
