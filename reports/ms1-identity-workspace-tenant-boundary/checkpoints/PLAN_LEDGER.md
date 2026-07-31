@@ -1,0 +1,67 @@
+# MS1 Identity, Workspace & Tenant Boundary PLAN_LEDGER
+
+- Status: PENDING user review and explicit implementation-plan approval. Product implementation has
+  not started.
+- Goal: deliver Human authentication, Workspace/Membership/Invitation/ProjectAccess, Endpoint
+  pairing, tenant RLS/authorization, Electron credential isolation, and ops-only identity
+  diagnostics as the first production business boundary.
+- Plan: `docs/superpowers/plans/2026-07-31-ms1-identity-workspace-tenant-boundary.md`
+- OpenSpec/BDD: `openspec/changes/ms1-identity-workspace-tenant-boundary/`.
+- Base: MS0 verified commit `5ca19c0e04922cd1a117c9dddc579cf56ef162c8`; pre-MS1 constitution/security repair
+  `4af3dfb`; preserved Pencil source commit `c25a3e7` on this planning branch.
+- Design input: `design/pencil/sartre-product-v2.pen`, 847,404-byte blob, SHA-256
+  `52cb7849746fe0f15ce7e597d40da75faca3f5a88eb137c9d65984a1128af881`. It contains Workspace
+  switcher, Settings/Workspace, Settings/Account, and member patterns. Auth callback, invitation,
+  ProjectAccess, Endpoint pairing/revoke, forbidden/offline, and recovery states are registered
+  design gaps, not silently assumed complete.
+- Scope of this checkpoint: planning documents, OpenSpec/BDD, independent ledger, AGENTS active
+  milestone text, and the already-preserved design source only. No domain, contract, migration,
+  API, SDK, Electron behavior, Runtime identity, database row, or production evidence exists yet.
+- Evidence level: `SCENARIO_REGISTERED` for MS1 BDD and `STRUCTURAL_CHECK` for plan/file integrity;
+  status is not PASS. Existing MS0 evidence does not prove any MS1 capability.
+- External dependencies pending inventory: Feishu OAuth test app/tenant/redirect, approved company
+  email domains and test mail path, signing/rotation key source, internal TLS origin/callback, and
+  platform operator test identities. Values must not be placed in this ledger or repository.
+- Planning validator evidence:
+  - A first shell structural wrapper used zsh's special `path` variable and caused `rg` lookup to
+    fail with exit 127. It changed no state and is orchestration nonPASS.
+  - The corrected structural check proved all six planning/OpenSpec/ledger artifacts nonempty and
+    all required scenario classes present. Existing `openspec:validate` then failed
+    `legacy_openspec_state_present` for the new MS1 directory, exposing the intended tool gap.
+  - The validator test was changed first: focused RED failed `2/4` because MS1 was rejected and its
+    missing scenarios were not validated. The generic known-change implementation then passed
+    `4/4`, preserved mandatory MS0 validation and unknown legacy/archive rejection, and made
+    `pnpm run openspec:validate` exit 0 with `OpenSpec validation passed.`
+- Final planning-checkpoint validation on 2026-07-31:
+  - Corrected nonempty/pattern structural assertions: exit 0. The earlier assertion text used
+    `ops diagnostics` while the registered scenario identifier is `ops-diagnostic`; this was a
+    harness assertion mismatch, changed no repository state, and is retained as nonPASS.
+  - `pnpm exec vitest run scripts/constitution/openspec-validation.test.ts`: exit 0, `1 file | 4
+    tests`; `pnpm run openspec:validate`: exit 0; `pnpm run spec:verify`: exit 0 with exactly 26
+    approved target hashes.
+  - First `pnpm run format:check`: exit 1 on one formatter-only line wrap in
+    `openspec-validation.ts`. `pnpm exec biome format --write
+    scripts/constitution/openspec-validation.ts` changed that single file mechanically; the
+    repeated format check and focused validator suite passed.
+  - `pnpm run lint`, `pnpm run build`, and `pnpm run typecheck`: exit 0. Repository policy passed
+    and all 8 production workspaces built and typechecked.
+  - `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres
+    SARTRE_POSTGRES_NEGATIVE_URL=postgresql://postgres@127.0.0.1:55432/postgres pnpm run test`:
+    exit 0 against the loopback-only PostgreSQL 17.6 positive fixture and 17.10 rejection control;
+    scripts passed `25 files | 568 tests`, and workspace suites passed `11 files | 87 tests`.
+  - `pnpm run toolchain:check`, `pnpm run architecture:check`, `pnpm run
+    docker-context:check`, `pnpm run sast`, `pnpm run dependency:check`, `pnpm run license:check`,
+    and `pnpm run secret:check`: all exit 0. Toolchain is Node `v24.11.0`, pnpm `10.33.2`, and
+    gitleaks `8.28.0`; dependency audit reports no known vulnerabilities.
+  - First staged whitespace inspection reported one added blank EOF line in each of the four
+    OpenSpec Markdown files. The wrapper lacked `set -e`, so its final Secret check returned 0 even
+    though the whitespace inspection was nonPASS. The four blank lines were removed and the strict
+    staged sequence was rerun with immediate failure enabled.
+  - These results validate the planning checkpoint and existing MS0 constitution only. MS1 stays
+    `SCENARIO_REGISTERED` / `STRUCTURAL_CHECK`, not product PASS.
+- First implementation command after approval: write Task 2 RED tests for Human/Endpoint/System
+  actor contracts and refresh/invitation/membership/ProjectAccess invariants. Do not start
+  schema/auth/UI code first.
+- Resume procedure: read root `AGENTS.md`, the authority chain, this plan, all four OpenSpec files,
+  and this ledger; verify MS0 tag and branch base; inventory ops inputs through allowlisted checks;
+  then request/confirm explicit plan approval before Task 1 implementation.

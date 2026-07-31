@@ -19,11 +19,6 @@
       "sha256": "e8791b78caf4e0b5e8c8ea3f8abe0ada63ae5faaeb2aba36a0b47302ac9ec807"
     },
     {
-      "source": "plan/00-master-plan.md",
-      "target": "plan/00-master-plan.md",
-      "sha256": "31153d4a0da753401d4c48123137126f6b2ab795ca7529b068ab7c7f44dec842"
-    },
-    {
       "source": "plan/adr/ADR-0004-codex-sdk-work-agent-and-bounded-steward.md",
       "target": "plan/adr/ADR-0004-codex-sdk-work-agent-and-bounded-steward.md",
       "sha256": "9e6eea3e8f970c34ad603fc54611bd9a0b3f52129f97c828db8894dbd8190d53"

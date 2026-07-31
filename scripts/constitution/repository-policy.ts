@@ -69,6 +69,10 @@ allowBuilds:
 onlyBuiltDependencies:
   - electron
   - esbuild
+
+overrides:
+  brace-expansion: 5.0.8
+  tar: 7.5.21
 `;
 const requiredIgnoreRules = [
   ".local-secrets/",
