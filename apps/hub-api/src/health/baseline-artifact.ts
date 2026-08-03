@@ -57,6 +57,13 @@ const APPROVED_MIGRATIONS = [
       import.meta.url,
     ),
   },
+  {
+    version: "000009_ms1_endpoint_pairing",
+    path: new URL(
+      "../infrastructure/database/migrations/000009_ms1_endpoint_pairing.sql",
+      import.meta.url,
+    ),
+  },
 ] as const;
 
 let cachedArtifacts: Promise<readonly ExpectedMigrationArtifact[]> | undefined;

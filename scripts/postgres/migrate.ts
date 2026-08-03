@@ -66,6 +66,13 @@ export const APPROVED_MIGRATION_DEFINITIONS = [
       MODULE_URL,
     ),
   },
+  {
+    version: "000009_ms1_endpoint_pairing",
+    path: new URL(
+      "../../apps/hub-api/src/infrastructure/database/migrations/000009_ms1_endpoint_pairing.sql",
+      MODULE_URL,
+    ),
+  },
 ] as const;
 export const BASELINE_MIGRATION_PATH = APPROVED_MIGRATION_DEFINITIONS[0].path;
 const MIGRATION_ADVISORY_LOCK_KEY = "73812170006";

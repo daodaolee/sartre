@@ -39,6 +39,18 @@ export {
   HumanSessionInventorySchema,
 } from "./identity/human-auth.js";
 export {
+  EndpointAccessTokenClaimsSchema,
+  EndpointAuthSessionSchema,
+  EndpointCredentialExchangeCommandSchema,
+  EndpointCredentialRotateCommandSchema,
+  EndpointPairingCompleteCommandSchema,
+  EndpointPairingIntentCreateCommandSchema,
+  EndpointPairingIntentSummarySchema,
+  EndpointPairingResultSchema,
+  EndpointRevokeCommandSchema,
+  EndpointSummarySchema,
+} from "./identity/endpoint-auth.js";
+export {
   NonDisclosingAuthorizationProblemSchema,
   ProblemDetailsSchema,
 } from "./http/problem-details.js";
@@ -116,6 +128,18 @@ export type {
   HumanSessionInventory,
   HumanSessionInventoryItem,
 } from "./identity/human-auth.js";
+export type {
+  EndpointAccessTokenClaims,
+  EndpointAuthSession,
+  EndpointCredentialExchangeCommand,
+  EndpointCredentialRotateCommand,
+  EndpointPairingCompleteCommand,
+  EndpointPairingIntentCreateCommand,
+  EndpointPairingIntentSummary,
+  EndpointPairingResult,
+  EndpointRevokeCommand,
+  EndpointSummary,
+} from "./identity/endpoint-auth.js";
 export type {
   NonDisclosingAuthorizationProblem,
   ProblemDetails,

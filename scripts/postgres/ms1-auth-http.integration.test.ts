@@ -8,6 +8,7 @@ import {
   RedactedNotFoundFilter,
 } from "../../apps/hub-api/src/hub-application.js";
 import { Argon2idPasswordHasher } from "../../apps/hub-api/src/identity/argon2id-password-hasher.js";
+import { Ed25519EndpointAccessTokenCodec } from "../../apps/hub-api/src/endpoints/endpoint-access-token.js";
 import { Ed25519HumanAccessTokenCodec } from "../../apps/hub-api/src/identity/human-access-token.js";
 import { HumanAuthService } from "../../apps/hub-api/src/identity/human-auth.service.js";
 import { PostgresHumanAuthRepository } from "../../apps/hub-api/src/identity/postgres-human-auth.repository.js";
@@ -95,6 +96,12 @@ describe.sequential("MS1 Human auth HTTP main flow", () => {
             sessionIdleTtlMs: 7 * 24 * 60 * 60_000,
           },
         });
+        const endpointAccessTokens = new Ed25519EndpointAccessTokenCodec({
+          issuer: "https://hub.internal.example",
+          activeKey: { kid: "http-test-key", privateKey: pair.privateKey },
+          verificationKeys: [{ kid: "http-test-key", publicKey: pair.publicKey }],
+          ttlSeconds: 600,
+        });
         const provisioned = await provisionThroughCli({
           connectionString: database.connectionString,
           email: "human@example.com",
@@ -143,7 +150,7 @@ describe.sequential("MS1 Human auth HTTP main flow", () => {
             workerHeartbeatDeadlineMs: 500,
             configurationValid: true,
           },
-          { service, repository },
+          { service, repository, endpointAccessTokens },
         );
         application.useGlobalFilters(new RedactedNotFoundFilter());
         await application.listen(0, "127.0.0.1");

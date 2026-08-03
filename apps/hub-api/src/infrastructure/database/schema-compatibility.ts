@@ -246,6 +246,13 @@ const EXACT_MS1_SENSITIVE_COLUMNS: readonly Ms1SensitiveColumnCatalogRow[] = [
     character_maximum_length: 64,
   },
   {
+    table_name: "endpoint_pairing_intents",
+    column_name: "challenge_hash",
+    data_type: "character",
+    is_nullable: "NO",
+    character_maximum_length: 64,
+  },
+  {
     table_name: "refresh_token_families",
     column_name: "current_token_hash",
     data_type: "character",
@@ -366,6 +373,7 @@ const MS1_TENANT_TABLES = [
   "audit_events",
   "client_diagnostic_records",
   "domain_events",
+  "endpoint_pairing_intents",
   "endpoint_workspace_grants",
   "invitations",
   "memberships",
@@ -626,8 +634,17 @@ export async function assertDatabaseSchemaCompatible(options: {
       `SELECT table_name, column_name, data_type, is_nullable, character_maximum_length
          FROM information_schema.columns
         WHERE table_schema = 'public'
-          AND table_name IN ('endpoint_identities', 'refresh_token_families', 'refresh_tokens')
-          AND (column_name LIKE '%token%' OR column_name LIKE '%credential%')
+          AND table_name IN (
+            'endpoint_identities',
+            'endpoint_pairing_intents',
+            'refresh_token_families',
+            'refresh_tokens'
+          )
+          AND (
+            column_name LIKE '%challenge%' OR
+            column_name LIKE '%credential%' OR
+            column_name LIKE '%token%'
+          )
         ORDER BY table_name, column_name`,
     );
     if (!isExactCatalog(sensitiveColumns.rows, EXACT_MS1_SENSITIVE_COLUMNS)) {
@@ -659,6 +676,7 @@ export async function assertDatabaseSchemaCompatible(options: {
             'audit_events',
             'client_diagnostic_records',
             'domain_events',
+            'endpoint_pairing_intents',
             'endpoint_workspace_grants',
             'invitations',
             'memberships',

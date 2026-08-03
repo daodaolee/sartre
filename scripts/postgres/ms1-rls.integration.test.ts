@@ -24,6 +24,7 @@ const TENANT_TABLES = [
   "audit_events",
   "client_diagnostic_records",
   "domain_events",
+  "endpoint_pairing_intents",
   "endpoint_workspace_grants",
   "invitations",
   "memberships",
@@ -198,6 +199,7 @@ describe.sequential("MS1 PostgreSQL 17.6 tenant boundary", () => {
           "000006_ms1_defer_email_delivery",
           "000007_ms1_workspace_commands",
           "000008_ms1_workspace_access_commands",
+          "000009_ms1_endpoint_pairing",
         ]);
         await migrateApprovedMigrations({ connectionString, artifacts });
 
@@ -810,6 +812,10 @@ describe.sequential("MS1 PostgreSQL 17.6 tenant boundary", () => {
     [
       "credential_hash_column",
       "ALTER TABLE endpoint_identities RENAME COLUMN credential_hash TO credential",
+    ],
+    [
+      "challenge_hash_column",
+      "ALTER TABLE endpoint_pairing_intents RENAME COLUMN challenge_hash TO challenge",
     ],
   ])(
     "rejects MS1 readiness catalog drift: %s",

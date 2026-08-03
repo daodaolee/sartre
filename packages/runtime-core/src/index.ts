@@ -2,6 +2,17 @@ import { HealthSnapshotSchema, type HealthSnapshot, type HealthStatus } from "@s
 
 export const moduleBoundary = "runtime-core" as const;
 
+export {
+  RuntimeEndpointIdentityError,
+  RuntimeEndpointIdentityManager,
+} from "./identity/runtime-endpoint-identity.js";
+export type {
+  RuntimeEndpointBinding,
+  RuntimeEndpointBindingStorePort,
+  RuntimeEndpointIdentityErrorCode,
+  RuntimeSecureStorePort,
+} from "./identity/runtime-endpoint-identity.js";
+
 export function createProcessHealthSnapshot(options: {
   service: string;
   status: HealthStatus;

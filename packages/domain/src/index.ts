@@ -3,6 +3,15 @@ export const moduleBoundary = "domain" as const;
 export { DomainInvariantError } from "./errors.js";
 export { createAuthIdentity } from "./identity/auth-identity.js";
 export {
+  createEndpointIdentity,
+  revokeEndpointIdentity,
+  rotateEndpointCredential,
+} from "./identity/endpoint-identity.js";
+export {
+  consumeEndpointPairingIntent,
+  createEndpointPairingIntent,
+} from "./identity/endpoint-pairing.js";
+export {
   createRefreshTokenFamily,
   revokeRefreshTokenFamily,
   rotateRefreshTokenFamily,
@@ -20,6 +29,8 @@ export type {
   AuthProvider,
   CreateAuthIdentityInput,
 } from "./identity/auth-identity.js";
+export type { EndpointIdentity } from "./identity/endpoint-identity.js";
+export type { EndpointPairingIntent } from "./identity/endpoint-pairing.js";
 export type {
   RefreshTokenFamily,
   RefreshTokenFamilyStatus,

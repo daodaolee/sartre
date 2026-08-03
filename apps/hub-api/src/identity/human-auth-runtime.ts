@@ -2,6 +2,7 @@ import { createPrivateKey, createPublicKey, randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 
 import { Argon2idPasswordHasher } from "./argon2id-password-hasher.js";
+import { Ed25519EndpointAccessTokenCodec } from "../endpoints/endpoint-access-token.js";
 import { Ed25519HumanAccessTokenCodec } from "./human-access-token.js";
 import { HumanAuthService } from "./human-auth.service.js";
 import { PostgresHumanAuthRepository } from "./postgres-human-auth.repository.js";
@@ -9,6 +10,7 @@ import { PostgresHumanAuthRepository } from "./postgres-human-auth.repository.js
 export type HumanAuthRuntime = {
   readonly service: HumanAuthService;
   readonly repository: PostgresHumanAuthRepository;
+  readonly endpointAccessTokens: Ed25519EndpointAccessTokenCodec;
 };
 
 function required(environment: NodeJS.ProcessEnv, name: string): string {
@@ -43,15 +45,18 @@ export async function createHumanAuthRuntime(
   const repository = new PostgresHumanAuthRepository(required(environment, "SARTRE_DATABASE_URL"));
   try {
     const kid = required(environment, "SARTRE_AUTH_KEY_ID");
-    const accessTokens = new Ed25519HumanAccessTokenCodec({
+    const tokenOptions = {
       issuer: required(environment, "SARTRE_AUTH_ISSUER"),
       activeKey: { kid, privateKey: createPrivateKey(privateKeyPem) },
       verificationKeys: [{ kid, publicKey: createPublicKey(publicKeyPem) }],
       ttlSeconds: 600,
-    });
+    };
+    const accessTokens = new Ed25519HumanAccessTokenCodec(tokenOptions);
+    const endpointAccessTokens = new Ed25519EndpointAccessTokenCodec(tokenOptions);
     const dummyPasswordHash = await passwordHasher.hash(randomBytes(32).toString("base64url"));
     return {
       repository,
+      endpointAccessTokens,
       service: new HumanAuthService({
         repository,
         passwordHasher,

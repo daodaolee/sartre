@@ -11,6 +11,9 @@ import { NestFactory } from "@nestjs/core";
 import { DiagnosticsController } from "./diagnostics/diagnostics.controller.js";
 import { DiagnosticsRepository } from "./diagnostics/diagnostics.repository.js";
 import { DiagnosticsService } from "./diagnostics/diagnostics.service.js";
+import { EndpointController } from "./endpoints/endpoint.controller.js";
+import { EndpointService } from "./endpoints/endpoint.service.js";
+import { PostgresEndpointRepository } from "./endpoints/postgres-endpoint.repository.js";
 import type { HubHealthConfig } from "./health/config.js";
 import { HealthController, Ms0SelfTestController } from "./health/health.controller.js";
 import { HUB_HEALTH_CONFIG, HubHealthService } from "./health/health.service.js";
@@ -53,12 +56,21 @@ export function createHubModule(
   const workspaceService = workspaceRepository
     ? new WorkspaceService(workspaceRepository)
     : undefined;
+  const endpointRepository =
+    humanAuth && config.databaseUrl
+      ? new PostgresEndpointRepository(config.databaseUrl)
+      : undefined;
+  const endpointService =
+    endpointRepository && humanAuth
+      ? new EndpointService(endpointRepository, humanAuth.endpointAccessTokens)
+      : undefined;
   return {
     module: HubApplicationModule,
     controllers: [
       HealthController,
       ...(humanAuth ? [HumanAuthController] : []),
       ...(workspaceService ? [WorkspaceController] : []),
+      ...(endpointService ? [EndpointController] : []),
       ...(config.selfTestEnabled ? [Ms0SelfTestController, DiagnosticsController] : []),
     ],
     providers: [
@@ -73,6 +85,12 @@ export function createHubModule(
         ? [
             { provide: PostgresWorkspaceRepository, useValue: workspaceRepository },
             { provide: WorkspaceService, useValue: workspaceService },
+          ]
+        : []),
+      ...(endpointRepository && endpointService
+        ? [
+            { provide: PostgresEndpointRepository, useValue: endpointRepository },
+            { provide: EndpointService, useValue: endpointService },
           ]
         : []),
       HubHealthService,

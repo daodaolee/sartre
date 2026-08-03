@@ -646,3 +646,96 @@
   Endpoint pairing RED. Before final MS1 closeout, separately close the retained Task 4 production
   key/TLS/database-role evidence and complete Tasks 6-9 without weakening this tenant transaction,
   explicit ProjectAccess, or Secret boundary.
+
+## 2026-08-03 - Task 6 Endpoint pairing and Runtime identity checkpoint
+
+- Scope and product boundary:
+  - Implemented the Hub portion of authenticated one-time Endpoint pairing: a Human Workspace member
+    creates a five-minute intent from a Runtime-generated 256-bit challenge; Runtime proves it once
+    and supplies its generated 256-bit Endpoint Credential; Hub stores only SHA-256 hashes and creates
+    exactly one global EndpointIdentity plus one tenant EndpointWorkspaceGrant.
+  - Added separate `sartre-endpoint` Ed25519 access tokens with Workspace, owner, and Endpoint version
+    claims. Endpoint credential exchange and every Endpoint-token request recheck the active identity,
+    active Workspace grant, active owner Membership, audience, Workspace, owner, and version. Rotation
+    invalidates the old credential and outstanding Endpoint tokens; revoke invalidates both immediately.
+  - Added the Runtime secure-store port, non-Secret binding state, single-Human data-root guard,
+    rotation compensation, active-runtime-work reset guard, and Local Runtime coordinator. The real
+    subprocess uses a process-local test adapter. Production macOS `safeStorage` and authenticated
+    Electron Main IPC wiring remain Task 7 work; no ordinary file store is presented as secure storage.
+  - No AgentRun, Lease, email, Feishu, Requirement, Renderer, or legacy compatibility behavior was
+    introduced.
+- RED/nonPASS history retained:
+  - The first exact-PostgreSQL matrix attempt failed before test setup because the temporary test-role
+    `DO $$` command was incorrectly shell-escaped; PostgreSQL reported a syntax error, the role was not
+    created, and all 14 database cases failed at connection. Replacing it with bounded `createuser`
+    plus stdin `ALTER ROLE` allowed the unchanged tests to execute.
+  - The first executed Endpoint concurrency flow returned `[401, 503]` instead of `[201, 401]`.
+    Persistence committed correctly, but the success response spread an internal `status` field into a
+    strict one-time response schema. Constructing the response field-by-field fixed the post-commit
+    serialization failure; the repeated flow passed.
+  - The first final-gate sequence stopped at `format:check` because a newly added test parameter array
+    was not Biome-formatted. No later command in that sequence was counted. Formatting the file and
+    repeating the complete gate sequence exited 0.
+  - A later attempt to run Biome directly on this ledger exited 1 with `No files were processed`
+    because `reports/` is intentionally ignored. It changed no file and is not formatting evidence;
+    repository `format:check` plus `git diff --check` remain the applicable gates.
+- Contracts/domain/persistence implementation:
+  - Strict Endpoint pairing, exchange, token, rotate, revoke, result, and status schemas reject body
+    actor spoofing, route/body target mismatch, malformed UUIDs, extra fields, and any value not exactly
+    32-byte base64url shape. Stable `endpoint_credential_invalid` and `identity_recovered` codes are
+    registered; only the former is claimed by this checkpoint.
+  - Pure Endpoint identity and pairing domain transitions enforce hash shape, state, expiry, single
+    consumption, credential replacement, revocation, and compare-and-swap versions.
+  - Additive migration `000009_ms1_endpoint_pairing` creates tenant-owned
+    `endpoint_pairing_intents` with `workspace_id NOT NULL`, tenant-aware key/FK, RLS plus FORCE RLS,
+    pending-owner uniqueness, hash-only challenge, state/expiry/version constraints, least table grants,
+    and the exact Endpoint receipt vocabulary. Its SHA-256 is
+    `3629748132a9d236d21069f2622678a29c858470beee4555f7a418ff9b0e755b`.
+  - Readiness now verifies the exact pairing table catalog and exact `challenge_hash character(64) NOT
+    NULL` shape. A real negative mutation that renames that column makes readiness fail closed.
+  - Intent creation, pairing completion, rotation, and revoke bind current authorization, tenant scope,
+    hash-only request identity, expectedVersion where applicable, state, DomainEvent, OutboxEvent, and
+    AuditEvent. Idempotent Human commands also bind a receipt; one-time completion intentionally has no
+    replayable receipt because its Secret response cannot be persisted.
+- Real behavior evidence:
+  - Exact PostgreSQL 17.6 focused RLS/Endpoint matrix passed `2 files | 15/15 tests` against the current
+    tree. It includes schema drift controls and a real Nest/HTTP/PostgreSQL/Local Runtime subprocess.
+  - The flow creates two real local Humans and two Workspaces; denies the wrong caller, Workspace,
+    challenge, expired intent, consumed intent, wrong credential, wrong Human owner, Human token on an
+    Endpoint route, and Endpoint token on a Human route. Concurrent completion yields exactly one 201
+    and one non-disclosing 401.
+  - The Runtime subprocess receives the credential once over its private stdin, stores only a reference
+    in binding state, exchanges and probes the Endpoint allowlist internally, rejects a second Human,
+    blocks reset with active runtime work, and emits only status. Captured stdout/stderr contains no
+    challenge or credential.
+  - Rotation rejects the old credential and pre-rotation Endpoint token; revoke rejects the current
+    credential and current token. Final database checks bind the exact challenge/replacement credential
+    hashes, 6 matching DomainEvents/OutboxEvents/AuditEvents, 5 receipts, and absence of challenge or
+    credential values from event, audit, and receipt serialization.
+  - Full root tests on the final tree with exact PostgreSQL 17.6 positive and the approved exact-digest
+    PostgreSQL 17.10 negative control exited 0: scripts `31 files | 607/607`; all eight production
+    workspaces `160/160`; aggregate `767/767`. The temporary 17.10 container was stopped and removed.
+- Final gates:
+  - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm build`,
+    `pnpm architecture:check`, `pnpm secret:check`, `pnpm spec:verify`,
+    `pnpm openspec:validate`, `pnpm sast`, `pnpm dependency:check`,
+    `pnpm license:check`, `pnpm docker-context:check`, `pnpm contract:compatibility`,
+    `pnpm toolchain:check`, and `git diff --check` exited 0. Dependency audit reported no known
+    vulnerabilities; all 26 approved imported-spec hashes remain unchanged.
+  - `pnpm run secret:artifacts -- apps/electron-app/dist apps/hub-api/dist apps/hub-worker/dist
+    apps/local-runtime/dist packages/contracts/dist packages/domain/dist packages/runtime-core/dist
+    packages/sdk/dist` exited 0 for all eight explicit build roots.
+  - Tool versions: Node `v24.11.0`, pnpm `10.33.2`, gitleaks `8.28.0`; positive PostgreSQL
+    `server_version_num=170006`; negative image digest
+    `sha256:a426e44bac0b759c95894d68e1a0ac03ecc20b619f498a91aae373bf06d8508d`.
+- Evidence/status and risk:
+  - The Hub/PostgreSQL/Runtime-core Task 6 slice is `DONE / REAL_TEST / PASS`. Overall Task 6 remains
+    `CHANGED / IN_PROGRESS` until Task 7 supplies production OS secure-storage and authenticated Main
+    IPC wiring, then repeats renderer non-reachability and packaged Electron evidence. This checkpoint
+    does not claim a production file-backed secure store or a completed MS1.
+  - Task 4 remains `CHANGED / IN_PROGRESS` for production signing-key rotation, TLS, and least-privilege
+    database composition. Tasks 7-9 remain pending. No MS1 verified tag or MS2 capability is claimed.
+- Resume procedure: commit and fast-forward push this checkpoint, then start Task 7 from SDK methods and
+  Electron Main secure-storage/authenticated pairing orchestration. Preserve the strict token audiences,
+  Endpoint version check, hash-only persistence, one-Human Runtime root, Secret-free renderer surface,
+  and do not mark Task 6 complete until packaged Electron evidence exercises the production adapter.

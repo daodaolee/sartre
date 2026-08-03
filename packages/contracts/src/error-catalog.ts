@@ -5,6 +5,8 @@ export const ERROR_CODES = [
   "unauthenticated",
   "authentication_failed",
   "refresh_token_reused",
+  "endpoint_credential_invalid",
+  "identity_recovered",
   "forbidden",
   "project_access_denied",
   "resource_not_found",
