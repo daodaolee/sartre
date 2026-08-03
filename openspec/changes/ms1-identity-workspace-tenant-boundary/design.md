@@ -3,10 +3,12 @@
 ## Actor and authentication boundary
 
 Human, Endpoint, and System actors use distinct authenticated contexts, token audiences, route
-allowlists, and audits. Request payload ids are never identity. Feishu uses system-browser PKCE with
-state/nonce/company-tenant checks. Company email requires verification and Argon2id. Short-lived
-Human access tokens carry only User/Session identity; opaque Refresh Tokens rotate, are hash-only at
-rest, and revoke the whole family on replay.
+allowlists, and audits. Request payload ids are never identity. Feishu uses system-browser
+Authorization Code with PKCE S256, single-use state, exact redirect, single-use code, and approved
+`tenant_key`; it exposes no nonce-bearing ID token and Sartre does not claim provider nonce
+validation. Company email requires verification and Argon2id. Short-lived Human access tokens carry
+only User/Session identity; opaque Refresh Tokens rotate, are hash-only at rest, and revoke the
+whole family on replay.
 
 Endpoint pairing produces a separate 256-bit credential returned once to Main/Runtime and stored
 only by the Runtime secure-store adapter. Hub stores only a hash. Endpoint tokens cannot invoke

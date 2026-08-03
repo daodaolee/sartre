@@ -64,6 +64,14 @@ type Ms1SensitiveColumnCatalogRow = {
   character_maximum_length: number | null;
 };
 
+type Ms1OAuthAttemptColumnCatalogRow = {
+  column_name: string;
+  data_type: string;
+  udt_name: string;
+  is_nullable: string;
+  character_maximum_length: number | null;
+};
+
 type Ms1TenantCatalogRow = {
   table_name: string;
   owner_name: string;
@@ -250,6 +258,123 @@ const EXACT_MS1_SENSITIVE_COLUMNS: readonly Ms1SensitiveColumnCatalogRow[] = [
     data_type: "character",
     is_nullable: "NO",
     character_maximum_length: 64,
+  },
+];
+
+const MS1_AUTH_GLOBAL_TABLES = [
+  "auth_rate_limits",
+  "company_email_credentials",
+  "email_verification_challenges",
+  "oauth_login_attempts",
+] as const;
+
+const EXACT_MS1_AUTH_GLOBAL_CATALOG: readonly Ms1GlobalCatalogRow[] = MS1_AUTH_GLOBAL_TABLES.map(
+  (table_name) => ({ table_name, owner_name: "sartre_migration" }),
+);
+
+const EXACT_MS1_AUTH_SENSITIVE_COLUMNS: readonly Ms1SensitiveColumnCatalogRow[] = [
+  {
+    table_name: "auth_rate_limits",
+    column_name: "key_hash",
+    data_type: "character",
+    is_nullable: "NO",
+    character_maximum_length: 64,
+  },
+  {
+    table_name: "company_email_credentials",
+    column_name: "password_hash",
+    data_type: "text",
+    is_nullable: "NO",
+    character_maximum_length: null,
+  },
+  {
+    table_name: "email_verification_challenges",
+    column_name: "code_hash",
+    data_type: "character",
+    is_nullable: "NO",
+    character_maximum_length: 64,
+  },
+  {
+    table_name: "oauth_login_attempts",
+    column_name: "state_hash",
+    data_type: "character",
+    is_nullable: "NO",
+    character_maximum_length: 64,
+  },
+];
+
+const EXACT_MS1_OAUTH_ATTEMPT_COLUMNS: readonly Ms1OAuthAttemptColumnCatalogRow[] = [
+  {
+    column_name: "oauth_attempt_id",
+    data_type: "uuid",
+    udt_name: "uuid",
+    is_nullable: "NO",
+    character_maximum_length: null,
+  },
+  {
+    column_name: "state_hash",
+    data_type: "character",
+    udt_name: "bpchar",
+    is_nullable: "NO",
+    character_maximum_length: 64,
+  },
+  {
+    column_name: "code_challenge",
+    data_type: "text",
+    udt_name: "text",
+    is_nullable: "NO",
+    character_maximum_length: null,
+  },
+  {
+    column_name: "redirect_uri",
+    data_type: "text",
+    udt_name: "text",
+    is_nullable: "NO",
+    character_maximum_length: null,
+  },
+  {
+    column_name: "status",
+    data_type: "text",
+    udt_name: "text",
+    is_nullable: "NO",
+    character_maximum_length: null,
+  },
+  {
+    column_name: "expires_at",
+    data_type: "timestamp with time zone",
+    udt_name: "timestamptz",
+    is_nullable: "NO",
+    character_maximum_length: null,
+  },
+  {
+    column_name: "consumed_at",
+    data_type: "timestamp with time zone",
+    udt_name: "timestamptz",
+    is_nullable: "YES",
+    character_maximum_length: null,
+  },
+  {
+    column_name: "created_at",
+    data_type: "timestamp with time zone",
+    udt_name: "timestamptz",
+    is_nullable: "NO",
+    character_maximum_length: null,
+  },
+  {
+    column_name: "updated_at",
+    data_type: "timestamp with time zone",
+    udt_name: "timestamptz",
+    is_nullable: "NO",
+    character_maximum_length: null,
+  },
+];
+
+const EXACT_MS1_OAUTH_ATTEMPT_CONSTRAINTS: readonly DiagnosticConstraintCatalogRow[] = [
+  {
+    constraint_name: "oauth_login_attempts_https_redirect_check",
+    constraint_type: "c",
+    constraint_definition:
+      "CHECK (length(redirect_uri) >= 1 AND length(redirect_uri) <= 2048 AND redirect_uri ~~ 'https://%'::text)",
   },
 ];
 
@@ -564,6 +689,89 @@ export async function assertDatabaseSchemaCompatible(options: {
         ORDER BY table_class.relname`,
     );
     if (!isExactCatalog(tenantCatalog.rows, EXACT_MS1_TENANT_CATALOG)) {
+      throw new SchemaIncompatibleError();
+    }
+  }
+
+  if (
+    options.artifacts.some((artifact) => artifact.version === "000004_ms1_human_authentication")
+  ) {
+    const authGlobalCatalog = await options.database.query(
+      `SELECT table_class.relname AS table_name,
+              owner_role.rolname AS owner_name
+         FROM pg_catalog.pg_class AS table_class
+         JOIN pg_catalog.pg_namespace AS namespace_row
+           ON namespace_row.oid = table_class.relnamespace
+         JOIN pg_catalog.pg_roles AS owner_role ON owner_role.oid = table_class.relowner
+        WHERE namespace_row.nspname = 'public'
+          AND table_class.relkind = 'r'
+          AND table_class.relname IN (
+            'auth_rate_limits',
+            'company_email_credentials',
+            'email_verification_challenges',
+            'oauth_login_attempts'
+          )
+        ORDER BY table_class.relname`,
+    );
+    if (!isExactCatalog(authGlobalCatalog.rows, EXACT_MS1_AUTH_GLOBAL_CATALOG)) {
+      throw new SchemaIncompatibleError();
+    }
+
+    const authSensitiveColumns = await options.database.query(
+      `SELECT table_name, column_name, data_type, is_nullable, character_maximum_length
+         FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND (table_name, column_name) IN (
+            ('auth_rate_limits', 'key_hash'),
+            ('company_email_credentials', 'password_hash'),
+            ('email_verification_challenges', 'code_hash'),
+            ('oauth_login_attempts', 'state_hash')
+          )
+        ORDER BY table_name, column_name`,
+    );
+    if (!isExactCatalog(authSensitiveColumns.rows, EXACT_MS1_AUTH_SENSITIVE_COLUMNS)) {
+      throw new SchemaIncompatibleError();
+    }
+
+    const oauthAttemptColumns = await options.database.query(
+      `SELECT column_name, data_type, udt_name, is_nullable, character_maximum_length
+         FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'oauth_login_attempts'
+        ORDER BY ordinal_position`,
+    );
+    if (!isExactCatalog(oauthAttemptColumns.rows, EXACT_MS1_OAUTH_ATTEMPT_COLUMNS)) {
+      throw new SchemaIncompatibleError();
+    }
+
+    const oauthAttemptConstraints = await options.database.query(
+      `SELECT constraint_row.conname AS constraint_name,
+              constraint_row.contype AS constraint_type,
+              pg_get_constraintdef(constraint_row.oid, true) AS constraint_definition
+         FROM pg_catalog.pg_constraint AS constraint_row
+        WHERE constraint_row.conrelid = to_regclass('public.oauth_login_attempts')
+          AND constraint_row.conname = 'oauth_login_attempts_https_redirect_check'
+        ORDER BY constraint_row.conname`,
+    );
+    if (!isExactCatalog(oauthAttemptConstraints.rows, EXACT_MS1_OAUTH_ATTEMPT_CONSTRAINTS)) {
+      throw new SchemaIncompatibleError();
+    }
+
+    const refreshTokenLookupIndex = await options.database.query(
+      `SELECT index_row.indisunique AS is_unique,
+              ARRAY(
+                SELECT pg_get_indexdef(index_row.indexrelid, key_position, true)
+                  FROM generate_series(1, index_row.indnkeyatts) AS key_position
+                 ORDER BY key_position
+              ) AS ordered_columns
+         FROM pg_catalog.pg_index AS index_row
+        WHERE index_row.indexrelid = to_regclass('public.refresh_tokens_token_hash_key')`,
+    );
+    if (
+      !isExactCatalog(refreshTokenLookupIndex.rows, [
+        { is_unique: true, ordered_columns: ["token_hash"] },
+      ])
+    ) {
       throw new SchemaIncompatibleError();
     }
   }

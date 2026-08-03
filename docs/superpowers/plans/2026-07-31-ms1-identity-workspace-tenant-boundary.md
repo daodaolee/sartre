@@ -19,8 +19,11 @@ mock-only auth, fixture existence, or structural SQL inspection cannot close the
 
 Authority order remains `spec > workflow > plan > docs > comments`. In particular, use
 `ProgramSpec`, `DDDSpec`, `StateMachineSpec`, `ArchitectureConstraints`, `ModuleContractSpec`,
-`HubApiSpec`, `ElectronAppSpec`, `UIDesignV2Spec`, `TestStrategy`, and the database schema before
-this plan.
+`HubApiSpec`, the approved task-specific `MS1IdentityAccessSpec`, `ElectronAppSpec`,
+`UIDesignV2Spec`, `TestStrategy`, and the database schema before this plan.
+
+`MS1IdentityAccessSpec` supersedes only the incompatible Feishu OAuth sentence in
+`HubApiSpec` section 2. The imported `HubApiSpec` remains an immutable provenance artifact.
 
 MS1 does not implement Requirement, Session/message ledger, AgentDefinition/Invocation/Execution,
 Project Lease behavior, Steward inference, Attachment/object storage, business credentials, or
@@ -44,8 +47,9 @@ and no credential or absolute-path rendering. Generated previews are review arti
 
 Operations must provide before the corresponding required integration/staging gate:
 
-- Feishu internal app id, approved tenant, redirect URI, PKCE-capable OAuth endpoints, and a test
-  tenant/user set. Client secret is injected only through the configured Secret boundary.
+- Feishu internal app id, approved tenant, exact HTTPS redirect URI, and a test tenant/user set.
+  Provider endpoints are fixed by `MS1IdentityAccessSpec`; client secret is injected only through
+  the configured Secret boundary.
 - Approved company email domains plus a testable verification-mail transport/inbox.
 - Access-token signing/verification key source and rotation procedure, internal Hub TLS origin, and
   Electron deep-link/callback registration.
@@ -69,8 +73,10 @@ use ports and disposable fixtures without persisting real credentials.
 
 ### 5.2 Tokens and credentials
 
-- Feishu uses system browser + Authorization Code/PKCE with single-use state and nonce, approved
-  tenant validation, and a short callback lifetime.
+- Feishu uses system browser + Authorization Code with PKCE S256, cryptographically random
+  single-use state, exact redirect URI, single-use code, approved `tenant_key`, and a short callback
+  lifetime. Feishu returns no nonce-bearing ID token; Sartre must not invent or claim provider nonce
+  validation.
 - Company-email registration requires verified ownership and Argon2id through a `PasswordHasher`
   port. No plaintext password, OAuth code, token, or credential reaches logs/audit/renderer.
 - Access tokens are short-lived and carry only User/Session identity. Opaque 256-bit Refresh Tokens
@@ -190,10 +196,11 @@ Implement ports/adapters and HTTP boundaries for Feishu PKCE and verified-compan
 short-lived Human access token, refresh rotation/family replay revocation, logout current/all,
 session inventory, rate limiting, and security events.
 
-Tests execute the callback/state/nonce/tenant checks, wrong/expired verification, password hash
-verification, refresh races, replay, revoked session, token audience/expiry, payload actor spoofing,
-provider unavailable, mail unavailable, and redacted logs. Staging alone may satisfy the real Feishu
-provider gate; local fake provider evidence remains integration, not external-provider PASS.
+Tests execute callback state, PKCE S256, exact redirect, single-use code, expiry, and `tenant_key`
+checks; wrong/expired email verification; password hash verification; refresh races, replay,
+revoked session, token audience/expiry, payload actor spoofing, provider unavailable, mail
+unavailable, and redacted logs. Staging alone may satisfy the real Feishu provider gate; local fake
+or HTTP-server evidence remains integration, not external-provider PASS.
 
 Commit boundary: `feat(ms1): add human authentication sessions`.
 
@@ -269,7 +276,7 @@ Commit boundaries: subject `feat(ms1): complete identity tenant boundary`, then 
 | --- | --- | --- |
 | Domain/contracts | REAL_TEST unit + Zod compatibility | illegal actor/state/role rejected nonzero |
 | Migration/RLS | REAL PostgreSQL 17.6 | wrong/missing tenant and owner bypass rejected |
-| Human auth | integration + provider staging | state/nonce/tenant/replay/expiry rejected |
+| Human auth | integration + provider staging | state/redirect/PKCE/code reuse/tenant rejected |
 | Workspace access | real API/database | IDOR and implicit admin Project access rejected |
 | Endpoint | real Hub + Runtime subprocess | wrong audience, reuse, revoke, second Human rejected |
 | Electron | packaged Playwright | renderer credential read and unsafe navigation rejected |

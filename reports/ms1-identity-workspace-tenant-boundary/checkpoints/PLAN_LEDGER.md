@@ -204,3 +204,214 @@
 - Resume procedure: verify the Task 3 commit and clean status, read Task 4, then write Human auth
   port/session/token RED tests. Do not add provider mocks that claim Feishu staging PASS and do not
   place OAuth/mail/signing values in Git or the ledger.
+
+## 2026-08-03 - Task 4 Human authentication kickoff
+
+- Starting subject: clean `codex/ms1-identity-workspace-tenant-boundary` at Task 3 commit
+  `876dc0bec5f2b678a775aec097d397160d259acd`, matching the remote branch.
+- External-input inventory used presence-only checks and did not read or print Secret values. The
+  ignored development Secret file is absent, so Feishu staging, verification-mail transport,
+  production signing-key rotation, and TLS callback evidence remain `BLOCKED` until operations
+  provides them. Local provider adapters may prove only integration behavior and must not be
+  relabeled external-provider PASS.
+- Planned Task 4 expansion before product editing: strict Human-auth Zod contracts and controlled
+  errors; Hub identity ports, Argon2id and asymmetric access-token adapters, PostgreSQL auth
+  repository, application service, fail-closed HTTP controller, and focused tests; an additive
+  `000004_ms1_human_authentication` migration for OAuth attempts, company-email password hashes,
+  verification challenges, and durable rate limits; migration/readiness registration and exact
+  catalog checks. Existing `000003` remains immutable.
+- RED order: contracts first, then crypto/provider/session service boundaries, then real PostgreSQL
+  17.6 callback single-use, verification expiry, refresh race/replay revocation, logout, inventory,
+  rate-limit, and security-event assertions. No request payload field may supply actor identity and
+  no test fixture may claim Feishu staging PASS.
+
+## 2026-08-03 - Task 4 local integration checkpoint and protocol stop
+
+- Subject remains the uncommitted dirty tree on Task 3 commit
+  `876dc0bec5f2b678a775aec097d397160d259acd`; nothing in this checkpoint is pushed. The local scope
+  now contains strict Human-auth contracts, Argon2id password hashing, Ed25519 short-lived Human
+  access tokens, hash-only refresh/session persistence, refresh-family rotation and replay
+  revocation, logout current/all, session inventory, durable three-dimensional rate limits,
+  security events, a fail-closed HTTP controller, and additive migration
+  `000004_ms1_human_authentication`. The controller is intentionally not registered in the Hub
+  production composition root because no production Feishu/mail/signing/TLS inputs or compatible
+  provider nonce contract exists.
+- Retained RED and nonPASS history:
+  - Human-auth contracts first failed `4/4`; crypto and HTTP boundary targets failed to load their
+    intentionally absent modules; the real auth-flow target likewise failed before the service
+    existed.
+  - The first real PostgreSQL persistence target failed `3/3`: migration registry absence, missing
+    relation instead of the expected constraint rejection, and missing application grants.
+  - The first readiness drift target failed `3/3` because a missing auth table, renamed password
+    hash, and dropped refresh-token unique index were not detected.
+  - The first migration GREEN attempt rolled back because two auto-generated CHECK constraint names
+    collided with explicit names. Unique explicit names corrected the migration.
+  - A repository architecture run reported two synthetic authorization-test values as Secret
+    literals. Removing the unnecessary token-shaped positive fixture retained the unsupported
+    authorization-scheme negative control and made the unchanged Secret/architecture policy pass.
+  - A targeted Biome format command named this Markdown ledger, which repository configuration
+    intentionally ignores, and exited nonzero with no files processed. It changed no state; the
+    canonical full `pnpm run format:check` immediately passed all configured files.
+  - The first full repository regression passed `592/593` script tests but failed because the MS0
+    idempotency assertion hard-coded three approved migrations. It now derives the true/false result
+    vectors from the approved artifact registry; the focused real database rerun passed `13/13`.
+- Latest local integration evidence on exact PostgreSQL 17.6:
+  - `SARTRE_DATABASE_URL=postgresql://postgres@127.0.0.1:54326/postgres pnpm exec vitest run
+    packages/contracts/src/ms1-auth-contracts.test.ts apps/hub-api/src/identity/crypto-adapters.test.ts
+    apps/hub-api/src/identity/human-auth.controller.test.ts
+    scripts/postgres/ms1-auth-persistence.integration.test.ts
+    scripts/postgres/ms1-auth-flow.integration.test.ts scripts/postgres/ms1-rls.integration.test.ts
+    --disableConsoleIntercept`: exit 0, `6 files | 37 tests`.
+  - These executed callback single-use/state/redirect/nonce/tenant rejection, expired OAuth and
+    email challenges, wrong verification, Argon2id/no plaintext, indistinguishable login failure,
+    concurrent refresh with one winner plus family/session replay revocation, access audience and
+    expiry, derived Human actor, session inventory, current/all logout, dependency failure, durable
+    rate limits, RLS, catalog drift, and redacted security-event controls.
+  - `pnpm --filter @sartre/hub-api test`: exit 0, `5 files | 27 tests`.
+  - With PostgreSQL 17.6 positive and PostgreSQL 17.10 rejection-control URLs, `pnpm run test`:
+    exit 0; scripts `28 files | 593 tests`, production workspaces `138 tests`, total `731/731`.
+- Repository gates: `pnpm run format:check`, `lint`, `build`, `typecheck`, `toolchain:check`,
+  `spec:verify`, `architecture:check`, `secret:check`, `sast`, `dependency:check`, `license:check`,
+  `docker-context:check`, and `openspec:validate` all exited 0. All 8 production workspaces built
+  and typechecked; the dependency audit reports no known vulnerabilities. Toolchain remains Node
+  `v24.11.0`, pnpm `10.33.2`, and gitleaks `8.28.0`. Migration `000004` SHA-256 is
+  `d16a1baf23e62e0c8e91ab7f986d562a69b8f36d542954f2b50f48845d360f91`.
+- Evidence classification: the local contracts, cryptography, service, persistence, HTTP rejection,
+  and PostgreSQL targets above are `REAL_TEST / PASS` for their executed subjects. They are not a
+  production Human-auth route PASS and not a Feishu external-provider PASS. The ignored development
+  Secret input remains absent, so mail transport, production key rotation, TLS callback, and
+  provider staging remain `BLOCKED` rather than skipped or degraded.
+- Required stop: `spec/HubApiSpec.md` and this plan require Feishu `state + nonce + PKCE + tenant`
+  validation, while the current official Feishu authorization-code, user-access-token v2, and user
+  information contracts document `state`, S256 PKCE/code verifier, and `tenant_key`, but expose no
+  provider-returned nonce or nonce-bearing ID token. Sources inspected:
+  `https://open.feishu.cn/document/common-capabilities/sso/api/obtain-oauth-code`,
+  `https://open.feishu.cn/document/authentication-management/access-token/get-user-access-token`,
+  and
+  `https://open.feishu.cn/document/server-docs/authentication-management/login-state-management/get`.
+  The current local fake provider returns a nonce only to execute the specified rejection path; it
+  cannot justify a production Feishu adapter. Per the plan stop conditions, Task 5 must not begin
+  until this conflict is resolved.
+- Deeper protocol verification on 2026-08-03 inspected the current official
+  `larksuite/node-sdk` main commit `edd979849dd42a3ee90fb5f0b398adaeda8dae9a`. Its production
+  `client/access-token.ts` authorization-code request accepts `code`, `redirectUri`, `codeVerifier`,
+  and `scope`; its response exposes access/refresh token metadata but no `idToken` or nonce. The
+  generated resource named `oidcAccessToken` is explicitly marked historical/not recommended and
+  likewise returns no ID token or nonce. The current browser guide documents callback `code +
+  state` only. An initial `gh api` tree lookup left `?recursive=1` unquoted and zsh rejected the glob
+  before any request; the corrected quoted lookup and exact file inspection succeeded. These
+  primary-source checks found no supported alternate Feishu OIDC route that can satisfy the
+  provider-returned nonce assumption.
+- Resume decision: either (a) preserve the spec and supply a company OAuth/OIDC gateway that returns
+  a signed/verifiable nonce, or (b) explicitly amend the authoritative spec and Task 4 plan to use
+  Feishu's documented `state + PKCE + exact redirect + single-use code + tenant_key` contract
+  without claiming provider nonce validation. After that decision, add the production adapter and
+  composition wiring, execute provider staging/mail/TLS/rotation gates, rerun the full checkpoint,
+  then commit `feat(ms1): add human authentication sessions` and push the task branch if the
+  autonomous-push preconditions remain satisfied.
+
+## 2026-08-03 - Task 4 Feishu protocol amendment authorized
+
+- Status changed from protocol `BLOCKED` to `IN_PROGRESS` by the user's explicit instruction
+  `允许按飞书官方协议修改 spec` on 2026-08-03. This authorizes only the Feishu Human-auth protocol
+  correction; it does not weaken tenant, token, Secret, evidence, or external staging gates and does
+  not expand MS1 into later product domains.
+- The imported `spec/HubApiSpec.md` is an immutable provenance target under
+  `reference/spec-import-manifest.json`; editing it or replacing its recorded hash would falsely
+  claim equality with the frozen source. The approved spec change will therefore be an additive,
+  task-specific `spec/MS1IdentityAccessSpec.md` that explicitly supersedes only the incompatible
+  Feishu sentence for MS1 and preserves the imported artifact unchanged. The active plan/OpenSpec
+  must point to the current protocol and `pnpm run spec:verify` must continue proving all 26 frozen
+  imports byte-identical.
+- Planned amendment/implementation scope before editing: add a constitution regression for the
+  current Feishu contract; add the task-specific spec; update this MS1 plan and OpenSpec
+  design/scenario wording; remove provider-returned nonce from the Feishu port/service/fake tests
+  and OAuth-attempt persistence while retaining single-use state, S256 PKCE, exact redirect, code
+  single-use/expiry handling, and approved `tenant_key`; add a fail-closed real HTTP adapter plus
+  local HTTP dependency tests; update migration/readiness only through the existing uncommitted
+  `000004` artifact. Existing committed migrations remain immutable.
+- RED order: constitution protocol regression first; then service/flow tests that no longer allow a
+  provider nonce; then HTTP adapter request/response/error/redaction tests. Local HTTP/PostgreSQL
+  evidence remains integration. Feishu staging, real mail, production key rotation, and TLS callback
+  remain required external gates and cannot be relabeled PASS without operations inputs.
+
+## 2026-08-03 - Task 4 official-protocol local integration handoff
+
+- Checkpoint scope: the approved additive `spec/MS1IdentityAccessSpec.md`, aligned active
+  plan/OpenSpec scenarios, a constitution regression that preserves the frozen imported
+  `HubApiSpec`, Feishu OAuth port/service/persistence correction, and a production HTTP adapter with
+  fixed official Feishu endpoints. The adapter accepts only Authorization Code + PKCE S256 inputs,
+  enforces HTTPS redirect syntax and bounded provider responses, classifies provider rejection
+  separately from dependency failure, obtains `open_id + tenant_key + name`, and never exposes raw
+  provider errors or configurable provider origins. No production composition root, Secret value,
+  external mail adapter, or staging credential is included.
+- Protocol RED/nonPASS history retained:
+  - `pnpm exec vitest run scripts/constitution/ms1-feishu-protocol.test.ts`: exit 1, `1/4`
+    passed. The imported-spec hash assertion passed; the intentionally absent task-specific spec,
+    stale plan/OpenSpec nonce wording, and production port/service nonce contract failed.
+  - After the documentation amendment but before production refactoring, the constitution plus
+    real PostgreSQL persistence/flow target exited 1 with `4/18` failures: production still hashed
+    an absent provider nonce, the schema exposed obsolete `nonce_hash`, and readiness did not yet
+    reject that extra column. Removing the unsupported field from the uncommitted `000004`
+    migration and enforcing the exact OAuth-attempt catalog made the same three-file target pass
+    `18/18`.
+  - The HTTP-adapter test first exited 1 before discovery because the production module was absent.
+    Its first implementation reached all six tests but failed `6/6` because the scope validator
+    rejected Feishu's dot-delimited official scope syntax. The corrected bounded scope grammar made
+    the real local HTTP-server target pass `6/6`.
+  - The first architecture check after the adapter tests exited nonzero with
+    `static_evaluation_budget_exceeded` on a test-only oversized literal generator. Constructing the
+    same 70,000-byte negative response through a bounded runtime Buffer preserved the failure mode;
+    the repeated adapter, architecture, and Secret checks passed.
+  - Pre-push protocol review found that the initial contract and uncommitted migration still allowed
+    a `sartre://` callback even though the approved amendment requires an exact HTTPS callback. New
+    contract plus real PostgreSQL controls exited 1 with `2 failed | 10 passed`: both layers accepted
+    the forbidden scheme. Restricting both layers to HTTPS made them pass `12/12`. A follow-on
+    readiness drift control then failed `1/1` because dropping the named HTTPS constraint still
+    resolved compatible; exact constraint-catalog validation closed that gap and the expanded target
+    passed `13/13`.
+  - A concurrent first-use rate-limit RED expected ten allowed OAuth starts plus one stable
+    `rate_limited` rejection, but observed only two successes because racing initial counter inserts
+    produced unique-key dependency errors. Insert-on-conflict acquisition made the isolated rerun
+    pass once, but the later combined target retained a nonPASS `9 successes | 2 rate_limited` result:
+    separate per-dimension transactions could acquire network, identity, and combined counters in
+    different orders. One transaction now acquires the deduplicated dimension hashes in sorted order
+    and updates all counters atomically. Three fresh real PostgreSQL repeats each passed with exactly
+    ten successes, one controlled rejection, and no dependency error.
+- Final local REAL_TEST evidence:
+  - With the loopback-only PostgreSQL 17.6 fixture,
+    the Human-auth contracts, `scripts/constitution/ms1-feishu-protocol.test.ts`, the real local HTTP
+    adapter target, and the real persistence/flow targets passed `5 files | 31/31 tests`. Assertions
+    include frozen-import integrity, no provider nonce contract, fixed
+    authorization/token/user-info endpoints, state, S256, HTTPS-only exact redirect plus readiness
+    drift, provider-code replay, approved tenant, concurrent durable rate limiting,
+    timeout/transport/provider error classification, bounded malformed responses, and error
+    redaction.
+  - A fresh root run with PostgreSQL 17.6 positive plus the temporary exact-digest PostgreSQL 17.10
+    read-only rejection control exited 0: scripts passed `29 files | 601/601`; all eight production
+    workspaces passed `144/144`; total `745/745`. The 17.10 image digest was
+    `sha256:a426e44bac0b759c95894d68e1a0ac03ecc20b619f498a91aae373bf06d8508d`;
+    the exact-name temporary container was removed after the run.
+  - `pnpm run format:check`, `lint`, `typecheck`, `build`, `toolchain:check`, `spec:verify`,
+    `architecture:check`, `secret:check`, `sast`, `dependency:check`, `license:check`,
+    `docker-context:check`, `openspec:validate`, and `git diff --check` all exited 0. All 26 frozen
+    imported specs remain byte-identical; the dependency audit reports no known vulnerabilities.
+    Toolchain is Node `v24.11.0`, pnpm `10.33.2`, and gitleaks `8.28.0`. The revised uncommitted
+    migration `000004` SHA-256 is
+    `9476bd21f1c2a54d0294973cf7b62c5b8457eafe77a385a4552172bcf2c2126a`.
+- Evidence classification: the executed contract, cryptography, HTTP controller, local HTTP adapter,
+  PostgreSQL persistence/flow, replay/revocation, and repository gates are `REAL_TEST / PASS` only
+  for their local subjects. Presence-only checks confirmed `.local-secrets/development.env` absent
+  from both the primary and implementation worktrees. Feishu staging, verification-mail delivery,
+  production signing-key source/rotation, internal Hub TLS callback, and production composition
+  remain `BLOCKED`; Task 4 and the Human-auth evidence-matrix row are not complete and no product
+  route or external-provider PASS is claimed.
+- Handoff boundary: this is an independently reviewable, rollback-safe implementation checkpoint on
+  `codex/ms1-identity-workspace-tenant-boundary`, suitable for an honest intermediate commit/push.
+  It must not use the Task 4 completion commit message from the approved plan. Per the stop
+  conditions, Task 5 must not begin while the required real Task 4 dependencies remain unavailable.
+- Resume procedure: provide the ignored operations inputs through the Secret boundary; implement
+  the approved mail and signing-key source/rotation adapters plus fail-closed production composition;
+  run the exact-redirect Feishu staging flow, delivery/inbox test, TLS callback, rotation/revocation,
+  redaction, full repository, and Secret gates; update this ledger; only then close Task 4 with
+  `feat(ms1): add human authentication sessions` and proceed to Task 5.

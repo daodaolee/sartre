@@ -31,6 +31,13 @@ export const APPROVED_MIGRATION_DEFINITIONS = [
       MODULE_URL,
     ),
   },
+  {
+    version: "000004_ms1_human_authentication",
+    path: new URL(
+      "../../apps/hub-api/src/infrastructure/database/migrations/000004_ms1_human_authentication.sql",
+      MODULE_URL,
+    ),
+  },
 ] as const;
 export const BASELINE_MIGRATION_PATH = APPROVED_MIGRATION_DEFINITIONS[0].path;
 const MIGRATION_ADVISORY_LOCK_KEY = "73812170006";

@@ -30,6 +30,20 @@ export {
   AuthProviderSchema,
 } from "./identity/auth-identity.js";
 export {
+  CompanyEmailLoginCommandSchema,
+  CompanyEmailRegistrationCommandSchema,
+  EmailVerificationAcceptedSchema,
+  EmailVerificationRequestSchema,
+  FeishuAuthorizationCallbackCommandSchema,
+  FeishuAuthorizationStartCommandSchema,
+  FeishuAuthorizationStartResultSchema,
+  HumanAccessTokenClaimsSchema,
+  HumanAuthSessionSchema,
+  HumanRefreshCommandSchema,
+  HumanSessionInventoryItemSchema,
+  HumanSessionInventorySchema,
+} from "./identity/human-auth.js";
+export {
   NonDisclosingAuthorizationProblemSchema,
   ProblemDetailsSchema,
 } from "./http/problem-details.js";
@@ -87,6 +101,19 @@ export type {
   AuthIdentityRegistration,
   AuthProvider,
 } from "./identity/auth-identity.js";
+export type {
+  CompanyEmailLoginCommand,
+  CompanyEmailRegistrationCommand,
+  EmailVerificationRequest,
+  FeishuAuthorizationCallbackCommand,
+  FeishuAuthorizationStartCommand,
+  FeishuAuthorizationStartResult,
+  HumanAccessTokenClaims,
+  HumanAuthSession,
+  HumanRefreshCommand,
+  HumanSessionInventory,
+  HumanSessionInventoryItem,
+} from "./identity/human-auth.js";
 export type {
   NonDisclosingAuthorizationProblem,
   ProblemDetails,

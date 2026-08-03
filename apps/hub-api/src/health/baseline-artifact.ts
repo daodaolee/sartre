@@ -22,6 +22,13 @@ const APPROVED_MIGRATIONS = [
       import.meta.url,
     ),
   },
+  {
+    version: "000004_ms1_human_authentication",
+    path: new URL(
+      "../infrastructure/database/migrations/000004_ms1_human_authentication.sql",
+      import.meta.url,
+    ),
+  },
 ] as const;
 
 let cachedArtifacts: Promise<readonly ExpectedMigrationArtifact[]> | undefined;

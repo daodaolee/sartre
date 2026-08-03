@@ -3,7 +3,7 @@
 | Class | Given / When / Then | Evidence | Stable code |
 | --- | --- | --- | --- |
 | positive-human | Given an approved company Human, when Feishu PKCE or verified-email auth completes, then one Human Session and short-lived access identity are created without exposing credentials. | REAL_TEST | `none` |
-| oauth-rejection | Given wrong state, nonce, redirect, tenant, expired code, or reused callback, when OAuth completes, then no session is created and the request fails closed. | REAL_TEST | `oauth_callback_invalid` |
+| oauth-rejection | Given wrong/reused state, wrong PKCE verifier or redirect, wrong `tenant_key`, or an expired/reused code, when OAuth completes, then no session is created and the request fails closed. | REAL_TEST | `oauth_callback_invalid` |
 | email-rejection | Given an unapproved/unverified company email or wrong password, when registration/login runs, then identity existence is not disclosed and no session is issued. | REAL_TEST | `authentication_failed` |
 | refresh-concurrency | Given one Refresh Token, when two rotations race, then exactly one succeeds and replay revokes the family. | REAL_TEST | `refresh_token_reused` |
 | workspace-positive | Given an authenticated Human, when a Workspace is created and an exact invitation is accepted, then membership is visible only in that Workspace. | REAL_TEST | `none` |

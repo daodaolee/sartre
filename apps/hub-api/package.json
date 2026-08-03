@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run src/module-boundary.test.ts",
+    "test": "vitest run src",
     "build": "tsc -p tsconfig.json && mkdir -p dist/infrastructure/database/migrations && cp src/infrastructure/database/migrations/*.sql dist/infrastructure/database/migrations/"
   },
   "dependencies": {
     "@nestjs/common": "11.1.28",
     "@nestjs/core": "11.1.28",
     "@nestjs/platform-express": "11.1.28",
+    "@node-rs/argon2": "2.0.2",
     "@sartre/contracts": "workspace:*",
     "postgres": "3.4.7",
     "reflect-metadata": "0.2.2",

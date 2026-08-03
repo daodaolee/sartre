@@ -90,8 +90,8 @@ describe.sequential("PostgreSQL 17.6 migration boundary", () => {
           artifacts,
         });
 
-        expect(first.map((result) => result.applied)).toEqual([true, true, true]);
-        expect(second.map((result) => result.applied)).toEqual([false, false, false]);
+        expect(first.map((result) => result.applied)).toEqual(artifacts.map(() => true));
+        expect(second.map((result) => result.applied)).toEqual(artifacts.map(() => false));
         expect(await readPublicTables(database.connectionString)).toEqual(
           expect.arrayContaining(["diagnostic_records", "schema_migrations", "workspaces"]),
         );
