@@ -10,6 +10,7 @@ export {
 export { acceptInvitation, createInvitation } from "./workspace/invitation.js";
 export { changeMembershipRole, removeMembership } from "./workspace/membership.js";
 export { resolveProjectPermission } from "./workspace/project-access.js";
+export { createWorkspace } from "./workspace/workspace.js";
 
 export type { DomainErrorCode } from "./errors.js";
 export type {
@@ -37,3 +38,4 @@ export type {
   ProjectAccessRole,
   ProjectPermission,
 } from "./workspace/project-access.js";
+export type { Workspace } from "./workspace/workspace.js";

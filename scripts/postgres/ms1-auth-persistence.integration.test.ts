@@ -46,6 +46,8 @@ describe.sequential("MS1 Human auth persistence", () => {
         "000003_ms1_identity_workspace",
         "000004_ms1_human_authentication",
         "000005_ms1_defer_feishu_login",
+        "000006_ms1_defer_email_delivery",
+        "000007_ms1_workspace_commands",
       ]);
 
       await migratedDatabase("ms1_auth_catalog", async (connectionString) => {
@@ -64,7 +66,6 @@ describe.sequential("MS1 Human auth persistence", () => {
         expect(result.rows.map((row) => row.table_name)).toEqual([
           "auth_rate_limits",
           "company_email_credentials",
-          "email_verification_challenges",
         ]);
         const identityColumns = await execute(
           connectionString,
@@ -104,7 +105,7 @@ describe.sequential("MS1 Human auth persistence", () => {
         async (database) => {
           await migrateApprovedMigrations({
             connectionString: database.connectionString,
-            artifacts: artifacts.slice(0, -1),
+            artifacts: artifacts.slice(0, 4),
           });
           await execute(
             database.connectionString,
@@ -152,7 +153,55 @@ describe.sequential("MS1 Human auth persistence", () => {
   );
 
   test(
-    "rejects plaintext-shaped password and verification storage",
+    "refuses email-delivery cleanup when pending challenge state exists",
+    async () => {
+      const artifacts = await loadApprovedMigrations();
+      await withDisposableDatabase(
+        requireDatabaseUrl(),
+        "ms1_email_cleanup_guard",
+        async (database) => {
+          await migrateApprovedMigrations({
+            connectionString: database.connectionString,
+            artifacts: artifacts.slice(0, 5),
+          });
+          await execute(
+            database.connectionString,
+            `INSERT INTO email_verification_challenges (
+               challenge_id, email, code_hash, status, attempt_count, expires_at,
+               consumed_at, created_at, updated_at
+             ) VALUES (
+               '30000000-0000-4000-8000-000000000001', 'human@example.com',
+               $1, 'pending', 0, now() + interval '10 minutes', NULL, now(), now()
+             )`,
+            ["a".repeat(64)],
+          );
+
+          await expect(
+            migrateApprovedMigrations({
+              connectionString: database.connectionString,
+              artifacts,
+            }),
+          ).rejects.toMatchObject({ code: "23514" });
+          expect(
+            await execute(
+              database.connectionString,
+              "SELECT status FROM email_verification_challenges",
+            ),
+          ).toMatchObject({ rows: [{ status: "pending" }] });
+          expect(
+            await execute(
+              database.connectionString,
+              "SELECT version FROM schema_migrations WHERE version = '000006_ms1_defer_email_delivery'",
+            ),
+          ).toMatchObject({ rows: [] });
+        },
+      );
+    },
+    INTEGRATION_TIMEOUT_MS,
+  );
+
+  test(
+    "rejects plaintext-shaped password storage and has no verification table",
     async () => {
       await migratedDatabase("ms1_auth_hash_only", async (connectionString) => {
         await execute(
@@ -180,17 +229,12 @@ describe.sequential("MS1 Human auth persistence", () => {
             [IDENTITY_ID],
           ),
         ).rejects.toMatchObject({ code: "23514" });
-        await expect(
-          execute(
+        expect(
+          await execute(
             connectionString,
-            `INSERT INTO email_verification_challenges (
-               challenge_id, email, code_hash, status, expires_at, created_at, updated_at
-             ) VALUES (
-               '30000000-0000-4000-8000-000000000001', 'human@example.com',
-               '123456', 'pending', now() + interval '10 minutes', now(), now()
-             )`,
+            "SELECT to_regclass('public.email_verification_challenges') AS table_name",
           ),
-        ).rejects.toMatchObject({ code: "23514" });
+        ).toMatchObject({ rows: [{ table_name: null }] });
       });
     },
     INTEGRATION_TIMEOUT_MS,
@@ -219,9 +263,6 @@ describe.sequential("MS1 Human auth persistence", () => {
           { table_name: "company_email_credentials", privilege_type: "INSERT" },
           { table_name: "company_email_credentials", privilege_type: "SELECT" },
           { table_name: "company_email_credentials", privilege_type: "UPDATE" },
-          { table_name: "email_verification_challenges", privilege_type: "INSERT" },
-          { table_name: "email_verification_challenges", privilege_type: "SELECT" },
-          { table_name: "email_verification_challenges", privilege_type: "UPDATE" },
         ]);
       });
     },
@@ -235,6 +276,10 @@ describe.sequential("MS1 Human auth persistence", () => {
       "ALTER TABLE company_email_credentials RENAME COLUMN password_hash TO password",
     ],
     ["restored OAuth attempt table", "CREATE TABLE oauth_login_attempts (id uuid PRIMARY KEY)"],
+    [
+      "restored email verification table",
+      "CREATE TABLE email_verification_challenges (id uuid PRIMARY KEY)",
+    ],
     [
       "restored provider tenant column",
       "ALTER TABLE auth_identities ADD COLUMN provider_tenant_id text",

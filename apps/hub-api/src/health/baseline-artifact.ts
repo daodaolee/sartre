@@ -36,6 +36,20 @@ const APPROVED_MIGRATIONS = [
       import.meta.url,
     ),
   },
+  {
+    version: "000006_ms1_defer_email_delivery",
+    path: new URL(
+      "../infrastructure/database/migrations/000006_ms1_defer_email_delivery.sql",
+      import.meta.url,
+    ),
+  },
+  {
+    version: "000007_ms1_workspace_commands",
+    path: new URL(
+      "../infrastructure/database/migrations/000007_ms1_workspace_commands.sql",
+      import.meta.url,
+    ),
+  },
 ] as const;
 
 let cachedArtifacts: Promise<readonly ExpectedMigrationArtifact[]> | undefined;

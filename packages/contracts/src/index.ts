@@ -31,9 +31,7 @@ export {
 } from "./identity/auth-identity.js";
 export {
   CompanyEmailLoginCommandSchema,
-  CompanyEmailRegistrationCommandSchema,
-  EmailVerificationAcceptedSchema,
-  EmailVerificationRequestSchema,
+  CompanyEmailProvisioningCommandSchema,
   HumanAccessTokenClaimsSchema,
   HumanAuthSessionSchema,
   HumanRefreshCommandSchema,
@@ -71,7 +69,9 @@ export {
   InvitationStatusSchema,
   MembershipRoleChangeCommandSchema,
   ProjectAccessRoleSchema,
+  WorkspaceCreateCommandSchema,
   WorkspaceRoleSchema,
+  WorkspaceSummarySchema,
 } from "./workspace/access.js";
 
 export type {
@@ -100,8 +100,7 @@ export type {
 } from "./identity/auth-identity.js";
 export type {
   CompanyEmailLoginCommand,
-  CompanyEmailRegistrationCommand,
-  EmailVerificationRequest,
+  CompanyEmailProvisioningCommand,
   HumanAccessTokenClaims,
   HumanAuthSession,
   HumanRefreshCommand,
@@ -131,5 +130,7 @@ export type {
   InvitationStatus,
   MembershipRoleChangeCommand,
   ProjectAccessRole,
+  WorkspaceCreateCommand,
   WorkspaceRole,
+  WorkspaceSummary,
 } from "./workspace/access.js";

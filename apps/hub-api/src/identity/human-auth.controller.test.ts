@@ -14,8 +14,6 @@ const REQUEST = { ip: "127.0.0.1", headers: { "x-sartre-client-fingerprint": "de
 
 function fakeService(overrides: Partial<Record<keyof HumanAuthService, unknown>> = {}) {
   return {
-    requestEmailVerification: vi.fn(),
-    registerCompanyEmail: vi.fn(),
     loginCompanyEmail: vi.fn(),
     refresh: vi.fn(),
     authenticate: vi.fn(),
@@ -88,17 +86,17 @@ describe("Human auth HTTP boundary", () => {
     }
   });
 
-  it("redacts unknown mail/database failures as dependency_unavailable", async () => {
+  it("redacts unknown database failures as dependency_unavailable", async () => {
     const controller = new HumanAuthController(
       fakeService({
-        requestEmailVerification: vi.fn(async () => {
-          throw new Error("raw mail response and database relation details");
+        loginCompanyEmail: vi.fn(async () => {
+          throw new Error("raw database relation details");
         }),
       }),
     );
     const error = await caught(() =>
-      controller.requestEmailVerification(
-        { email: "human@example.com" },
+      controller.loginCompanyEmail(
+        { email: "human@example.com", password: "correct horse battery staple" },
         REQUEST,
         REQUEST_ID,
         CORRELATION_ID,
@@ -110,7 +108,7 @@ describe("Human auth HTTP boundary", () => {
       code: "dependency_unavailable",
       message: "Dependency unavailable",
     });
-    expect(JSON.stringify(error)).not.toMatch(/raw mail|database relation/iu);
+    expect(JSON.stringify(error)).not.toMatch(/database relation/iu);
   });
 
   it("rejects unsupported authorization schemes for session inventory", async () => {

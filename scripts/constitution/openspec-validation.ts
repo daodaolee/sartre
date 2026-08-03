@@ -84,7 +84,7 @@ const changeRules: Readonly<Record<string, OpenSpecChangeRule>> = {
       ),
       "scenarios.md": [
         /positive-human/u,
-        /email-rejection/u,
+        /login-rejection/u,
         /refresh-concurrency/u,
         /refresh_token_reused/u,
         /dependency-failure/u,

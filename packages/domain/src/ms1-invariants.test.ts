@@ -39,14 +39,14 @@ describe("AuthIdentity invariants", () => {
     approvedEmailDomains: ["example.com"],
   } as const;
 
-  it("requires verified ownership of an approved company email", () => {
+  it("requires operator provisioning of an approved company login identifier", () => {
     const identity = createAuthIdentity(
       {
         identityId: "identity-1",
         userId: OWNER_1,
         kind: "company_email",
         email: "Human@Example.COM",
-        emailVerified: true,
+        operatorProvisioned: true,
       },
       policy,
       [],
@@ -62,7 +62,7 @@ describe("AuthIdentity invariants", () => {
             userId: OWNER_1,
             kind: "company_email",
             email: "human@example.com",
-            emailVerified: false,
+            operatorProvisioned: false,
           },
           policy,
           [],
@@ -77,7 +77,7 @@ describe("AuthIdentity invariants", () => {
             userId: OWNER_1,
             kind: "company_email",
             email: "human@outside.test",
-            emailVerified: true,
+            operatorProvisioned: true,
           },
           policy,
           [],
@@ -93,7 +93,7 @@ describe("AuthIdentity invariants", () => {
         userId: OWNER_1,
         kind: "company_email",
         email: "human@example.com",
-        emailVerified: true,
+        operatorProvisioned: true,
       },
       policy,
       [],
@@ -107,7 +107,7 @@ describe("AuthIdentity invariants", () => {
             userId: MEMBER_ID,
             kind: "company_email",
             email: "HUMAN@EXAMPLE.COM",
-            emailVerified: true,
+            operatorProvisioned: true,
           },
           policy,
           [existing],

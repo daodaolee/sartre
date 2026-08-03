@@ -2,8 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CompanyEmailLoginCommandSchema,
-  CompanyEmailRegistrationCommandSchema,
-  EmailVerificationRequestSchema,
+  CompanyEmailProvisioningCommandSchema,
   ERROR_CODES,
   HumanAccessTokenClaimsSchema,
   HumanAuthSessionSchema,
@@ -17,29 +16,27 @@ const TOKEN_ID = "30000000-0000-4000-8000-000000000001";
 const REFRESH_TOKEN = "c".repeat(43);
 
 describe("MS1 Human authentication contracts", () => {
-  it("normalizes company email and rejects unbounded credentials or spoof fields", () => {
-    expect(EmailVerificationRequestSchema.parse({ email: " Human@Example.COM " })).toEqual({
-      email: "human@example.com",
-    });
-
-    const registration = {
-      email: "human@example.com",
-      verificationCode: "123456",
+  it("normalizes an operator-provisioned login and rejects unbounded credentials or spoof fields", () => {
+    const provisioning = {
+      email: " Human@Example.COM ",
       password: "correct horse battery staple",
       displayName: "Human",
     };
-    expect(CompanyEmailRegistrationCommandSchema.parse(registration)).toEqual(registration);
+    expect(CompanyEmailProvisioningCommandSchema.parse(provisioning)).toEqual({
+      ...provisioning,
+      email: "human@example.com",
+    });
     expect(
       CompanyEmailLoginCommandSchema.parse({
-        email: registration.email,
-        password: registration.password,
+        email: provisioning.email,
+        password: provisioning.password,
       }),
-    ).toEqual({ email: registration.email, password: registration.password });
+    ).toEqual({ email: "human@example.com", password: provisioning.password });
     expect(() =>
-      CompanyEmailRegistrationCommandSchema.parse({ ...registration, password: "too-short" }),
+      CompanyEmailProvisioningCommandSchema.parse({ ...provisioning, password: "too-short" }),
     ).toThrow();
     expect(() =>
-      CompanyEmailRegistrationCommandSchema.parse({ ...registration, sessionId: SESSION_ID }),
+      CompanyEmailProvisioningCommandSchema.parse({ ...provisioning, sessionId: SESSION_ID }),
     ).toThrow();
   });
 

@@ -18,14 +18,9 @@ const PasswordSchema = z
     }
   });
 
-export const EmailVerificationRequestSchema = z.object({ email: NormalizedEmailSchema }).strict();
-
-export const EmailVerificationAcceptedSchema = z.object({ accepted: z.literal(true) }).strict();
-
-export const CompanyEmailRegistrationCommandSchema = z
+export const CompanyEmailProvisioningCommandSchema = z
   .object({
     email: NormalizedEmailSchema,
-    verificationCode: z.string().regex(/^\d{6}$/u),
     password: PasswordSchema,
     displayName: z.string().trim().min(1).max(200),
   })
@@ -83,8 +78,7 @@ export const HumanSessionInventorySchema = z
   .object({ sessions: z.array(HumanSessionInventoryItemSchema).max(100) })
   .strict();
 
-export type EmailVerificationRequest = z.infer<typeof EmailVerificationRequestSchema>;
-export type CompanyEmailRegistrationCommand = z.infer<typeof CompanyEmailRegistrationCommandSchema>;
+export type CompanyEmailProvisioningCommand = z.infer<typeof CompanyEmailProvisioningCommandSchema>;
 export type CompanyEmailLoginCommand = z.infer<typeof CompanyEmailLoginCommandSchema>;
 export type HumanRefreshCommand = z.infer<typeof HumanRefreshCommandSchema>;
 export type HumanAccessTokenClaims = z.infer<typeof HumanAccessTokenClaimsSchema>;

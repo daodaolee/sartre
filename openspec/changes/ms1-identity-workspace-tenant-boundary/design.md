@@ -3,8 +3,9 @@
 ## Actor and authentication boundary
 
 Human, Endpoint, and System actors use distinct authenticated contexts, token audiences, route
-allowlists, and audits. Request payload ids are never identity. Human authentication uses a verified
-company email and Argon2id; Feishu login is not an MS1 provider or staging dependency. Short-lived
+allowlists, and audits. Request payload ids are never identity. Human authentication uses an
+operator-provisioned local account and Argon2id; Feishu login, public registration, and mail delivery
+are not MS1 providers or staging dependencies. Short-lived
 Human access tokens carry only User/Session identity; opaque Refresh Tokens rotate, are hash-only at
 rest, and revoke the whole family on replay.
 
@@ -40,7 +41,7 @@ pairing orchestration. Preload exposes named Zod methods only. Renderer stores p
 not authoritative membership/access. Runtime uses its own secure credential store and separate
 Endpoint token; it never inherits Human authority.
 
-The Pencil source is extended before UI GREEN for email verification/login, invitation, ProjectAccess, pairing,
+The Pencil source is extended before UI GREEN for local-account login, invitation, ProjectAccess, pairing,
 revocation, offline, forbidden, and recovery states. Existing Workspace/Settings/member components
 are reused only where they satisfy current specs and accessibility requirements.
 

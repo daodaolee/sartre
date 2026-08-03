@@ -13,8 +13,6 @@ import {
 } from "@nestjs/common";
 import {
   CompanyEmailLoginCommandSchema,
-  CompanyEmailRegistrationCommandSchema,
-  EmailVerificationRequestSchema,
   HumanRefreshCommandSchema,
   ProblemDetailsSchema,
   type HumanAuthSession,
@@ -77,38 +75,6 @@ function networkKey(request: AuthHttpRequest): string {
 @Controller("v1/auth")
 export class HumanAuthController {
   constructor(@Inject(HumanAuthService) private readonly auth: HumanAuthService) {}
-
-  @Post("email/verifications")
-  @HttpCode(202)
-  async requestEmailVerification(
-    @Body() body: unknown,
-    @Req() request: AuthHttpRequest,
-    @Headers("x-request-id") requestId?: string,
-    @Headers("x-correlation-id") correlationId?: string,
-  ): Promise<{ readonly accepted: true }> {
-    const ids = requestIds(requestId, correlationId);
-    const command = this.parse(EmailVerificationRequestSchema, body, ids);
-    return this.run(
-      () => this.auth.requestEmailVerification(command, { networkKey: networkKey(request) }),
-      ids,
-    );
-  }
-
-  @Post("email/register")
-  @HttpCode(201)
-  async registerCompanyEmail(
-    @Body() body: unknown,
-    @Req() request: AuthHttpRequest,
-    @Headers("x-request-id") requestId?: string,
-    @Headers("x-correlation-id") correlationId?: string,
-  ): Promise<HumanAuthSession> {
-    const ids = requestIds(requestId, correlationId);
-    const command = this.parse(CompanyEmailRegistrationCommandSchema, body, ids);
-    return this.run(
-      () => this.auth.registerCompanyEmail(command, { networkKey: networkKey(request) }),
-      ids,
-    );
-  }
 
   @Post("email/login")
   @HttpCode(200)

@@ -20,7 +20,7 @@ export type CreateAuthIdentityInput = {
   readonly userId: string;
   readonly kind: "company_email";
   readonly email: string;
-  readonly emailVerified: boolean;
+  readonly operatorProvisioned: boolean;
 };
 
 function normalizeEmail(value: string): string {
@@ -50,7 +50,7 @@ export function createAuthIdentity(
   );
 
   const email = normalizeEmail(input.email);
-  requireDomain(input.emailVerified, "forbidden", "email_not_verified");
+  requireDomain(input.operatorProvisioned, "forbidden", "operator_provisioning_required");
   requireDomain(
     policy.approvedEmailDomains.map((domain) => domain.toLowerCase()).includes(emailDomain(email)),
     "forbidden",

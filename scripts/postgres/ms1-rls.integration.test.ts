@@ -31,6 +31,7 @@ const TENANT_TABLES = [
   "project_access",
   "projects",
   "security_events",
+  "workspace_command_receipts",
   "workspace_policies",
   "workspaces",
 ] as const;
@@ -39,7 +40,6 @@ const GLOBAL_TABLES = [
   "auth_rate_limits",
   "auth_identities",
   "company_email_credentials",
-  "email_verification_challenges",
   "endpoint_identities",
   "global_security_events",
   "platform_operator_grants",
@@ -195,6 +195,8 @@ describe.sequential("MS1 PostgreSQL 17.6 tenant boundary", () => {
           "000003_ms1_identity_workspace",
           "000004_ms1_human_authentication",
           "000005_ms1_defer_feishu_login",
+          "000006_ms1_defer_email_delivery",
+          "000007_ms1_workspace_commands",
         ]);
         await migrateApprovedMigrations({ connectionString, artifacts });
 

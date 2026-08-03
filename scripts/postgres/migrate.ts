@@ -45,6 +45,20 @@ export const APPROVED_MIGRATION_DEFINITIONS = [
       MODULE_URL,
     ),
   },
+  {
+    version: "000006_ms1_defer_email_delivery",
+    path: new URL(
+      "../../apps/hub-api/src/infrastructure/database/migrations/000006_ms1_defer_email_delivery.sql",
+      MODULE_URL,
+    ),
+  },
+  {
+    version: "000007_ms1_workspace_commands",
+    path: new URL(
+      "../../apps/hub-api/src/infrastructure/database/migrations/000007_ms1_workspace_commands.sql",
+      MODULE_URL,
+    ),
+  },
 ] as const;
 export const BASELINE_MIGRATION_PATH = APPROVED_MIGRATION_DEFINITIONS[0].path;
 const MIGRATION_ADVISORY_LOCK_KEY = "73812170006";

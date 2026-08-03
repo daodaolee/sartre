@@ -1,16 +1,12 @@
-import { createHash, randomBytes, randomInt, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 import {
   CompanyEmailLoginCommandSchema,
-  CompanyEmailRegistrationCommandSchema,
-  EmailVerificationRequestSchema,
   HumanAuthSessionSchema,
   HumanRefreshCommandSchema,
   HumanSessionInventorySchema,
   HumanActorSchema,
   type CompanyEmailLoginCommand,
-  type CompanyEmailRegistrationCommand,
-  type EmailVerificationRequest,
   type HumanActor,
   type HumanAuthSession,
   type HumanRefreshCommand,
@@ -20,7 +16,7 @@ import {
 import type { PasswordHasherPort } from "./argon2id-password-hasher.js";
 import { HumanAuthError } from "./errors.js";
 import type { HumanAccessTokenPort } from "./human-access-token.js";
-import type { ClockPort, VerificationMailPort } from "./ports.js";
+import type { ClockPort } from "./ports.js";
 import type {
   PostgresHumanAuthRepository,
   AuthRateLimitScope,
@@ -28,7 +24,6 @@ import type {
 
 type HumanAuthPolicy = {
   readonly approvedEmailDomains: readonly string[];
-  readonly verificationTtlMs: number;
   readonly sessionAbsoluteTtlMs: number;
   readonly sessionIdleTtlMs: number;
 };
@@ -41,7 +36,6 @@ type HumanAuthServiceOptions = {
   readonly repository: PostgresHumanAuthRepository;
   readonly passwordHasher: PasswordHasherPort;
   readonly accessTokens: HumanAccessTokenPort;
-  readonly verificationMail: VerificationMailPort;
   readonly clock: ClockPort;
   readonly dummyPasswordHash: string;
   readonly policy: HumanAuthPolicy;
@@ -52,8 +46,6 @@ const RATE_LIMITS: Record<
   { limit: number; windowMs: number; blockMs: number }
 > = {
   email_login: { limit: 5, windowMs: 5 * 60_000, blockMs: 15 * 60_000 },
-  email_register: { limit: 10, windowMs: 10 * 60_000, blockMs: 15 * 60_000 },
-  email_verification: { limit: 5, windowMs: 10 * 60_000, blockMs: 15 * 60_000 },
   refresh: { limit: 30, windowMs: 5 * 60_000, blockMs: 15 * 60_000 },
 };
 
@@ -78,70 +70,6 @@ export class HumanAuthService {
     if (!options.dummyPasswordHash.startsWith("$argon2id$")) {
       throw new Error("dummy_password_hash_invalid");
     }
-  }
-
-  async requestEmailVerification(
-    request: EmailVerificationRequest,
-    context: RequestContext,
-  ): Promise<{ readonly accepted: true }> {
-    const parsed = parseOrReject(() => EmailVerificationRequestSchema.parse(request));
-    this.requireApprovedEmail(parsed.email);
-    await this.requireRateLimit("email_verification", context, parsed.email);
-    const now = this.options.clock.now();
-    const expiresAt = new Date(now.getTime() + this.options.policy.verificationTtlMs);
-    const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
-    const challengeId = randomUUID();
-    await this.options.repository.createEmailVerificationChallenge({
-      challengeId,
-      email: parsed.email,
-      codeHash: sha256(code),
-      expiresAt,
-      now,
-    });
-    try {
-      await this.options.verificationMail.sendVerificationCode({
-        email: parsed.email,
-        code,
-        expiresAt: expiresAt.toISOString(),
-      });
-    } catch {
-      await this.options.repository.markEmailVerificationDeliveryFailed(challengeId, now);
-      await this.recordRejectedEvent(
-        "verification_mail_dependency_unavailable",
-        "dependency_unavailable",
-        "verification_delivery",
-      );
-      throw new HumanAuthError("dependency_unavailable");
-    }
-    return { accepted: true };
-  }
-
-  async registerCompanyEmail(
-    command: CompanyEmailRegistrationCommand,
-    context: RequestContext,
-  ): Promise<HumanAuthSession> {
-    const parsed = parseOrReject(() => CompanyEmailRegistrationCommandSchema.parse(command));
-    this.requireApprovedEmail(parsed.email);
-    await this.requireRateLimit("email_register", context, parsed.email);
-    const now = this.options.clock.now();
-    const verified = await this.options.repository.consumeEmailVerification({
-      email: parsed.email,
-      codeHash: sha256(parsed.verificationCode),
-      now,
-    });
-    if (!verified) return this.rejectAuthentication("email_verification_rejected");
-    const passwordHash = await this.options.passwordHasher.hash(parsed.password);
-    const userId = randomUUID();
-    const created = await this.options.repository.createCompanyEmailIdentity({
-      userId,
-      identityId: randomUUID(),
-      email: parsed.email,
-      displayName: parsed.displayName,
-      passwordHash,
-      now,
-    });
-    if (!created) return this.rejectAuthentication("identity_conflict");
-    return this.issueSession(userId, now);
   }
 
   async loginCompanyEmail(

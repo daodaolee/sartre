@@ -484,3 +484,81 @@
   controller/API, database-role, redaction, and full repository gates; then close Task 4 and proceed
   to Workspace commands. Do not implement Markdown Requirement ingestion or a Feishu connector in
   MS1.
+
+## 2026-08-03 - Main-flow correction: defer email delivery and enter Workspace
+
+- Authorization and scope change: the user explicitly prioritized the product main flow and allowed
+  enterprise-email integration to be deferred. The approved task-specific specification, active
+  plan, and OpenSpec now define an operator-provisioned local account. Its normalized email-shaped
+  login identifier preserves a future email-integration path, but MS1 exposes no self-service
+  registration, verification-code, recovery-mail, invitation-delivery, or notification-mail route
+  and makes no mail-delivery claim. Feishu and Markdown Requirement boundaries remain unchanged.
+- RED/nonPASS history retained:
+  - The revised product-boundary target first exited 1 with `4/5` failures. Only the frozen
+    `HubApiSpec` hash passed; the additive specification/plan, mail-free runtime/migration, and
+    non-HTTP provisioning command were intentionally absent.
+  - After contract edits, the first repository typecheck exited 2 because the Hub package still
+    resolved the preceding built contracts artifact. Rebuilding `@sartre/contracts` exposed the new
+    export and the repeated all-workspace typecheck passed; no source workaround was added.
+  - The first real provisioning subprocess exited 1 with the controlled
+    `provisioning_password_input_failed` code because Node 24 `fs/promises.readFile` did not accept
+    numeric stdin fd `0` in this execution path. The CLI now consumes bounded UTF-8 chunks from
+    `process.stdin`; the repeated subprocess test creates one account, rejects a duplicate, and
+    proves the supplied password is absent from argv/stdout/stderr.
+  - The first final Secret gate exited 1 on a synthetic test-only authorization template containing
+    a literal bearer scheme plus token expression. The test now constructs the controlled scheme in
+    the same scanner-safe form as the production controller; the repeated Secret gate passed.
+  - Dependency audit encountered two npm-registry `ECONNRESET` responses. Its own bounded retry
+    subsequently completed with no known vulnerabilities; the earlier network attempts are not
+    counted as PASS.
+- Authentication implementation:
+  - Removed public registration/verification contracts, Controller routes, mail port, challenge
+    service/repository methods, and registration/verification rate-limit scopes. Additive migration
+    `000006_ms1_defer_email_delivery` fails closed if any verification challenge exists, then removes
+    the unused table and narrows rate limits to login/refresh. Its SHA-256 is
+    `4fb6143ed9e267afc6cd0c3126c6a12eff299f840bf400e5b34e523d2268eb58`.
+  - `auth:provision-human` is a non-HTTP operator command. Non-secret account metadata is explicit;
+    the password is accepted only through bounded stdin and persisted only as Argon2id. The command
+    reports stable result/error codes without echoing inputs. A disabled-by-default Hub runtime loads
+    Ed25519 key material only from explicit file paths and registers Human auth routes only in
+    `operator_provisioned` mode.
+  - A real Nest/HTTP/PostgreSQL flow proves the registration route is 404, operator provisioning and
+    password login succeed, Access/Refresh tokens are narrowly returned, and authenticated Session
+    inventory works. Existing expiry, rotation, replay-family revocation, logout, rate-limit,
+    redaction, and actor derivation controls remain active.
+- Workspace main-flow implementation:
+  - Added a pure `createWorkspace` invariant, strict create/summary contracts, Hub Controller/Service,
+    and a repository that authenticates the Human, sets transaction-local Workspace/actor context,
+    checks active Membership on reads, and writes Workspace, owner Membership, DomainEvent, Outbox,
+    Audit, and idempotency receipt in one transaction.
+  - Additive migration `000007_ms1_workspace_commands` adds the RLS + FORCE RLS protected receipt
+    table with exact ownership/grants. Its SHA-256 is
+    `15c510abdbb660615647cc95c4021644a3f5ede5009e0c8b4a3d33d3cc8da780`.
+    A transaction advisory lock serializes concurrent copies of the same command; only the creating
+    Human can resolve its receipt.
+  - The real two-user HTTP flow concurrently repeats Workspace A creation and produces only one
+    Workspace/Event/receipt, rejects a changed request hash with 409, creates Workspace B for the
+    second Human, returns the selected Workspace to its member, and returns the same non-disclosing
+    404 for a cross-tenant lookup. The bound database contains exactly two Workspaces, two Events,
+    and two receipts.
+- Fresh evidence:
+  - Product boundary, OpenSpec, domain/contracts, runtime config, health composition, and HTTP
+    controller targets passed. The affected exact PostgreSQL 17.6 migration/RLS/auth/main-flow matrix
+    passed `5 files | 32/32 tests` before the root run.
+  - The fresh root run used the healthy exact PostgreSQL 17.6 positive service plus the temporary
+    exact-digest PostgreSQL 17.10 rejection control. Scripts passed `30 files | 604/604`; all eight
+    production workspaces passed `142/142`; total `746/746`. The exact-name 17.10 container was
+    removed by the trap cleanup path.
+  - `format:check`, `lint`, `typecheck`, `build`, `architecture:check`, `secret:check`, `spec:verify`,
+    `openspec:validate`, `sast`, `dependency:check`, `license:check`, `docker-context:check`, and
+    `git diff --check` exited 0. All 26 imported-spec hashes remain unchanged.
+- Evidence/status: the local operator-provisioned login and Workspace create/select slice is
+  `REAL_TEST / PASS` for its exact subjects. Task 4 is `CHANGED / IN_PROGRESS`, not production PASS:
+  persistent key rotation, real internal TLS, and a least-privilege database login/composition remain
+  required. Task 5 is `IN_PROGRESS`: invitation, member mutation, Project, and independent
+  ProjectAccess application/API flows are not yet implemented. No MS1 closeout or MS2 capability is
+  claimed.
+- Resume procedure: continue Task 5 from invitation/member/ProjectAccess RED using the authenticated
+  Workspace repository boundary. Preserve exact invited local-account identity, idempotency,
+  expectedVersion, last-owner, role-cap, explicit ProjectAccess, transaction/event/audit, IDOR, and
+  RLS controls. Separately satisfy the remaining Task 4 production composition before MS1 closeout.

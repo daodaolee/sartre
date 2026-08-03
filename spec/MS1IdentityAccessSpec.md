@@ -1,15 +1,21 @@
 # MS1 Identity & Product Input Boundary Specification
 
 > Status: APPROVED on 2026-08-03 by explicit product-owner instruction. This task-specific
-> specification supersedes the first Feishu OAuth sentence in `HubApiSpec.md` section 2 for MS1.
-> The imported specification remains an immutable provenance artifact.
+> specification supersedes the Feishu OAuth and self-service email-registration requirements in
+> `HubApiSpec.md` section 2 for MS1. The imported specification remains an immutable provenance
+> artifact.
 
 ## 1. Product decision
 
 Feishu was originally considered as a source for product documents, not as a required identity
-provider. Feishu is not an MS1 Human authentication provider. MS1 authenticates a Human through a
-verified company email and must not require a Feishu application, tenant, callback, credential, or
-provider-staging gate.
+provider. Feishu is not an MS1 Human authentication provider. MS1 authenticates a Human through an
+operator-provisioned local account and must not require a Feishu application, email-delivery service,
+tenant, callback, credential, or provider-staging gate.
+
+Email delivery is deferred while the first product flow is established. Self-service registration,
+email verification, password recovery, invitation delivery, and outbound security notification are
+not MS1 runtime dependencies. An operator provisions the initial Human account through a non-HTTP
+command; the public API exposes login and Session lifecycle only.
 
 The current PRD input contract for the future Requirement capability is a Markdown file. A Feishu
 link, snapshot, API integration, and synchronization behavior are outside the current required path;
@@ -22,18 +28,20 @@ ingestion begins only in the milestone that owns Requirement creation and alignm
 
 ## 2. MS1 Human authentication contract
 
-- Company-email registration requires an approved domain and a delivered, short-lived, single-use
-  verification code before password creation.
-- Passwords use Argon2id through the `PasswordHasher` port. Plaintext passwords and verification
-  codes never enter persistence, logs, diagnostics, audit, or Renderer state.
+- The operator-provisioned local account uses a normalized company-email-shaped login identifier so
+  the later email integration can adopt the identity without migrating the User. The operator is the
+  trusted attestation boundary; the system does not claim that an email was delivered or opened.
+- Provisioning is not an HTTP route. The command reads the password from standard input, validates
+  the approved domain, and writes only an Argon2id hash. Plaintext passwords never enter persistence,
+  process arguments, logs, diagnostics, audit, or Renderer state.
 - Human access tokens are short-lived and carry only User and Session identity. Opaque Refresh
   Tokens are stored only as hashes, rotate on every use, and revoke the family on replay.
-- Login and verification use durable network, identity, and combined rate-limit dimensions with
-  stable non-disclosing failures.
+- Login uses durable network, identity, and combined rate-limit dimensions with stable
+  non-disclosing failures.
 - Logout current/all, session inventory, expiry, revocation, actor derivation, security events, and
   Secret-boundary requirements remain mandatory.
-- Feishu login routes, OAuth attempts, provider adapters, and provider credentials are absent from
-  the current Human-auth runtime and production composition.
+- Feishu login routes, email registration/verification routes, outbound mail ports, OAuth attempts,
+  provider adapters, and provider credentials are absent from the current Human-auth runtime.
 
 ## 3. Markdown PRD boundary for the later Requirement milestone
 
@@ -47,9 +55,10 @@ ingestion begins only in the milestone that owns Requirement creation and alignm
 
 ## 4. Evidence boundary
 
-Task 4 requires real PostgreSQL session/refresh behavior, a testable verification-mail
-transport/inbox, access-token signing and rotation evidence, Hub TLS configuration, controller/API
-negative controls, and Secret/redaction gates. Feishu provider staging is not an MS1 gate.
+Task 4 requires real PostgreSQL provisioning/session/refresh behavior, access-token signing and
+rotation evidence, Hub TLS configuration, controller/API negative controls, and Secret/redaction
+gates. Feishu provider staging and mail delivery are not MS1 gates.
 
-Local fakes remain unit or integration fixtures and cannot claim real mail delivery, production key
-rotation, or TLS evidence. Missing required inputs remain `BLOCKED`, not `SKIPPED` or degraded PASS.
+Local fakes remain unit or integration fixtures and cannot claim production key rotation or TLS
+evidence. Future email delivery requires a new reviewed contract and real delivery/inbox evidence;
+MS1 must not report that deferred capability as implemented.

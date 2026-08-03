@@ -7,6 +7,7 @@ import { Argon2idPasswordHasher } from "../../apps/hub-api/src/identity/argon2id
 import { HumanAuthError } from "../../apps/hub-api/src/identity/errors.js";
 import { Ed25519HumanAccessTokenCodec } from "../../apps/hub-api/src/identity/human-access-token.js";
 import { HumanAuthService } from "../../apps/hub-api/src/identity/human-auth.service.js";
+import { OperatorHumanProvisioningService } from "../../apps/hub-api/src/identity/operator-human-provisioning.service.js";
 import { PostgresHumanAuthRepository } from "../../apps/hub-api/src/identity/postgres-human-auth.repository.js";
 import { withDisposableDatabase } from "./create-test-database.js";
 import { migrateApprovedMigrations } from "./migrate.js";
@@ -23,20 +24,6 @@ class MutableClock {
 
   advance(milliseconds: number): void {
     this.current = new Date(this.current.getTime() + milliseconds);
-  }
-}
-
-class FakeVerificationMail {
-  unavailable = false;
-  latest: { email: string; code: string; expiresAt: string } | undefined;
-
-  async sendVerificationCode(message: {
-    email: string;
-    code: string;
-    expiresAt: string;
-  }): Promise<void> {
-    if (this.unavailable) throw new Error("mail_unavailable");
-    this.latest = message;
   }
 }
 
@@ -60,9 +47,9 @@ async function withAuthFixture(
   assertion: (fixture: {
     connectionString: string;
     service: HumanAuthService;
+    provisioning: OperatorHumanProvisioningService;
     repository: PostgresHumanAuthRepository;
     clock: MutableClock;
-    mail: FakeVerificationMail;
   }) => Promise<void>,
 ): Promise<void> {
   const databaseUrl = process.env.SARTRE_DATABASE_URL;
@@ -80,28 +67,31 @@ async function withAuthFixture(
       ttlSeconds: 600,
     });
     const clock = new MutableClock(new Date("2026-08-03T10:00:00.000Z"));
-    const mail = new FakeVerificationMail();
     const service = new HumanAuthService({
       repository,
       passwordHasher,
       accessTokens,
-      verificationMail: mail,
       clock,
       dummyPasswordHash,
       policy: {
         approvedEmailDomains: ["example.com"],
-        verificationTtlMs: 10 * 60_000,
         sessionAbsoluteTtlMs: 30 * 24 * 60 * 60_000,
         sessionIdleTtlMs: 7 * 24 * 60 * 60_000,
       },
+    });
+    const provisioning = new OperatorHumanProvisioningService({
+      repository,
+      passwordHasher,
+      clock,
+      approvedEmailDomains: ["example.com"],
     });
     try {
       await assertion({
         connectionString: database.connectionString,
         service,
+        provisioning,
         repository,
         clock,
-        mail,
       });
     } finally {
       await repository.close();
@@ -109,71 +99,46 @@ async function withAuthFixture(
   });
 }
 
-async function registerEmailHuman(fixture: {
+async function provisionAndLogin(fixture: {
   service: HumanAuthService;
-  mail: FakeVerificationMail;
+  provisioning: OperatorHumanProvisioningService;
 }) {
-  await fixture.service.requestEmailVerification(
-    { email: "human@example.com" },
-    { networkKey: NETWORK_KEY },
-  );
-  const code = fixture.mail.latest?.code;
-  if (!code) throw new Error("verification_code_not_delivered");
-  return fixture.service.registerCompanyEmail(
-    {
-      email: "human@example.com",
-      verificationCode: code,
-      password: "correct horse battery staple",
-      displayName: "Human",
-    },
+  const provisioned = await fixture.provisioning.provisionCompanyEmail({
+    email: "human@example.com",
+    password: "correct horse battery staple",
+    displayName: "Human",
+  });
+  if (provisioned.outcome !== "created") throw new Error("operator_provisioning_failed");
+  return fixture.service.loginCompanyEmail(
+    { email: "human@example.com", password: "correct horse battery staple" },
     { networkKey: NETWORK_KEY },
   );
 }
 
 describe.sequential("MS1 Human auth real PostgreSQL flow", () => {
   test(
-    "requires a live email verification and persists only Argon2id password material",
+    "provisions outside HTTP and persists only Argon2id password material",
     async () => {
       await withAuthFixture(
-        "ms1_auth_email",
-        async ({ service, mail, clock, connectionString }) => {
-          await service.requestEmailVerification(
-            { email: "human@example.com" },
-            { networkKey: NETWORK_KEY },
-          );
-          const expiredCode = mail.latest?.code;
-          if (!expiredCode) throw new Error("verification_code_not_delivered");
-          clock.advance(10 * 60_000);
+        "ms1_auth_provisioning",
+        async ({ service, provisioning, connectionString }) => {
           await expect(
-            service.registerCompanyEmail(
-              {
-                email: "human@example.com",
-                verificationCode: expiredCode,
-                password: "correct horse battery staple",
-                displayName: "Human",
-              },
-              { networkKey: NETWORK_KEY },
-            ),
-          ).rejects.toMatchObject({ code: "authentication_failed" });
+            provisioning.provisionCompanyEmail({
+              email: "human@outside.test",
+              password: "correct horse battery staple",
+              displayName: "Outside",
+            }),
+          ).resolves.toEqual({ outcome: "domain_not_approved" });
 
-          await service.requestEmailVerification(
-            { email: "human@example.com" },
-            { networkKey: NETWORK_KEY },
-          );
-          await expect(
-            service.registerCompanyEmail(
-              {
-                email: "human@example.com",
-                verificationCode: "000000",
-                password: "correct horse battery staple",
-                displayName: "Human",
-              },
-              { networkKey: NETWORK_KEY },
-            ),
-          ).rejects.toMatchObject({ code: "authentication_failed" });
-
-          const session = await registerEmailHuman({ service, mail });
+          const session = await provisionAndLogin({ service, provisioning });
           expect(session.refreshToken).toHaveLength(43);
+          await expect(
+            provisioning.provisionCompanyEmail({
+              email: "human@example.com",
+              password: "another correct password",
+              displayName: "Duplicate",
+            }),
+          ).resolves.toEqual({ outcome: "already_exists" });
           await expect(
             service.loginCompanyEmail(
               { email: "human@example.com", password: "wrong password value" },
@@ -203,41 +168,44 @@ describe.sequential("MS1 Human auth real PostgreSQL flow", () => {
   test(
     "allows exactly one refresh race winner then revokes the family on replay",
     async () => {
-      await withAuthFixture("ms1_auth_refresh", async ({ service, mail, connectionString }) => {
-        const initial = await registerEmailHuman({ service, mail });
-        const results = await Promise.allSettled([
-          service.refresh({ refreshToken: initial.refreshToken }, { networkKey: NETWORK_KEY }),
-          service.refresh({ refreshToken: initial.refreshToken }, { networkKey: NETWORK_KEY }),
-        ]);
-        expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
-        const rejection = results.find((result) => result.status === "rejected");
-        expect(rejection).toMatchObject({
-          status: "rejected",
-          reason: { code: "refresh_token_reused" },
-        });
-        const rotated = results.find((result) => result.status === "fulfilled");
-        if (rotated?.status !== "fulfilled") throw new Error("refresh_winner_missing");
-        await expect(
-          service.refresh(
-            { refreshToken: rotated.value.refreshToken },
-            { networkKey: NETWORK_KEY },
-          ),
-        ).rejects.toMatchObject({ code: "unauthenticated" });
+      await withAuthFixture(
+        "ms1_auth_refresh",
+        async ({ service, provisioning, connectionString }) => {
+          const initial = await provisionAndLogin({ service, provisioning });
+          const results = await Promise.allSettled([
+            service.refresh({ refreshToken: initial.refreshToken }, { networkKey: NETWORK_KEY }),
+            service.refresh({ refreshToken: initial.refreshToken }, { networkKey: NETWORK_KEY }),
+          ]);
+          expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+          const rejection = results.find((result) => result.status === "rejected");
+          expect(rejection).toMatchObject({
+            status: "rejected",
+            reason: { code: "refresh_token_reused" },
+          });
+          const rotated = results.find((result) => result.status === "fulfilled");
+          if (rotated?.status !== "fulfilled") throw new Error("refresh_winner_missing");
+          await expect(
+            service.refresh(
+              { refreshToken: rotated.value.refreshToken },
+              { networkKey: NETWORK_KEY },
+            ),
+          ).rejects.toMatchObject({ code: "unauthenticated" });
 
-        const families = await query<{ status: string; revocation_reason: string }>(
-          connectionString,
-          "SELECT status, revocation_reason FROM refresh_token_families",
-        );
-        expect(families).toEqual([{ status: "revoked", revocation_reason: "reuse_detected" }]);
-        const events = await query<{ event_type: string; payload: unknown }>(
-          connectionString,
-          "SELECT event_type, payload FROM global_security_events ORDER BY occurred_at",
-        );
-        expect(events.some((event) => event.event_type === "refresh_token_reuse_detected")).toBe(
-          true,
-        );
-        expect(JSON.stringify(events)).not.toContain(initial.refreshToken);
-      });
+          const families = await query<{ status: string; revocation_reason: string }>(
+            connectionString,
+            "SELECT status, revocation_reason FROM refresh_token_families",
+          );
+          expect(families).toEqual([{ status: "revoked", revocation_reason: "reuse_detected" }]);
+          const events = await query<{ event_type: string; payload: unknown }>(
+            connectionString,
+            "SELECT event_type, payload FROM global_security_events ORDER BY occurred_at",
+          );
+          expect(events.some((event) => event.event_type === "refresh_token_reuse_detected")).toBe(
+            true,
+          );
+          expect(JSON.stringify(events)).not.toContain(initial.refreshToken);
+        },
+      );
     },
     INTEGRATION_TIMEOUT_MS,
   );
@@ -245,8 +213,8 @@ describe.sequential("MS1 Human auth real PostgreSQL flow", () => {
   test(
     "derives the Human actor from a live token and enforces current/all logout plus inventory",
     async () => {
-      await withAuthFixture("ms1_auth_logout", async ({ service, mail }) => {
-        const first = await registerEmailHuman({ service, mail });
+      await withAuthFixture("ms1_auth_logout", async ({ service, provisioning }) => {
+        const first = await provisionAndLogin({ service, provisioning });
         const second = await service.loginCompanyEmail(
           { email: "human@example.com", password: "correct horse battery staple" },
           { networkKey: NETWORK_KEY },
@@ -281,53 +249,32 @@ describe.sequential("MS1 Human auth real PostgreSQL flow", () => {
   );
 
   test(
-    "fails closed when the mail dependency is unavailable",
-    async () => {
-      await withAuthFixture("ms1_auth_dependencies", async ({ service, mail }) => {
-        mail.unavailable = true;
-        await expect(
-          service.requestEmailVerification(
-            { email: "human@example.com" },
-            { networkKey: NETWORK_KEY },
-          ),
-        ).rejects.toMatchObject({ code: "dependency_unavailable" });
-      });
-    },
-    INTEGRATION_TIMEOUT_MS,
-  );
-
-  test(
     "serializes concurrent first-use rate-limit counters without dependency errors",
     async () => {
       await withAuthFixture("ms1_auth_rate_limit_race", async ({ service, connectionString }) => {
         const results = await Promise.allSettled(
           Array.from({ length: 6 }, () =>
-            service.requestEmailVerification(
-              { email: "race@example.com" },
+            service.loginCompanyEmail(
+              { email: "race@example.com", password: "wrong password value" },
               { networkKey: NETWORK_KEY },
             ),
           ),
         );
-        const fulfilled = results.filter((result) => result.status === "fulfilled");
-        const rejected = results.filter((result) => result.status === "rejected");
-        expect(fulfilled).toHaveLength(5);
-        expect(rejected).toHaveLength(1);
-        expect(rejected[0]).toMatchObject({
-          status: "rejected",
-          reason: { code: "rate_limited" },
-        });
+        expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(0);
+        const reasons = results.map((result) =>
+          result.status === "rejected" ? result.reason.code : "fulfilled",
+        );
+        expect(reasons.filter((code) => code === "authentication_failed")).toHaveLength(5);
+        expect(reasons.filter((code) => code === "rate_limited")).toHaveLength(1);
         expect(
-          await query<{ status: string; count: string }>(
+          await query<{ scope: string; count: string }>(
             connectionString,
-            `SELECT status, count(*)::text AS count
-               FROM email_verification_challenges
-              GROUP BY status
-              ORDER BY status`,
+            `SELECT scope, count(*)::text AS count
+               FROM auth_rate_limits
+              GROUP BY scope
+              ORDER BY scope`,
           ),
-        ).toEqual([
-          { status: "pending", count: "1" },
-          { status: "superseded", count: "4" },
-        ]);
+        ).toEqual([{ scope: "email_login", count: "3" }]);
       });
     },
     INTEGRATION_TIMEOUT_MS,

@@ -261,11 +261,7 @@ const EXACT_MS1_SENSITIVE_COLUMNS: readonly Ms1SensitiveColumnCatalogRow[] = [
   },
 ];
 
-const MS1_AUTH_GLOBAL_TABLES = [
-  "auth_rate_limits",
-  "company_email_credentials",
-  "email_verification_challenges",
-] as const;
+const MS1_AUTH_GLOBAL_TABLES = ["auth_rate_limits", "company_email_credentials"] as const;
 
 const EXACT_MS1_AUTH_GLOBAL_CATALOG: readonly Ms1GlobalCatalogRow[] = MS1_AUTH_GLOBAL_TABLES.map(
   (table_name) => ({ table_name, owner_name: "sartre_migration" }),
@@ -285,13 +281,6 @@ const EXACT_MS1_AUTH_SENSITIVE_COLUMNS: readonly Ms1SensitiveColumnCatalogRow[] 
     data_type: "text",
     is_nullable: "NO",
     character_maximum_length: null,
-  },
-  {
-    table_name: "email_verification_challenges",
-    column_name: "code_hash",
-    data_type: "character",
-    is_nullable: "NO",
-    character_maximum_length: 64,
   },
 ];
 
@@ -369,8 +358,7 @@ const EXACT_MS1_AUTH_BOUNDARY_CONSTRAINTS: readonly DiagnosticConstraintCatalogR
   {
     constraint_name: "auth_rate_limits_scope_check",
     constraint_type: "c",
-    constraint_definition:
-      "CHECK (scope = ANY (ARRAY['email_login'::text, 'email_register'::text, 'email_verification'::text, 'refresh'::text]))",
+    constraint_definition: "CHECK (scope = ANY (ARRAY['email_login'::text, 'refresh'::text]))",
   },
 ];
 
@@ -385,6 +373,7 @@ const MS1_TENANT_TABLES = [
   "project_access",
   "projects",
   "security_events",
+  "workspace_command_receipts",
   "workspace_policies",
   "workspaces",
 ] as const;
@@ -677,6 +666,7 @@ export async function assertDatabaseSchemaCompatible(options: {
             'project_access',
             'projects',
             'security_events',
+            'workspace_command_receipts',
             'workspace_policies',
             'workspaces'
           )

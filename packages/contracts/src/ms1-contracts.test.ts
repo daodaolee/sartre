@@ -9,6 +9,8 @@ import {
   ProblemDetailsSchema,
   ProjectAccessRoleSchema,
   WorkspaceRoleSchema,
+  WorkspaceCreateCommandSchema,
+  WorkspaceSummarySchema,
 } from "./index.js";
 
 const WORKSPACE_ID = "10000000-0000-4000-8000-000000000001";
@@ -81,7 +83,34 @@ describe("MS1 actor contracts", () => {
 });
 
 describe("MS1 identity and workspace contracts", () => {
-  it("uses verified company-email registration shapes", () => {
+  it("defines a strict client-idempotent Workspace creation command and summary", () => {
+    expect(
+      WorkspaceCreateCommandSchema.parse({
+        workspaceId: WORKSPACE_ID,
+        name: "  Product Team  ",
+        idempotencyKey: REQUEST_ID,
+      }),
+    ).toEqual({ workspaceId: WORKSPACE_ID, name: "Product Team", idempotencyKey: REQUEST_ID });
+    expect(() =>
+      WorkspaceCreateCommandSchema.parse({
+        workspaceId: WORKSPACE_ID,
+        name: "Team",
+        idempotencyKey: REQUEST_ID,
+        userId: USER_ID,
+      }),
+    ).toThrow();
+    expect(
+      WorkspaceSummarySchema.parse({
+        workspaceId: WORKSPACE_ID,
+        name: "Product Team",
+        status: "active",
+        role: "owner",
+        version: 0,
+      }),
+    ).toMatchObject({ workspaceId: WORKSPACE_ID, role: "owner" });
+  });
+
+  it("uses operator-provisioned company login identity shapes", () => {
     expect(() =>
       AuthIdentityRegistrationSchema.parse({
         provider: "feishu",
@@ -93,14 +122,14 @@ describe("MS1 identity and workspace contracts", () => {
       AuthIdentityRegistrationSchema.parse({
         provider: "company_email",
         email: "human@example.com",
-        emailVerified: true,
+        operatorProvisioned: true,
       }),
     ).toMatchObject({ provider: "company_email" });
     expect(() =>
       AuthIdentityRegistrationSchema.parse({
         provider: "company_email",
         email: "human@example.com",
-        emailVerified: false,
+        operatorProvisioned: false,
       }),
     ).toThrow();
   });

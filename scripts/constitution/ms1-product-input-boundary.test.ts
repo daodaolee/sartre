@@ -24,11 +24,13 @@ describe("MS1 authentication and future product-input authority", () => {
     expect(digest).toBe(imported?.sha256);
   });
 
-  it("records company-email-only MS1 auth and Markdown PRD input without expanding MS1", async () => {
+  it("records operator-provisioned MS1 auth and Markdown PRD input without expanding MS1", async () => {
     const current = await text("spec/MS1IdentityAccessSpec.md");
 
     expect(current).toContain("Feishu is not an MS1 Human authentication provider");
-    expect(current).toContain("verified company email");
+    expect(current).toContain("operator-provisioned local account");
+    expect(current).toContain("Email delivery is deferred");
+    expect(current).toContain("Self-service registration");
     expect(current).toContain("Markdown file");
     expect(current).toContain("Feishu document connector is deferred");
     expect(current).toContain("does not bring Requirement into MS1");
@@ -47,28 +49,43 @@ describe("MS1 authentication and future product-input authority", () => {
     const active = files.join("\n");
 
     expect(active).not.toMatch(/Feishu OAuth|Feishu PKCE|provider staging|oauth-rejection/iu);
-    expect(active).toContain("verified company email");
+    expect(active).toContain("operator-provisioned local account");
+    expect(active).not.toMatch(/real mail delivery|verification-mail transport/iu);
     expect(active).toContain("Markdown");
   });
 
-  it("keeps Feishu login outside the current Human-auth runtime and schema", async () => {
+  it("keeps Feishu login and outbound email outside the current Human-auth runtime and schema", async () => {
     const files = await Promise.all(
       [
         "packages/contracts/src/identity/human-auth.ts",
         "apps/hub-api/src/identity/ports.ts",
         "apps/hub-api/src/identity/human-auth.service.ts",
+        "apps/hub-api/src/identity/operator-human-provisioning.service.ts",
         "apps/hub-api/src/identity/human-auth.controller.ts",
         "apps/hub-api/src/identity/postgres-human-auth.repository.ts",
       ].map(text),
     );
     const runtime = files.join("\n");
     const cleanupMigration = await text(
-      "apps/hub-api/src/infrastructure/database/migrations/000005_ms1_defer_feishu_login.sql",
+      "apps/hub-api/src/infrastructure/database/migrations/000006_ms1_defer_email_delivery.sql",
     );
 
     expect(runtime).not.toMatch(/FeishuAuthorization|FeishuOAuth/gu);
-    expect(cleanupMigration).toContain("DROP TABLE oauth_login_attempts");
-    expect(cleanupMigration).toContain("email_verification");
-    expect(cleanupMigration).not.toContain("oauth_start");
+    expect(runtime).not.toMatch(/VerificationMail|requestEmailVerification|registerCompanyEmail/gu);
+    expect(runtime).toContain("provisionCompanyEmail");
+    expect(cleanupMigration).toContain("DROP TABLE email_verification_challenges");
+    expect(cleanupMigration).not.toContain("'email_register'");
+    expect(cleanupMigration).not.toContain("'email_verification'");
+  });
+
+  it("provides a non-HTTP provisioning boundary and no public registration route", async () => {
+    const controller = await text("apps/hub-api/src/identity/human-auth.controller.ts");
+    const packageManifest = await text("package.json");
+    const provisioningCli = await text("scripts/auth/provision-human.ts");
+
+    expect(controller).not.toMatch(/email\/register|email\/verifications/gu);
+    expect(packageManifest).toContain("auth:provision-human");
+    expect(provisioningCli).toContain("for await (const chunk of process.stdin)");
+    expect(provisioningCli).not.toMatch(/password.*argv|console\.log\([^)]*password/giu);
   });
 });

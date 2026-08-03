@@ -20,6 +20,8 @@ describe("approved PostgreSQL migration registry", () => {
       "000003_ms1_identity_workspace",
       "000004_ms1_human_authentication",
       "000005_ms1_defer_feishu_login",
+      "000006_ms1_defer_email_delivery",
+      "000007_ms1_workspace_commands",
     ]);
     expect(artifacts?.every((artifact) => /^[0-9a-f]{64}$/.test(artifact.checksum))).toBe(true);
     expect(artifacts?.[0]?.sql).not.toContain("diagnostic_records");
@@ -27,5 +29,7 @@ describe("approved PostgreSQL migration registry", () => {
     expect(artifacts?.[2]?.sql).toContain("FORCE ROW LEVEL SECURITY");
     expect(artifacts?.[3]?.sql).toContain("company_email_credentials");
     expect(artifacts?.[4]?.sql).toContain("DROP TABLE oauth_login_attempts");
+    expect(artifacts?.[5]?.sql).toContain("DROP TABLE email_verification_challenges");
+    expect(artifacts?.[6]?.sql).toContain("workspace_command_receipts");
   });
 });

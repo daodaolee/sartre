@@ -6,7 +6,7 @@ const CompanyEmailAuthIdentityRegistrationSchema = z
   .object({
     provider: z.literal("company_email"),
     email: z.email(),
-    emailVerified: z.literal(true),
+    operatorProvisioned: z.literal(true),
   })
   .strict();
 

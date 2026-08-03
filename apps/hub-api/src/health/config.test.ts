@@ -52,13 +52,17 @@ describe("Hub MS0 self-test configuration", () => {
 
   test("passes one validated config instance to both module construction and listen", async () => {
     const mainSource = await readFile(new URL("../main.ts", import.meta.url), "utf8");
+    const applicationSource = await readFile(
+      new URL("../hub-application.ts", import.meta.url),
+      "utf8",
+    );
 
     expect(mainSource.match(/readHubHealthConfig\(/gu)).toHaveLength(1);
-    expect(mainSource).toContain("createHubModule(config)");
-    expect(mainSource).toContain(
+    expect(mainSource).toContain("createHubApplication(config, humanAuth)");
+    expect(applicationSource).toContain(
       "config.selfTestEnabled ? [Ms0SelfTestController, DiagnosticsController] : []",
     );
-    expect(mainSource).toContain(
+    expect(applicationSource).toContain(
       "? [WorkerHeartbeatStore, DiagnosticsRepository, DiagnosticsService]",
     );
   });

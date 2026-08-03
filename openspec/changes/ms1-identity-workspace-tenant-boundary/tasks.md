@@ -3,7 +3,7 @@
 1. Approve the plan, capture ops inputs, and extend OpenSpec validation for MS1.
 2. Build pure Identity/Workspace domain invariants and Zod actor/auth/access contracts with RED first.
 3. Add PostgreSQL 17.6 `000003_ms1_identity_workspace` tables, roles, constraints, RLS/FORCE RLS, and real matrix tests.
-4. Implement verified-company-email registration, Human sessions, refresh rotation/replay revocation, and security events; defer Feishu document integration.
+4. Implement operator-provisioned local-account login, Human sessions, refresh rotation/replay revocation, and security events; defer public registration, email delivery, and Feishu document integration.
 5. Implement Workspace creation/selection, invitations, membership, Projects, and independent ProjectAccess through centralized authorization.
 6. Implement one-time Endpoint pairing, hash-only credential/token exchange, Workspace grants, Runtime secure storage, rotation, and revoke.
 7. Implement SDK plus Electron Main/Preload/Renderer flows mapped to the reviewed Pencil source without exposing credentials.

@@ -5,8 +5,8 @@
 
 ## 1. Outcome
 
-Deliver the first production vertical slice in which a Human can authenticate with a verified
-company email, create/select a Workspace, invite and manage members, grant Project
+Deliver the first production vertical slice in which a Human can authenticate with an
+operator-provisioned local account, create/select a Workspace, invite and manage members, grant Project
 access independently from Workspace role, and pair/revoke one local Endpoint. Every tenant-owned
 read/write must pass centralized authorization and PostgreSQL 17.6 `RLS + FORCE RLS`; every Human,
 Endpoint, and System action must retain a verifiable actor chain and enter the diagnostic timeline.
@@ -41,7 +41,7 @@ Workspace switcher, Settings/Workspace, Settings/Account, member rows, and share
 It is supporting product input and never overrides `spec/`.
 
 Before Renderer implementation, extend or explicitly map the same Pencil source for the missing MS1
-states: verified-email registration/login, invitation accept/expired,
+states: local-account login, invitation accept/expired,
 Project Access matrix, Endpoint pair/rotate/revoke, offline/degraded, forbidden/non-disclosure, and
 token-expired recovery. Preserve Geist/Geist Mono, compact desktop hierarchy, keyboard/focus states,
 and no credential or absolute-path rendering. Generated previews are review artifacts, not PASS.
@@ -50,7 +50,8 @@ and no credential or absolute-path rendering. Generated previews are review arti
 
 Operations must provide before the corresponding required integration/staging gate:
 
-- Approved company email domains plus a testable verification-mail transport/inbox.
+- Approved company email domains used as login-identifier policy; account passwords are supplied to
+  the non-HTTP provisioning command through standard input.
 - Access-token signing/verification key source and rotation procedure, internal Hub TLS origin, and
   Electron authentication recovery registration.
 - Platform-operator test identities for `ops.diagnostics.read` and at least two ordinary Workspace
@@ -73,8 +74,8 @@ use ports and disposable fixtures without persisting real credentials.
 
 ### 5.2 Tokens and credentials
 
-- Company-email registration requires verified ownership and Argon2id through a `PasswordHasher`
-  port. No plaintext password, verification code, token, or credential reaches
+- The operator-provisioned local account uses Argon2id through a `PasswordHasher` port. There is no
+  public registration or email-verification route. No plaintext password, token, or credential reaches
   logs/audit/renderer.
 - Access tokens are short-lived and carry only User/Session identity. Opaque 256-bit Refresh Tokens
   are stored only as hashes, rotate on every use, and revoke their family on old-token replay.
@@ -118,18 +119,18 @@ editing.
   DTOs, actor unions, errors, and events; controlled exports from `packages/contracts/src/index.ts`.
 - `apps/hub-api/src/infrastructure/database/migrations/000003_ms1_identity_workspace.sql`: global
   and tenant tables, roles/grants, constraints, indexes, policies, and schema registry entry.
-- `apps/hub-api/src/identity/`: company-email/session/token application services and adapters.
+- `apps/hub-api/src/identity/`: operator provisioning, login/session/token application services and adapters.
 - `apps/hub-api/src/workspaces/`: Workspace, invitation, membership, ProjectAccess commands/queries.
 - `apps/hub-api/src/endpoints/`: pairing, exchange, rotate/revoke, and Workspace grants.
 - `apps/hub-api/src/authorization/`: one deny-by-default policy surface and tenant transaction
   wrapper used by every MS1 repository.
 - `apps/hub-api/src/diagnostics/`: unauthenticated-system boundary and ops-only identity timeline.
 - `packages/sdk/src/`: the only Human/Workspace/Endpoint Hub clients used by Electron/Runtime.
-- `apps/electron-app/src/main/`: company-email auth, safeStorage/session refresh, SDK, IPC, Runtime
+- `apps/electron-app/src/main/`: local-account auth, safeStorage/session refresh, SDK, IPC, Runtime
   pairing orchestration, and diagnostic propagation.
 - `apps/electron-app/src/preload/`: named `auth`, `workspaces`, `members`, `projects`, and `runtime`
   methods with no raw IPC or credential return.
-- `apps/electron-app/src/renderer/`: verification/login state, Workspace switcher, member/ProjectAccess,
+- `apps/electron-app/src/renderer/`: login state, Workspace switcher, member/ProjectAccess,
   and pairing/revocation views mapped to the Pencil source.
 - `apps/local-runtime/src/`: endpoint identity, one-time pairing intake, secure credential store,
   token exchange, revoke handling, and health status without Human authority.
@@ -189,14 +190,14 @@ Commit boundary: `feat(ms1): enforce identity tenant schema`.
 
 ### Task 4 - Human authentication and session security
 
-Implement ports/adapters and HTTP boundaries for verified-company-email registration/login,
-short-lived Human access token, refresh rotation/family replay revocation, logout current/all,
-session inventory, rate limiting, and security events.
+Implement a non-HTTP provisioning command plus HTTP login boundaries for an operator-provisioned
+local account, short-lived Human access token, refresh rotation/family replay revocation, logout
+current/all, session inventory, rate limiting, and security events. Self-service registration,
+verification mail, recovery mail, and outbound notification are deferred.
 
-Tests execute wrong/expired/superseded email verification, password hash verification, refresh
-races and replay, revoked session, token audience/expiry, payload actor spoofing, concurrent durable
-rate limiting, mail unavailable, and redacted logs. A testable real mail transport/inbox is required
-for the delivery gate; a local fake remains integration rather than delivery PASS.
+Tests execute provisioning authorization isolation, password hash verification, wrong login,
+refresh races and replay, revoked session, token audience/expiry, payload actor spoofing, concurrent
+durable rate limiting, database unavailable, and redacted logs. Mail delivery is not claimed or used.
 
 Commit boundary: `feat(ms1): add human authentication sessions`.
 
@@ -272,7 +273,7 @@ Commit boundaries: subject `feat(ms1): complete identity tenant boundary`, then 
 | --- | --- | --- |
 | Domain/contracts | REAL_TEST unit + Zod compatibility | illegal actor/state/role rejected nonzero |
 | Migration/RLS | REAL PostgreSQL 17.6 | wrong/missing tenant and owner bypass rejected |
-| Human auth | integration + real mail delivery | verification expiry/reuse, password/token replay rejected |
+| Human auth | real provisioning + API/database | public registration absent, password/token replay rejected |
 | Workspace access | real API/database | IDOR and implicit admin Project access rejected |
 | Endpoint | real Hub + Runtime subprocess | wrong audience, reuse, revoke, second Human rejected |
 | Electron | packaged Playwright | renderer credential read and unsafe navigation rejected |

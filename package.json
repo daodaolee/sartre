@@ -29,6 +29,7 @@
     "spec:verify": "tsx scripts/constitution/verify-spec-import.ts",
     "pg:verify": "tsx scripts/postgres/verify-version.ts",
     "migrate": "tsx scripts/postgres/migrate.ts",
+    "auth:provision-human": "tsx scripts/auth/provision-human.ts",
     "health:smoke": "vitest run tests/integration/service-health.integration.test.ts",
     "ops:trace-correlation": "tsx scripts/ops/trace-correlation.ts",
     "package:mac:arm64": "pnpm --filter @sartre/electron-app package:mac:arm64",

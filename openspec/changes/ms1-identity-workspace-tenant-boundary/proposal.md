@@ -2,7 +2,7 @@
 
 ## Outcome
 
-An internal Human authenticates through a verified company email, creates/selects a Workspace,
+An internal Human authenticates through an operator-provisioned local account, creates/selects a Workspace,
 invites and manages members, grants Project access independently from Workspace role, and
 pairs/revokes a local Endpoint. Two Workspaces with multiple real Users and Endpoints demonstrate
 that tenant data and credentials do not cross boundaries.

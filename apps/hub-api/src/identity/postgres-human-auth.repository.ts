@@ -1,10 +1,6 @@
 import postgres from "postgres";
 
-export type AuthRateLimitScope =
-  | "email_login"
-  | "email_register"
-  | "email_verification"
-  | "refresh";
+export type AuthRateLimitScope = "email_login" | "refresh";
 
 export type EmailCredential = {
   readonly identityId: string;
@@ -24,12 +20,6 @@ export type SessionInventoryRow = {
   readonly lastActiveAt: string;
   readonly idleExpiresAt: string;
   readonly absoluteExpiresAt: string;
-};
-
-type EmailChallengeRow = {
-  challenge_id: string;
-  code_hash: string;
-  attempt_count: number;
 };
 
 type EmailCredentialRow = {
@@ -90,6 +80,10 @@ export class PostgresHumanAuthRepository {
     await this.sql.end({ timeout: 3 });
   }
 
+  async onModuleDestroy(): Promise<void> {
+    await this.close();
+  }
+
   async consumeRateLimits(input: {
     scope: AuthRateLimitScope;
     keyHashes: readonly string[];
@@ -146,79 +140,6 @@ export class PostgresHumanAuthRepository {
         allowed = allowed && dimensionAllowed;
       }
       return allowed;
-    });
-  }
-
-  async createEmailVerificationChallenge(input: {
-    challengeId: string;
-    email: string;
-    codeHash: string;
-    expiresAt: Date;
-    now: Date;
-  }): Promise<void> {
-    await this.sql.begin(async (transaction) => {
-      await transaction.unsafe("SET LOCAL ROLE sartre_app");
-      await transaction`
-        UPDATE email_verification_challenges
-           SET status = 'superseded', updated_at = ${input.now}
-         WHERE email = ${input.email}
-           AND status = 'pending'
-      `;
-      await transaction`
-        INSERT INTO email_verification_challenges (
-          challenge_id, email, code_hash, status, attempt_count, expires_at,
-          consumed_at, created_at, updated_at
-        ) VALUES (
-          ${input.challengeId}, ${input.email}, ${input.codeHash}, 'pending', 0,
-          ${input.expiresAt}, NULL, ${input.now}, ${input.now}
-        )
-      `;
-    });
-  }
-
-  async markEmailVerificationDeliveryFailed(challengeId: string, now: Date): Promise<void> {
-    await this.sql.begin(async (transaction) => {
-      await transaction.unsafe("SET LOCAL ROLE sartre_app");
-      await transaction`
-        UPDATE email_verification_challenges
-           SET status = 'delivery_failed', updated_at = ${now}
-         WHERE challenge_id = ${challengeId}
-           AND status = 'pending'
-      `;
-    });
-  }
-
-  async consumeEmailVerification(input: {
-    email: string;
-    codeHash: string;
-    now: Date;
-  }): Promise<boolean> {
-    return this.sql.begin(async (transaction) => {
-      await transaction.unsafe("SET LOCAL ROLE sartre_app");
-      const rows = await transaction<EmailChallengeRow[]>`
-        SELECT challenge_id, code_hash, attempt_count
-          FROM email_verification_challenges
-         WHERE email = ${input.email}
-           AND status = 'pending'
-           AND expires_at > ${input.now}
-         ORDER BY created_at DESC
-         LIMIT 1
-         FOR UPDATE
-      `;
-      const row = rows[0];
-      if (!row) return false;
-      const matched = row.code_hash === input.codeHash;
-      const nextAttempt = row.attempt_count + 1;
-      const consumed = matched || nextAttempt >= 10;
-      await transaction`
-        UPDATE email_verification_challenges
-           SET attempt_count = ${nextAttempt},
-               status = ${consumed ? "consumed" : "pending"},
-               consumed_at = ${consumed ? input.now : null},
-               updated_at = ${input.now}
-         WHERE challenge_id = ${row.challenge_id}
-      `;
-      return matched;
     });
   }
 
