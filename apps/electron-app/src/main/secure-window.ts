@@ -16,12 +16,12 @@ export interface SecureWindowOptions {
 
 export function createSecureWindowOptions(preloadPath: string): SecureWindowOptions {
   return {
-    width: 1_080,
-    height: 720,
+    width: 1_280,
+    height: 800,
     minWidth: 860,
     minHeight: 560,
     show: false,
-    backgroundColor: "#f5f5f2",
+    backgroundColor: "#090909",
     webPreferences: {
       contextIsolation: true,
       sandbox: true,

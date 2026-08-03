@@ -739,3 +739,99 @@
   Electron Main secure-storage/authenticated pairing orchestration. Preserve the strict token audiences,
   Endpoint version check, hash-only persistence, one-Human Runtime root, Secret-free renderer surface,
   and do not mark Task 6 complete until packaged Electron evidence exercises the production adapter.
+
+## 2026-08-03 - Task 7 desktop identity and Workspace partial checkpoint
+
+- Scope and product boundary:
+  - Added the strict MS1 Hub SDK surface for Human login/refresh/session/logout, Workspace,
+    invitation, Membership, Project/ProjectAccess, and Endpoint commands. The SDK accepts HTTPS or
+    exact loopback HTTP origins, bounds requests, validates every response, maps Problem Details to
+    stable codes, and keeps Human and Endpoint token routes explicit.
+  - Added desktop boundary contracts and named Main/Preload methods for auth, Workspace bootstrap,
+    invitation acceptance/creation, member role/removal, project creation/access, and public Runtime
+    status. Main generates all resource IDs and idempotency keys; Renderer cannot submit actor identity,
+    access/refresh tokens, Endpoint Credential, challenge, or local path.
+  - Human access tokens live only in Electron Main memory. Refresh tokens are rotated through an
+    atomic, bounded, symlink-rejecting `safeStorage` protected file with private directory/file modes.
+    Invalid or unavailable protected state produces explicit recovery and clears local authority on
+    logout even when Hub is offline.
+  - Added the production macOS Keychain `RuntimeSecureStorePort` adapter. It invokes only the fixed
+    `/usr/bin/security` executable without a shell, supplies a new Endpoint Credential through stdin,
+    bounds output, ignores stderr, and keeps only credential references in Runtime binding state.
+  - Mapped all MS1 UI states to the preserved Pencil source/hash in
+    `design/ms1-electron-state-map.md`, then implemented the reviewed compact dark workbench with local
+    login, recovery, Workspace create/open/invitation accept, member and ProjectAccess actions,
+    offline/read-only/forbidden placeholders, Runtime status, and system health. The current PRD input
+    remains deferred Markdown work and no email or Feishu runtime was introduced.
+  - Added `lucide-react` as an Electron build-time dependency while retaining the exact production
+    package allowlist and zero runtime dependencies in the application manifest.
+- RED/nonPASS history retained:
+  - The first SDK strict-response test used an asynchronous rejection assertion for a synchronous
+    command-schema failure; changing the assertion to the actual synchronous boundary made the
+    unchanged implementation pass.
+  - The first local typecheck after adding desktop contracts read the previous `contracts/dist` and
+    reported missing SDK re-exports. Rebuilding contracts and SDK in dependency order resolved the
+    stale artifact; source contract tests/typecheck had already passed.
+  - The first protected-store tests rejected the macOS temporary-directory canonical alias and then
+    used a repeated-character fake that was unchanged by reversal. Removing the over-strict ancestor
+    realpath equality while retaining direct symlink rejection, and using a reversible low-entropy
+    fixture, made the real protection assertions execute.
+  - The first Secret gate identified only the low-entropy test fixture as `generic-api-key`; the
+    fixture was changed to runtime repetition and the unchanged production path passed both repository
+    and artifact Secret scans.
+  - The first desktop E2E reached the member page but a text locator matched both visible text and its
+    screen-reader label. The next visual run exposed a window-focus race in an exact autofocus
+    assertion. Exact visible matching plus explicit keyboard-first focus verification fixed the test
+    without weakening the UI boundary.
+  - The first repository lint found missing explicit submit types, non-semantic ARIA table rows,
+    type-only imports, and an implicit metadata type. The UI now uses semantic tables, explicit button
+    types and focus handling; lint/SAST pass without suppression.
+  - The first full root test passed 606 script cases and failed only the current-tree architecture case
+    because Renderer had direct SDK `import type` declarations. Re-exporting those public types from
+    the shared desktop contract restored the stronger rule; the repeated full matrix passed.
+- Executed evidence:
+  - Exact PostgreSQL 17.6 plus the approved exact-digest PostgreSQL 17.10 rejection control were active
+    for the repeated root `pnpm test`: scripts passed `31 files | 607/607`; all eight production
+    workspaces passed `184/184`; aggregate `791/791`.
+  - Electron unit/contract tests passed `8 files | 36/36`, including safeStorage protection, refresh
+    serialization/recovery, manager/non-manager Workspace views, fixed IPC allowlist, actor/body spoof
+    rejection, and token non-reachability.
+  - The new real Electron Playwright flow passed in development and packaged arm64 directory targets.
+    It executed login, Workspace creation, authoritative member/project reload, project creation,
+    disabled Endpoint controls, 1440x900, 1280x720, and 860x560 layouts, keyboard-first focus,
+    `window.open` denial, and absence of Node/raw IPC/token/password text in Renderer.
+  - The existing real Hub/Worker/Runtime/PostgreSQL MS0 Electron E2E also passed `3/3`, including Worker
+    loss and recovery, through its explicit health-only test query. The query is emitted only by Main
+    when `NODE_ENV=test` and the explicit E2E switch are both set; it grants no business authority.
+  - Electron arm64 directory packaging passed the checked-in exact allowlist. Packaged MS1 E2E passed,
+    and the final `app.asar` SHA-256 was
+    `0f035f9cb480834a8508493052768ef9f14b0485d5096fdc4d98cbb12aa7c224`.
+- Final gates:
+  - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm build`,
+    `pnpm architecture:check`, `pnpm secret:check`, `pnpm spec:verify`,
+    `pnpm openspec:validate`, `pnpm sast`, `pnpm dependency:check`,
+    `pnpm license:check`, `pnpm docker-context:check`, `pnpm contract:compatibility`,
+    `pnpm toolchain:check`, and `git diff --check` exited 0. Dependency audit reported no known
+    vulnerabilities; all 26 imported-spec hashes remain unchanged.
+  - Artifact Secret scanning passed all eight explicit build roots plus the packaged `app.asar`.
+  - Tool versions: Node `v24.11.0`, pnpm `10.33.2`, gitleaks `8.28.0`; positive PostgreSQL
+    `server_version_num=170006`; negative image digest
+    `sha256:a426e44bac0b759c95894d68e1a0ac03ecc20b619f498a91aae373bf06d8508d`.
+- Evidence/status and retained gaps:
+  - The SDK, Human Main session, Preload/Renderer identity and Workspace flow, macOS Keychain adapter,
+    desktop security boundary, and unsigned arm64 directory-package slice are
+    `DONE / REAL_TEST / PASS` at this checkpoint.
+  - Task 7 overall remains `CHANGED / IN_PROGRESS`: the package does not yet ship or manage the Local
+    Runtime daemon, authenticated local IPC is absent, and therefore Endpoint pair/rotate/revoke remain
+    deliberately disabled. The production Keychain adapter has unit evidence but not a packaged
+    pairing flow, so Task 6 overall remains `CHANGED / IN_PROGRESS` as well.
+  - Hub has no authenticated cross-Workspace directory and no ProjectAccess matrix query. The UI can
+    open a known Workspace ID, create a Workspace, accept an invitation, list the current user's
+    projects, and submit known-version access changes; it does not claim complete discovery/matrix
+    behavior. The arm64 directory is unsigned and not notarized. Task 4 TLS/signing-key/database-role
+    gaps and Tasks 8-9 also remain open. No MS1 completion or verified tag is claimed.
+- Resume procedure: commit and fast-forward push this partial checkpoint, then design the authenticated
+  Main-to-Runtime transport and packaged daemon lifecycle before enabling Endpoint buttons. Add a
+  tenant-safe Workspace directory and manager-only ProjectAccess matrix query rather than caching
+  authorization facts in Renderer. Repeat packaged Keychain/non-reachability evidence before closing
+  Tasks 6-7, then proceed to Task 8 diagnostic closure.

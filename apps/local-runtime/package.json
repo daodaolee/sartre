@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run src/module-boundary.test.ts",
+    "test": "vitest run src",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {

@@ -13,6 +13,21 @@ export {
   DiagnosticStatusSchema,
 } from "./diagnostics.js";
 export {
+  DesktopAcceptInvitationCommandSchema,
+  DesktopAuthStateSchema,
+  DesktopChangeMembershipRoleCommandSchema,
+  DesktopCreateProjectCommandSchema,
+  DesktopCreateWorkspaceCommandSchema,
+  DesktopGrantProjectAccessCommandSchema,
+  DesktopInvitationResultSchema,
+  DesktopInviteMemberCommandSchema,
+  DesktopLoginCommandSchema,
+  DesktopOpenWorkspaceCommandSchema,
+  DesktopRemoveMembershipCommandSchema,
+  DesktopRuntimeStatusSchema,
+  DesktopWorkspaceViewSchema,
+} from "./desktop/ms1-desktop.js";
+export {
   DIAGNOSTIC_RECOVERY_ACTIONS,
   DIAGNOSTIC_STAGES,
   DiagnosticCurrentStateSchema,
@@ -100,6 +115,20 @@ export type {
   DiagnosticContext,
   DiagnosticStatus,
 } from "./diagnostics.js";
+export type {
+  DesktopAcceptInvitationCommand,
+  DesktopAuthState,
+  DesktopChangeMembershipRoleCommand,
+  DesktopCreateProjectCommand,
+  DesktopCreateWorkspaceCommand,
+  DesktopGrantProjectAccessCommand,
+  DesktopInviteMemberCommand,
+  DesktopLoginCommand,
+  DesktopOpenWorkspaceCommand,
+  DesktopRemoveMembershipCommand,
+  DesktopRuntimeStatus,
+  DesktopWorkspaceView,
+} from "./desktop/ms1-desktop.js";
 export type {
   Actor,
   EndpointActor,

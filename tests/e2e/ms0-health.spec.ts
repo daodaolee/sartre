@@ -355,6 +355,7 @@ test(
             SARTRE_HEALTH_POLL_MS: "100",
             SARTRE_HEALTH_TIMEOUT_MS: "1000",
             SARTRE_HEALTH_STALE_MS: "2000",
+            SARTRE_E2E_HEALTH_ONLY: "enabled",
           },
           timeout: UI_TIMEOUT_MS,
         });
@@ -423,7 +424,7 @@ test(
         await expect(page.getByTestId("health-status-unavailable")).toHaveCount(1, {
           timeout: UI_TIMEOUT_MS,
         });
-        await expect(page.getByTestId("health-row-hub-worker")).toContainText("Unavailable");
+        await expect(page.getByTestId("health-row-hub-worker")).toContainText("不可用");
         await expect(page.getByTestId("health-status-healthy")).toHaveCount(3);
         expect(await rows.evaluateAll((elements) => elements.length)).toBe(4);
         expect(

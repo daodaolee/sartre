@@ -52,10 +52,7 @@ export function readHealthEnvironment(
   const rawHubBaseUrl = environment.SARTRE_HUB_BASE_URL;
   const rawLocalRuntimeBaseUrl = environment.SARTRE_LOCAL_RUNTIME_BASE_URL;
   const rawSelfTestToken = environment.SARTRE_MS0_SELF_TEST_TOKEN;
-  const configured = [rawHubBaseUrl, rawLocalRuntimeBaseUrl, rawSelfTestToken].filter(
-    (value) => value !== undefined,
-  );
-  if (configured.length !== 0 && configured.length !== 3) {
+  if ((rawLocalRuntimeBaseUrl === undefined) !== (rawSelfTestToken === undefined)) {
     throw new Error("health_configuration_invalid");
   }
   if (rawSelfTestToken !== undefined && !SESSION_TOKEN.test(rawSelfTestToken)) {

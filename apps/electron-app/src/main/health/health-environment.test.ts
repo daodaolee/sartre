@@ -44,7 +44,7 @@ describe("Electron health child environment", () => {
     });
   });
 
-  it("allows the uninjected app to degrade but rejects partial or malformed injected input", () => {
+  it("allows the uninjected app to degrade but rejects partial Runtime or malformed input", () => {
     const read = healthEnvironmentReader();
     expect(read({})).toMatchObject({
       hubBaseUrl: undefined,
@@ -52,7 +52,7 @@ describe("Electron health child environment", () => {
       selfTestToken: undefined,
     });
     for (const environment of [
-      { SARTRE_HUB_BASE_URL: "http://127.0.0.1:41001" },
+      { SARTRE_LOCAL_RUNTIME_BASE_URL: "http://127.0.0.1:41002" },
       { ...validEnvironment(), SARTRE_HUB_BASE_URL: "http://localhost:41001" },
       { ...validEnvironment(), SARTRE_HUB_BASE_URL: "https://127.0.0.1:41001" },
       { ...validEnvironment(), SARTRE_HUB_BASE_URL: "http://user@127.0.0.1:41001" },
@@ -64,5 +64,14 @@ describe("Electron health child environment", () => {
         /health_(?:configuration|endpoint|token|poll)_invalid/u,
       );
     }
+  });
+
+  it("allows Hub-only desktop authentication while Runtime health stays unavailable", () => {
+    const read = healthEnvironmentReader();
+    expect(read({ SARTRE_HUB_BASE_URL: "http://127.0.0.1:41001" })).toMatchObject({
+      hubBaseUrl: "http://127.0.0.1:41001",
+      localRuntimeBaseUrl: undefined,
+      selfTestToken: undefined,
+    });
   });
 });

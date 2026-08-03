@@ -11,16 +11,16 @@ const PROCESS_ROWS = [
 ] as const;
 
 const STATUS_TEXT = {
-  healthy: "Healthy",
-  degraded: "Degraded",
-  unavailable: "Unavailable",
+  healthy: "正常",
+  degraded: "降级",
+  unavailable: "不可用",
 } as const;
 
 const REMEDIATION = {
-  electron: "Restart Sartre if this process stops responding.",
-  "hub-api": "Check Hub API readiness and PostgreSQL connectivity.",
-  "hub-worker": "Restart Hub Worker and wait for its heartbeat.",
-  "local-runtime": "Restart Local Runtime on this Mac.",
+  electron: "如果界面停止响应，请重新启动 Sartre。",
+  "hub-api": "检查 Hub API readiness 与 PostgreSQL 连接。",
+  "hub-worker": "重新启动 Hub Worker 并等待 heartbeat。",
+  "local-runtime": "在这台 Mac 上安装或重新启动 Local Runtime。",
 } as const;
 
 const UNAVAILABLE_COMMIT_SHA = "0".repeat(40);
@@ -39,7 +39,7 @@ function unavailableProcess(service: (typeof PROCESS_ROWS)[number]["id"]): Healt
 
 function displayTime(checkedAt: string): string {
   const date = new Date(checkedAt);
-  return Number.isNaN(date.getTime()) ? "Not checked" : date.toLocaleTimeString();
+  return Number.isNaN(date.getTime()) ? "尚未检查" : date.toLocaleTimeString();
 }
 
 export interface SystemHealthViewProps {
@@ -48,34 +48,35 @@ export interface SystemHealthViewProps {
 
 export function SystemHealthView({ snapshot }: SystemHealthViewProps) {
   return (
-    <main className="workbench">
-      <header className="workbench__header">
+    <section className="content-view" aria-labelledby="health-heading">
+      <header className="content-header">
         <div>
-          <p className="workbench__eyebrow">SARTRE WORKBENCH</p>
-          <h1>System health</h1>
+          <p className="eyebrow">SYSTEM HEALTH</p>
+          <h1 id="health-heading">四进程健康状态</h1>
+          <p>由 Electron 本机控制平面定时校验。</p>
         </div>
-        <p className="workbench__summary">
-          {snapshot?.status === "healthy" ? "All processes operational" : "Action required"}
-        </p>
+        <span className="status-badge">
+          {snapshot?.status === "healthy" ? "全部正常" : "需要处理"}
+        </span>
       </header>
 
-      <section className="health-panel" aria-labelledby="health-heading">
+      <section className="health-panel" aria-label="进程健康列表">
         <div className="health-panel__heading">
           <div>
-            <h2 id="health-heading">Four-process runtime</h2>
-            <p>Live status from the local Electron control plane.</p>
+            <h2>运行时依赖</h2>
+            <p>状态只代表健康探针，不代表业务能力 PASS。</p>
           </div>
-          <span className="health-panel__count">4 processes</span>
+          <span className="count-badge">4 个进程</span>
         </div>
 
-        <table className="health-table" aria-label="Process health">
+        <table className="health-table" aria-label="进程健康">
           <thead>
             <tr className="health-table__labels">
-              <th scope="col">Process</th>
-              <th scope="col">Status</th>
-              <th scope="col">Last check</th>
-              <th scope="col">Version</th>
-              <th scope="col">Remediation</th>
+              <th scope="col">进程</th>
+              <th scope="col">状态</th>
+              <th scope="col">最近检查</th>
+              <th scope="col">版本</th>
+              <th scope="col">恢复动作</th>
             </tr>
           </thead>
           <tbody>
@@ -119,6 +120,6 @@ export function SystemHealthView({ snapshot }: SystemHealthViewProps) {
           </tbody>
         </table>
       </section>
-    </main>
+    </section>
   );
 }
