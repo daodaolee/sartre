@@ -1,20 +1,6 @@
 import { z } from "zod";
 
-const ProviderIdentifierSchema = z
-  .string()
-  .min(1)
-  .max(256)
-  .regex(/^[A-Za-z0-9][A-Za-z0-9._:@+-]*$/u);
-
-export const AuthProviderSchema = z.enum(["feishu", "company_email"]);
-
-const FeishuAuthIdentityRegistrationSchema = z
-  .object({
-    provider: z.literal("feishu"),
-    providerSubject: ProviderIdentifierSchema,
-    providerTenantId: ProviderIdentifierSchema,
-  })
-  .strict();
+export const AuthProviderSchema = z.literal("company_email");
 
 const CompanyEmailAuthIdentityRegistrationSchema = z
   .object({
@@ -24,10 +10,7 @@ const CompanyEmailAuthIdentityRegistrationSchema = z
   })
   .strict();
 
-export const AuthIdentityRegistrationSchema = z.discriminatedUnion("provider", [
-  FeishuAuthIdentityRegistrationSchema,
-  CompanyEmailAuthIdentityRegistrationSchema,
-]);
+export const AuthIdentityRegistrationSchema = CompanyEmailAuthIdentityRegistrationSchema;
 
 export type AuthProvider = z.infer<typeof AuthProviderSchema>;
 export type AuthIdentityRegistration = z.infer<typeof AuthIdentityRegistrationSchema>;

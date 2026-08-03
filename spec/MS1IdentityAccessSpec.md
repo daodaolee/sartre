@@ -1,56 +1,55 @@
-# MS1 Identity & Access Protocol Specification
+# MS1 Identity & Product Input Boundary Specification
 
-> Status: APPROVED on 2026-08-03 by explicit user instruction. This task-specific specification
-> supersedes only the first Feishu OAuth sentence in HubApiSpec.md section 2 for MS1. All other
-> imported specifications and Human-authentication requirements remain authoritative.
+> Status: APPROVED on 2026-08-03 by explicit product-owner instruction. This task-specific
+> specification supersedes the first Feishu OAuth sentence in `HubApiSpec.md` section 2 for MS1.
+> The imported specification remains an immutable provenance artifact.
 
-## 1. Provenance and decision
+## 1. Product decision
 
-spec/HubApiSpec.md is a byte-identical imported provenance artifact and remains unchanged. Its
-Feishu sentence assumed provider-returned nonce, but the supported Feishu web OAuth contract does
-not return an ID token or nonce. MS1 therefore uses the provider controls Feishu actually exposes
-and must not claim provider nonce validation.
+Feishu was originally considered as a source for product documents, not as a required identity
+provider. Feishu is not an MS1 Human authentication provider. MS1 authenticates a Human through a
+verified company email and must not require a Feishu application, tenant, callback, credential, or
+provider-staging gate.
 
-This amendment is limited to the Feishu Human login protocol. It does not weaken company-tenant
-validation, callback lifetime, credential isolation, access/refresh session security, rate limits,
-security events, or any external staging requirement.
+The current PRD input contract for the future Requirement capability is a Markdown file. A Feishu
+link, snapshot, API integration, and synchronization behavior are outside the current required path;
+the Feishu document connector is deferred until a later reviewed specification establishes its
+authorization, snapshot, provenance, refresh, and failure semantics.
 
-## 2. Current Feishu OAuth contract
+This decision does not bring Requirement into MS1. MS1 still ends at the Identity, Workspace,
+ProjectAccess, Endpoint, authorization, Electron isolation, and diagnostic boundaries. Markdown PRD
+ingestion begins only in the milestone that owns Requirement creation and alignment.
 
-- Use the system browser and Authorization Code + PKCE with code_challenge_method=S256.
-- Electron Main generates and retains a 43-128 character verifier outside Renderer. Hub receives
-  only the S256 challenge when creating the attempt and receives the verifier only during callback
-  completion.
-- Hub generates a cryptographically random, single-use state, stores only its hash with a short
-  expiry, and consumes it atomically. Wrong, expired, or reused state creates no Human Session.
-- Authorization and token exchange use the same exact redirect URI from an HTTPS allowlist. Hub
-  verifies it against the persisted attempt before exchange; Feishu also rejects mismatch.
-- The authorization code is short-lived and single use. Used, expired, missing, malformed, or
-  PKCE-mismatched code responses fail closed with the stable non-disclosing OAuth error.
-- After exchange, Hub calls the supported user-information endpoint and accepts identity only when
-  returned tenant_key exactly matches the approved company tenant allowlist.
-- Feishu access/refresh tokens, authorization codes, client credentials, verifier, and raw provider
-  responses are transient adapter values. They are never persisted, logged, audited, returned to
-  Renderer, or reused as Sartre Human tokens.
-- Provider endpoints are fixed HTTPS origins, not caller configuration:
-  - https://accounts.feishu.cn/open-apis/authen/v1/authorize
-  - https://open.feishu.cn/open-apis/authen/v2/oauth/token
-  - https://open.feishu.cn/open-apis/authen/v1/user_info
+## 2. MS1 Human authentication contract
 
-The supported callback security set is therefore: single-use state, PKCE S256, exact redirect URI,
-single-use authorization code, short expiry, and exact tenant_key. Adding a future OIDC flow or
-nonce-bearing signed ID token requires a new reviewed specification and cannot be inferred from a
-field supplied by Sartre itself.
+- Company-email registration requires an approved domain and a delivered, short-lived, single-use
+  verification code before password creation.
+- Passwords use Argon2id through the `PasswordHasher` port. Plaintext passwords and verification
+  codes never enter persistence, logs, diagnostics, audit, or Renderer state.
+- Human access tokens are short-lived and carry only User and Session identity. Opaque Refresh
+  Tokens are stored only as hashes, rotate on every use, and revoke the family on replay.
+- Login and verification use durable network, identity, and combined rate-limit dimensions with
+  stable non-disclosing failures.
+- Logout current/all, session inventory, expiry, revocation, actor derivation, security events, and
+  Secret-boundary requirements remain mandatory.
+- Feishu login routes, OAuth attempts, provider adapters, and provider credentials are absent from
+  the current Human-auth runtime and production composition.
 
-## 3. Evidence boundary
+## 3. Markdown PRD boundary for the later Requirement milestone
 
-Local fake-provider and local HTTP-server tests prove only application/adapter integration. Task 4
-still requires Feishu staging with an approved app, tenant, redirect URI, and test user before
-external-provider PASS. Missing operations inputs remain BLOCKED; they are not SKIPPED, degraded
-PASS, or replaceable by structural inspection.
+- The product-facing source is one Markdown file supplied through the reviewed Requirement input
+  flow. The later milestone must define encoding, size, attachment/path isolation, normalization,
+  snapshot hash, and rejection behavior before implementation.
+- Markdown content becomes proposed Requirement context; it does not silently become a confirmed
+  Goal Contract or bypass Requirement Owner alignment and confirmation.
+- External document links may later be retained as Evidence, consistent with `UIDesignV2Spec`, but
+  no connector may overwrite the confirmed Markdown baseline automatically.
 
-Official contracts reviewed for this amendment:
+## 4. Evidence boundary
 
-- https://open.feishu.cn/document/common-capabilities/sso/api/obtain-oauth-code
-- https://open.feishu.cn/document/authentication-management/access-token/get-user-access-token
-- https://open.feishu.cn/document/server-docs/authentication-management/login-state-management/get
+Task 4 requires real PostgreSQL session/refresh behavior, a testable verification-mail
+transport/inbox, access-token signing and rotation evidence, Hub TLS configuration, controller/API
+negative controls, and Secret/redaction gates. Feishu provider staging is not an MS1 gate.
+
+Local fakes remain unit or integration fixtures and cannot claim real mail delivery, production key
+rotation, or TLS evidence. Missing required inputs remain `BLOCKED`, not `SKIPPED` or degraded PASS.

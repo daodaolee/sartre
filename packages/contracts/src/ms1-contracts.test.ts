@@ -81,14 +81,14 @@ describe("MS1 actor contracts", () => {
 });
 
 describe("MS1 identity and workspace contracts", () => {
-  it("uses provider-specific registration shapes", () => {
-    expect(
+  it("uses verified company-email registration shapes", () => {
+    expect(() =>
       AuthIdentityRegistrationSchema.parse({
         provider: "feishu",
         providerSubject: "ou_123",
         providerTenantId: "tenant-approved",
       }),
-    ).toMatchObject({ provider: "feishu" });
+    ).toThrow();
     expect(
       AuthIdentityRegistrationSchema.parse({
         provider: "company_email",

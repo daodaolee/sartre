@@ -2,8 +2,8 @@
 
 ## Outcome
 
-An internal Human authenticates through Feishu OAuth or a verified company email, creates/selects a
-Workspace, invites and manages members, grants Project access independently from Workspace role, and
+An internal Human authenticates through a verified company email, creates/selects a Workspace,
+invites and manages members, grants Project access independently from Workspace role, and
 pairs/revokes a local Endpoint. Two Workspaces with multiple real Users and Endpoints demonstrate
 that tenant data and credentials do not cross boundaries.
 
@@ -19,6 +19,9 @@ real production boundaries.
 MS1 does not implement Requirement, Session/messages, Attachment/object storage, Agent execution,
 Project Lease behavior, Steward behavior, business credential sharing, or legacy compatibility.
 Mocks, fixtures, static SQL inspection, and HTTP 200 are not production evidence.
+
+The later Requirement milestone accepts a Markdown PRD input. A Feishu document connector is
+deferred and does not enter MS1 identity, implementation, or evidence scope.
 
 ## Authority and design input
 

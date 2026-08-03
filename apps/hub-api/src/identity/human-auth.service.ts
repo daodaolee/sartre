@@ -1,11 +1,9 @@
-import { createHash, randomBytes, randomInt, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, randomInt, randomUUID } from "node:crypto";
 
 import {
   CompanyEmailLoginCommandSchema,
   CompanyEmailRegistrationCommandSchema,
   EmailVerificationRequestSchema,
-  FeishuAuthorizationCallbackCommandSchema,
-  FeishuAuthorizationStartCommandSchema,
   HumanAuthSessionSchema,
   HumanRefreshCommandSchema,
   HumanSessionInventorySchema,
@@ -13,9 +11,6 @@ import {
   type CompanyEmailLoginCommand,
   type CompanyEmailRegistrationCommand,
   type EmailVerificationRequest,
-  type FeishuAuthorizationCallbackCommand,
-  type FeishuAuthorizationStartCommand,
-  type FeishuAuthorizationStartResult,
   type HumanActor,
   type HumanAuthSession,
   type HumanRefreshCommand,
@@ -25,22 +20,14 @@ import {
 import type { PasswordHasherPort } from "./argon2id-password-hasher.js";
 import { HumanAuthError } from "./errors.js";
 import type { HumanAccessTokenPort } from "./human-access-token.js";
-import {
-  FeishuOAuthError,
-  type ClockPort,
-  type FeishuOAuthPort,
-  type VerificationMailPort,
-} from "./ports.js";
+import type { ClockPort, VerificationMailPort } from "./ports.js";
 import type {
   PostgresHumanAuthRepository,
   AuthRateLimitScope,
 } from "./postgres-human-auth.repository.js";
 
 type HumanAuthPolicy = {
-  readonly approvedFeishuTenantIds: readonly string[];
   readonly approvedEmailDomains: readonly string[];
-  readonly allowedRedirectUris: readonly string[];
-  readonly oauthAttemptTtlMs: number;
   readonly verificationTtlMs: number;
   readonly sessionAbsoluteTtlMs: number;
   readonly sessionIdleTtlMs: number;
@@ -54,7 +41,6 @@ type HumanAuthServiceOptions = {
   readonly repository: PostgresHumanAuthRepository;
   readonly passwordHasher: PasswordHasherPort;
   readonly accessTokens: HumanAccessTokenPort;
-  readonly feishuProvider: FeishuOAuthPort;
   readonly verificationMail: VerificationMailPort;
   readonly clock: ClockPort;
   readonly dummyPasswordHash: string;
@@ -68,8 +54,6 @@ const RATE_LIMITS: Record<
   email_login: { limit: 5, windowMs: 5 * 60_000, blockMs: 15 * 60_000 },
   email_register: { limit: 10, windowMs: 10 * 60_000, blockMs: 15 * 60_000 },
   email_verification: { limit: 5, windowMs: 10 * 60_000, blockMs: 15 * 60_000 },
-  oauth_callback: { limit: 20, windowMs: 5 * 60_000, blockMs: 15 * 60_000 },
-  oauth_start: { limit: 10, windowMs: 5 * 60_000, blockMs: 15 * 60_000 },
   refresh: { limit: 30, windowMs: 5 * 60_000, blockMs: 15 * 60_000 },
 };
 
@@ -79,12 +63,6 @@ function sha256(value: string): string {
 
 function opaqueSecret(): string {
   return randomBytes(32).toString("base64url");
-}
-
-function safeEqual(left: string, right: string): boolean {
-  const leftBuffer = Buffer.from(left, "utf8");
-  const rightBuffer = Buffer.from(right, "utf8");
-  return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
 }
 
 function parseOrReject<Output>(parse: () => Output): Output {
@@ -100,99 +78,6 @@ export class HumanAuthService {
     if (!options.dummyPasswordHash.startsWith("$argon2id$")) {
       throw new Error("dummy_password_hash_invalid");
     }
-  }
-
-  async startFeishuAuthorization(
-    command: FeishuAuthorizationStartCommand,
-    context: RequestContext,
-  ): Promise<FeishuAuthorizationStartResult> {
-    const parsed = parseOrReject(() => FeishuAuthorizationStartCommandSchema.parse(command));
-    this.requireRedirect(parsed.redirectUri);
-    await this.requireRateLimit("oauth_start", context, parsed.redirectUri);
-    const state = opaqueSecret();
-    const now = this.options.clock.now();
-    const expiresAt = new Date(now.getTime() + this.options.policy.oauthAttemptTtlMs);
-    let authorizationUrl: string;
-    try {
-      authorizationUrl = await this.options.feishuProvider.createAuthorizationUrl({
-        state,
-        codeChallenge: parsed.codeChallenge,
-        redirectUri: parsed.redirectUri,
-      });
-      new URL(authorizationUrl);
-    } catch {
-      await this.recordRejectedEvent(
-        "oauth_dependency_unavailable",
-        "dependency_unavailable",
-        "authorization_start",
-      );
-      throw new HumanAuthError("dependency_unavailable");
-    }
-    await this.options.repository.createOAuthAttempt({
-      attemptId: randomUUID(),
-      stateHash: sha256(state),
-      codeChallenge: parsed.codeChallenge,
-      redirectUri: parsed.redirectUri,
-      expiresAt,
-      now,
-    });
-    return { authorizationUrl, callbackExpiresAt: expiresAt.toISOString() };
-  }
-
-  async completeFeishuAuthorization(
-    command: FeishuAuthorizationCallbackCommand,
-    context: RequestContext,
-  ): Promise<HumanAuthSession> {
-    const parsed = parseOrReject(() => FeishuAuthorizationCallbackCommandSchema.parse(command));
-    this.requireRedirect(parsed.redirectUri);
-    await this.requireRateLimit("oauth_callback", context, parsed.redirectUri);
-    const now = this.options.clock.now();
-    const attempt = await this.options.repository.consumeOAuthAttempt({
-      stateHash: sha256(parsed.state),
-      redirectUri: parsed.redirectUri,
-      now,
-    });
-    if (!attempt) return this.rejectOAuth("state_or_expiry");
-    const derivedChallenge = createHash("sha256")
-      .update(parsed.codeVerifier, "ascii")
-      .digest("base64url");
-    if (!safeEqual(derivedChallenge, attempt.codeChallenge)) return this.rejectOAuth("pkce");
-
-    let providerIdentity: Awaited<ReturnType<FeishuOAuthPort["exchangeCode"]>>;
-    try {
-      providerIdentity = await this.options.feishuProvider.exchangeCode({
-        code: parsed.code,
-        codeVerifier: parsed.codeVerifier,
-        redirectUri: parsed.redirectUri,
-      });
-    } catch (error) {
-      if (error instanceof FeishuOAuthError && error.kind === "callback_rejected") {
-        return this.rejectOAuth("provider_rejected");
-      }
-      await this.recordRejectedEvent(
-        "oauth_dependency_unavailable",
-        "dependency_unavailable",
-        "code_exchange",
-      );
-      throw new HumanAuthError("dependency_unavailable");
-    }
-    if (
-      !providerIdentity.subject ||
-      !providerIdentity.displayName ||
-      !this.options.policy.approvedFeishuTenantIds.includes(providerIdentity.tenantId)
-    ) {
-      return this.rejectOAuth("provider_identity");
-    }
-    const userId = await this.options.repository.findOrCreateFeishuIdentity({
-      userId: randomUUID(),
-      identityId: randomUUID(),
-      subject: providerIdentity.subject,
-      tenantId: providerIdentity.tenantId,
-      displayName: providerIdentity.displayName,
-      now,
-    });
-    if (!userId) return this.rejectOAuth("provider_identity");
-    return this.issueSession(userId, now);
   }
 
   async requestEmailVerification(
@@ -385,12 +270,6 @@ export class HumanAuthService {
     });
   }
 
-  private requireRedirect(redirectUri: string): void {
-    if (!this.options.policy.allowedRedirectUris.includes(redirectUri)) {
-      throw new HumanAuthError("oauth_callback_invalid");
-    }
-  }
-
   private requireApprovedEmail(email: string): void {
     const domain = email.slice(email.lastIndexOf("@") + 1);
     if (!this.options.policy.approvedEmailDomains.includes(domain)) {
@@ -428,11 +307,6 @@ export class HumanAuthService {
       });
       throw new HumanAuthError("rate_limited");
     }
-  }
-
-  private async rejectOAuth(reason: string): Promise<never> {
-    await this.recordRejectedEvent("oauth_callback_rejected", "oauth_callback_invalid", reason);
-    throw new HumanAuthError("oauth_callback_invalid");
   }
 
   private async rejectAuthentication(reason: string): Promise<never> {

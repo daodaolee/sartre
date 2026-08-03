@@ -55,7 +55,7 @@ function writeMs1Change(root: string, scenarios = ""): void {
     scenarios ||
       [
         "positive-human",
-        "rejection oauth-rejection",
+        "rejection email-rejection",
         "concurrency refresh-concurrency refresh_token_reused",
         "dependency-failure dependency_unavailable",
         "Secret secret_boundary_violation",

@@ -5,8 +5,6 @@ import {
   CompanyEmailRegistrationCommandSchema,
   EmailVerificationRequestSchema,
   ERROR_CODES,
-  FeishuAuthorizationCallbackCommandSchema,
-  FeishuAuthorizationStartCommandSchema,
   HumanAccessTokenClaimsSchema,
   HumanAuthSessionSchema,
   HumanRefreshCommandSchema,
@@ -16,48 +14,9 @@ import {
 const USER_ID = "10000000-0000-4000-8000-000000000001";
 const SESSION_ID = "20000000-0000-4000-8000-000000000001";
 const TOKEN_ID = "30000000-0000-4000-8000-000000000001";
-const PKCE_CHALLENGE = "a".repeat(43);
-const PKCE_VERIFIER = "b".repeat(43);
 const REFRESH_TOKEN = "c".repeat(43);
 
 describe("MS1 Human authentication contracts", () => {
-  it("accepts strict Feishu PKCE commands without caller-reported actor identity", () => {
-    const start = {
-      redirectUri: "https://hub.internal.example/auth/feishu/callback",
-      codeChallenge: PKCE_CHALLENGE,
-    };
-    expect(FeishuAuthorizationStartCommandSchema.parse(start)).toEqual(start);
-    expect(() =>
-      FeishuAuthorizationStartCommandSchema.parse({ ...start, userId: USER_ID }),
-    ).toThrow();
-    expect(() =>
-      FeishuAuthorizationStartCommandSchema.parse({
-        ...start,
-        redirectUri: "sartre://auth/feishu/callback",
-      }),
-    ).toThrow();
-
-    const callback = {
-      state: "d".repeat(43),
-      code: "single-use-provider-code",
-      codeVerifier: PKCE_VERIFIER,
-      redirectUri: start.redirectUri,
-    };
-    expect(FeishuAuthorizationCallbackCommandSchema.parse(callback)).toEqual(callback);
-    expect(() =>
-      FeishuAuthorizationCallbackCommandSchema.parse({ ...callback, actorId: USER_ID }),
-    ).toThrow();
-    expect(() =>
-      FeishuAuthorizationCallbackCommandSchema.parse({ ...callback, codeVerifier: "short" }),
-    ).toThrow();
-    expect(() =>
-      FeishuAuthorizationCallbackCommandSchema.parse({
-        ...callback,
-        redirectUri: "sartre://auth/feishu/callback",
-      }),
-    ).toThrow();
-  });
-
   it("normalizes company email and rejects unbounded credentials or spoof fields", () => {
     expect(EmailVerificationRequestSchema.parse({ email: " Human@Example.COM " })).toEqual({
       email: "human@example.com",
@@ -138,11 +97,7 @@ describe("MS1 Human authentication contracts", () => {
       }),
     ).toThrow();
     expect(ERROR_CODES).toEqual(
-      expect.arrayContaining([
-        "authentication_failed",
-        "oauth_callback_invalid",
-        "refresh_token_reused",
-      ]),
+      expect.arrayContaining(["authentication_failed", "refresh_token_reused"]),
     );
   });
 });

@@ -15,11 +15,8 @@ import {
   CompanyEmailLoginCommandSchema,
   CompanyEmailRegistrationCommandSchema,
   EmailVerificationRequestSchema,
-  FeishuAuthorizationCallbackCommandSchema,
-  FeishuAuthorizationStartCommandSchema,
   HumanRefreshCommandSchema,
   ProblemDetailsSchema,
-  type FeishuAuthorizationStartResult,
   type HumanAuthSession,
   type HumanSessionInventory,
   type ProblemDetails,
@@ -80,38 +77,6 @@ function networkKey(request: AuthHttpRequest): string {
 @Controller("v1/auth")
 export class HumanAuthController {
   constructor(@Inject(HumanAuthService) private readonly auth: HumanAuthService) {}
-
-  @Post("feishu/authorize")
-  @HttpCode(200)
-  async startFeishuAuthorization(
-    @Body() body: unknown,
-    @Req() request: AuthHttpRequest,
-    @Headers("x-request-id") requestId?: string,
-    @Headers("x-correlation-id") correlationId?: string,
-  ): Promise<FeishuAuthorizationStartResult> {
-    const ids = requestIds(requestId, correlationId);
-    const command = this.parse(FeishuAuthorizationStartCommandSchema, body, ids);
-    return this.run(
-      () => this.auth.startFeishuAuthorization(command, { networkKey: networkKey(request) }),
-      ids,
-    );
-  }
-
-  @Post("feishu/callback")
-  @HttpCode(200)
-  async completeFeishuAuthorization(
-    @Body() body: unknown,
-    @Req() request: AuthHttpRequest,
-    @Headers("x-request-id") requestId?: string,
-    @Headers("x-correlation-id") correlationId?: string,
-  ): Promise<HumanAuthSession> {
-    const ids = requestIds(requestId, correlationId);
-    const command = this.parse(FeishuAuthorizationCallbackCommandSchema, body, ids);
-    return this.run(
-      () => this.auth.completeFeishuAuthorization(command, { networkKey: networkKey(request) }),
-      ids,
-    );
-  }
 
   @Post("email/verifications")
   @HttpCode(202)

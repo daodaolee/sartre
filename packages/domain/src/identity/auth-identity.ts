@@ -1,37 +1,27 @@
 import { requireDomain } from "../errors.js";
 
-export type AuthProvider = "company_email" | "feishu";
+export type AuthProvider = "company_email";
 
 export type AuthIdentity = {
   readonly identityId: string;
   readonly userId: string;
   readonly provider: AuthProvider;
   readonly providerSubject: string;
-  readonly providerTenantId: string | null;
   readonly verifiedEmail: string | null;
   readonly version: number;
 };
 
 export type AuthIdentityPolicy = {
-  readonly approvedFeishuTenantIds: readonly string[];
   readonly approvedEmailDomains: readonly string[];
 };
 
-export type CreateAuthIdentityInput =
-  | {
-      readonly identityId: string;
-      readonly userId: string;
-      readonly kind: "feishu";
-      readonly subject: string;
-      readonly tenantId: string;
-    }
-  | {
-      readonly identityId: string;
-      readonly userId: string;
-      readonly kind: "company_email";
-      readonly email: string;
-      readonly emailVerified: boolean;
-    };
+export type CreateAuthIdentityInput = {
+  readonly identityId: string;
+  readonly userId: string;
+  readonly kind: "company_email";
+  readonly email: string;
+  readonly emailVerified: boolean;
+};
 
 function normalizeEmail(value: string): string {
   const normalized = value.trim().toLowerCase();
@@ -59,49 +49,21 @@ export function createAuthIdentity(
     "id_required",
   );
 
-  let candidate: AuthIdentity;
-  if (input.kind === "feishu") {
-    const subject = input.subject.trim();
-    const tenantId = input.tenantId.trim();
-    requireDomain(
-      subject.length > 0 && tenantId.length > 0,
-      "invariant_failed",
-      "provider_identity_required",
-    );
-    requireDomain(
-      policy.approvedFeishuTenantIds.includes(tenantId),
-      "forbidden",
-      "provider_tenant_not_approved",
-    );
-    candidate = {
-      identityId: input.identityId,
-      userId: input.userId,
-      provider: "feishu",
-      providerSubject: subject,
-      providerTenantId: tenantId,
-      verifiedEmail: null,
-      version: 0,
-    };
-  } else {
-    const email = normalizeEmail(input.email);
-    requireDomain(input.emailVerified, "forbidden", "email_not_verified");
-    requireDomain(
-      policy.approvedEmailDomains
-        .map((domain) => domain.toLowerCase())
-        .includes(emailDomain(email)),
-      "forbidden",
-      "email_domain_not_approved",
-    );
-    candidate = {
-      identityId: input.identityId,
-      userId: input.userId,
-      provider: "company_email",
-      providerSubject: email,
-      providerTenantId: null,
-      verifiedEmail: email,
-      version: 0,
-    };
-  }
+  const email = normalizeEmail(input.email);
+  requireDomain(input.emailVerified, "forbidden", "email_not_verified");
+  requireDomain(
+    policy.approvedEmailDomains.map((domain) => domain.toLowerCase()).includes(emailDomain(email)),
+    "forbidden",
+    "email_domain_not_approved",
+  );
+  const candidate: AuthIdentity = {
+    identityId: input.identityId,
+    userId: input.userId,
+    provider: "company_email",
+    providerSubject: email,
+    verifiedEmail: email,
+    version: 0,
+  };
 
   requireDomain(
     !existing.some(

@@ -36,46 +36,8 @@ function expectDomainError(action: () => unknown, code: DomainInvariantError["co
 
 describe("AuthIdentity invariants", () => {
   const policy = {
-    approvedFeishuTenantIds: ["tenant-approved"],
     approvedEmailDomains: ["example.com"],
   } as const;
-
-  it("accepts an approved Feishu tenant and rejects a different company tenant", () => {
-    const identity = createAuthIdentity(
-      {
-        identityId: "identity-1",
-        userId: OWNER_1,
-        kind: "feishu",
-        subject: "ou_123",
-        tenantId: "tenant-approved",
-      },
-      policy,
-      [],
-    );
-
-    expect(identity).toMatchObject({
-      provider: "feishu",
-      providerSubject: "ou_123",
-      providerTenantId: "tenant-approved",
-      verifiedEmail: null,
-      version: 0,
-    });
-    expectDomainError(
-      () =>
-        createAuthIdentity(
-          {
-            identityId: "identity-2",
-            userId: OWNER_1,
-            kind: "feishu",
-            subject: "ou_456",
-            tenantId: "tenant-other",
-          },
-          policy,
-          [],
-        ),
-      "forbidden",
-    );
-  });
 
   it("requires verified ownership of an approved company email", () => {
     const identity = createAuthIdentity(

@@ -3,7 +3,6 @@ import type { ErrorCode } from "@sartre/contracts";
 const STATUS_BY_CODE = {
   authentication_failed: 401,
   dependency_unavailable: 503,
-  oauth_callback_invalid: 401,
   rate_limited: 429,
   refresh_token_reused: 401,
   unauthenticated: 401,

@@ -6,12 +6,6 @@ const OpaqueSecretSchema = z
   .max(128)
   .regex(/^[A-Za-z0-9_-]+$/u);
 
-const PkceVerifierSchema = z
-  .string()
-  .min(43)
-  .max(128)
-  .regex(/^[A-Za-z0-9._~-]+$/u);
-
 const NormalizedEmailSchema = z.string().trim().toLowerCase().pipe(z.email().max(320));
 
 const PasswordSchema = z
@@ -23,34 +17,6 @@ const PasswordSchema = z
       context.addIssue({ code: "custom", message: "password_too_large" });
     }
   });
-
-const RedirectUriSchema = z.url().refine((value) => {
-  const protocol = new URL(value).protocol;
-  return protocol === "https:";
-}, "redirect_uri_scheme_invalid");
-
-export const FeishuAuthorizationStartCommandSchema = z
-  .object({
-    redirectUri: RedirectUriSchema,
-    codeChallenge: OpaqueSecretSchema,
-  })
-  .strict();
-
-export const FeishuAuthorizationStartResultSchema = z
-  .object({
-    authorizationUrl: z.url(),
-    callbackExpiresAt: z.iso.datetime({ offset: true }),
-  })
-  .strict();
-
-export const FeishuAuthorizationCallbackCommandSchema = z
-  .object({
-    state: OpaqueSecretSchema,
-    code: z.string().min(1).max(2_048),
-    codeVerifier: PkceVerifierSchema,
-    redirectUri: RedirectUriSchema,
-  })
-  .strict();
 
 export const EmailVerificationRequestSchema = z.object({ email: NormalizedEmailSchema }).strict();
 
@@ -117,11 +83,6 @@ export const HumanSessionInventorySchema = z
   .object({ sessions: z.array(HumanSessionInventoryItemSchema).max(100) })
   .strict();
 
-export type FeishuAuthorizationStartCommand = z.infer<typeof FeishuAuthorizationStartCommandSchema>;
-export type FeishuAuthorizationStartResult = z.infer<typeof FeishuAuthorizationStartResultSchema>;
-export type FeishuAuthorizationCallbackCommand = z.infer<
-  typeof FeishuAuthorizationCallbackCommandSchema
->;
 export type EmailVerificationRequest = z.infer<typeof EmailVerificationRequestSchema>;
 export type CompanyEmailRegistrationCommand = z.infer<typeof CompanyEmailRegistrationCommandSchema>;
 export type CompanyEmailLoginCommand = z.infer<typeof CompanyEmailLoginCommandSchema>;

@@ -38,6 +38,13 @@ export const APPROVED_MIGRATION_DEFINITIONS = [
       MODULE_URL,
     ),
   },
+  {
+    version: "000005_ms1_defer_feishu_login",
+    path: new URL(
+      "../../apps/hub-api/src/infrastructure/database/migrations/000005_ms1_defer_feishu_login.sql",
+      MODULE_URL,
+    ),
+  },
 ] as const;
 export const BASELINE_MIGRATION_PATH = APPROVED_MIGRATION_DEFINITIONS[0].path;
 const MIGRATION_ADVISORY_LOCK_KEY = "73812170006";

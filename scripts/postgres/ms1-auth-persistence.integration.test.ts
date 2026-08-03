@@ -45,6 +45,7 @@ describe.sequential("MS1 Human auth persistence", () => {
         "000002_ms0_diagnostics",
         "000003_ms1_identity_workspace",
         "000004_ms1_human_authentication",
+        "000005_ms1_defer_feishu_login",
       ]);
 
       await migratedDatabase("ms1_auth_catalog", async (connectionString) => {
@@ -56,8 +57,7 @@ describe.sequential("MS1 Human auth persistence", () => {
               AND table_name IN (
                 'auth_rate_limits',
                 'company_email_credentials',
-                'email_verification_challenges',
-                'oauth_login_attempts'
+                'email_verification_challenges'
               )
             ORDER BY table_name`,
         );
@@ -65,28 +65,88 @@ describe.sequential("MS1 Human auth persistence", () => {
           "auth_rate_limits",
           "company_email_credentials",
           "email_verification_challenges",
-          "oauth_login_attempts",
         ]);
-        const oauthColumns = await execute(
+        const identityColumns = await execute(
           connectionString,
           `SELECT column_name
              FROM information_schema.columns
             WHERE table_schema = 'public'
-              AND table_name = 'oauth_login_attempts'
+              AND table_name = 'auth_identities'
             ORDER BY ordinal_position`,
         );
-        expect(oauthColumns.rows.map((row) => row.column_name)).toEqual([
-          "oauth_attempt_id",
-          "state_hash",
-          "code_challenge",
-          "redirect_uri",
-          "status",
-          "expires_at",
-          "consumed_at",
+        expect(identityColumns.rows.map((row) => row.column_name)).toEqual([
+          "auth_identity_id",
+          "user_id",
+          "provider",
+          "provider_subject",
+          "verified_email",
+          "version",
           "created_at",
           "updated_at",
         ]);
+        const removedOAuthTable = await execute(
+          connectionString,
+          "SELECT to_regclass('public.oauth_login_attempts') AS table_name",
+        );
+        expect(removedOAuthTable.rows).toEqual([{ table_name: null }]);
       });
+    },
+    INTEGRATION_TIMEOUT_MS,
+  );
+
+  test(
+    "refuses the Feishu-login cleanup when a legacy identity exists and preserves prior state",
+    async () => {
+      const artifacts = await loadApprovedMigrations();
+      await withDisposableDatabase(
+        requireDatabaseUrl(),
+        "ms1_auth_cleanup_guard",
+        async (database) => {
+          await migrateApprovedMigrations({
+            connectionString: database.connectionString,
+            artifacts: artifacts.slice(0, -1),
+          });
+          await execute(
+            database.connectionString,
+            `INSERT INTO users (user_id, display_name, status, version, created_at, updated_at)
+           VALUES ($1, 'Legacy Human', 'active', 0, now(), now())`,
+            [USER_ID],
+          );
+          await execute(
+            database.connectionString,
+            `INSERT INTO auth_identities (
+             auth_identity_id, user_id, provider, provider_subject, provider_tenant_id,
+             verified_email, version, created_at, updated_at
+           ) VALUES ($1, $2, 'feishu', 'legacy-subject', 'legacy-tenant', NULL, 0, now(), now())`,
+            [IDENTITY_ID, USER_ID],
+          );
+
+          await expect(
+            migrateApprovedMigrations({
+              connectionString: database.connectionString,
+              artifacts,
+            }),
+          ).rejects.toMatchObject({ code: "23514" });
+          expect(
+            await execute(
+              database.connectionString,
+              "SELECT provider, provider_subject FROM auth_identities",
+            ),
+          ).toMatchObject({ rows: [{ provider: "feishu", provider_subject: "legacy-subject" }] });
+          expect(
+            await execute(
+              database.connectionString,
+              "SELECT to_regclass('public.oauth_login_attempts') AS table_name",
+            ),
+          ).toMatchObject({ rows: [{ table_name: "oauth_login_attempts" }] });
+          expect(
+            await execute(
+              database.connectionString,
+              "SELECT version FROM schema_migrations WHERE version = '000005_ms1_defer_feishu_login'",
+            ),
+          ).toMatchObject({ rows: [] });
+        },
+      );
     },
     INTEGRATION_TIMEOUT_MS,
   );
@@ -104,9 +164,9 @@ describe.sequential("MS1 Human auth persistence", () => {
         await execute(
           connectionString,
           `INSERT INTO auth_identities (
-             auth_identity_id, user_id, provider, provider_subject, provider_tenant_id,
+             auth_identity_id, user_id, provider, provider_subject,
              verified_email, version, created_at, updated_at
-           ) VALUES ($1, $2, 'company_email', 'human@example.com', NULL,
+           ) VALUES ($1, $2, 'company_email', 'human@example.com',
                      'human@example.com', 0, now(), now())`,
           [IDENTITY_ID, USER_ID],
         );
@@ -137,29 +197,6 @@ describe.sequential("MS1 Human auth persistence", () => {
   );
 
   test(
-    "rejects non-HTTPS OAuth callback persistence",
-    async () => {
-      await migratedDatabase("ms1_auth_https_callback", async (connectionString) => {
-        await expect(
-          execute(
-            connectionString,
-            `INSERT INTO oauth_login_attempts (
-               oauth_attempt_id, state_hash, code_challenge, redirect_uri,
-               status, expires_at, consumed_at, created_at, updated_at
-             ) VALUES (
-               '40000000-0000-4000-8000-000000000001', $1, $2,
-               'sartre://auth/feishu/callback', 'pending', now() + interval '5 minutes',
-               NULL, now(), now()
-             )`,
-            ["a".repeat(64), "b".repeat(43)],
-          ),
-        ).rejects.toMatchObject({ code: "23514" });
-      });
-    },
-    INTEGRATION_TIMEOUT_MS,
-  );
-
-  test(
     "gives sartre_app only the required auth-table privileges",
     async () => {
       await migratedDatabase("ms1_auth_grants", async (connectionString) => {
@@ -171,8 +208,7 @@ describe.sequential("MS1 Human auth persistence", () => {
               AND table_name IN (
                 'auth_rate_limits',
                 'company_email_credentials',
-                'email_verification_challenges',
-                'oauth_login_attempts'
+                'email_verification_challenges'
               )
             ORDER BY table_name, privilege_type`,
         );
@@ -186,9 +222,6 @@ describe.sequential("MS1 Human auth persistence", () => {
           { table_name: "email_verification_challenges", privilege_type: "INSERT" },
           { table_name: "email_verification_challenges", privilege_type: "SELECT" },
           { table_name: "email_verification_challenges", privilege_type: "UPDATE" },
-          { table_name: "oauth_login_attempts", privilege_type: "INSERT" },
-          { table_name: "oauth_login_attempts", privilege_type: "SELECT" },
-          { table_name: "oauth_login_attempts", privilege_type: "UPDATE" },
         ]);
       });
     },
@@ -201,13 +234,18 @@ describe.sequential("MS1 Human auth persistence", () => {
       "plaintext-shaped credential column",
       "ALTER TABLE company_email_credentials RENAME COLUMN password_hash TO password",
     ],
+    ["restored OAuth attempt table", "CREATE TABLE oauth_login_attempts (id uuid PRIMARY KEY)"],
     [
-      "obsolete provider nonce column",
-      "ALTER TABLE oauth_login_attempts ADD COLUMN nonce_hash character(64)",
+      "restored provider tenant column",
+      "ALTER TABLE auth_identities ADD COLUMN provider_tenant_id text",
     ],
     [
-      "missing HTTPS callback constraint",
-      "ALTER TABLE oauth_login_attempts DROP CONSTRAINT oauth_login_attempts_https_redirect_check",
+      "missing company-email-only provider constraint",
+      "ALTER TABLE auth_identities DROP CONSTRAINT auth_identities_provider_check",
+    ],
+    [
+      "missing company-email-only rate-limit constraint",
+      "ALTER TABLE auth_rate_limits DROP CONSTRAINT auth_rate_limits_scope_check",
     ],
     ["non-unique refresh token lookup", "DROP INDEX refresh_tokens_token_hash_key"],
   ])(

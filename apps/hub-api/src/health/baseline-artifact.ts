@@ -29,6 +29,13 @@ const APPROVED_MIGRATIONS = [
       import.meta.url,
     ),
   },
+  {
+    version: "000005_ms1_defer_feishu_login",
+    path: new URL(
+      "../infrastructure/database/migrations/000005_ms1_defer_feishu_login.sql",
+      import.meta.url,
+    ),
+  },
 ] as const;
 
 let cachedArtifacts: Promise<readonly ExpectedMigrationArtifact[]> | undefined;

@@ -3,12 +3,10 @@
 ## Actor and authentication boundary
 
 Human, Endpoint, and System actors use distinct authenticated contexts, token audiences, route
-allowlists, and audits. Request payload ids are never identity. Feishu uses system-browser
-Authorization Code with PKCE S256, single-use state, exact redirect, single-use code, and approved
-`tenant_key`; it exposes no nonce-bearing ID token and Sartre does not claim provider nonce
-validation. Company email requires verification and Argon2id. Short-lived Human access tokens carry
-only User/Session identity; opaque Refresh Tokens rotate, are hash-only at rest, and revoke the
-whole family on replay.
+allowlists, and audits. Request payload ids are never identity. Human authentication uses a verified
+company email and Argon2id; Feishu login is not an MS1 provider or staging dependency. Short-lived
+Human access tokens carry only User/Session identity; opaque Refresh Tokens rotate, are hash-only at
+rest, and revoke the whole family on replay.
 
 Endpoint pairing produces a separate 256-bit credential returned once to Main/Runtime and stored
 only by the Runtime secure-store adapter. Hub stores only a hash. Endpoint tokens cannot invoke
@@ -29,7 +27,7 @@ and AuditEvent commit together.
 
 ## Domain and persistence boundary
 
-Global identity tables own User/AuthIdentity/UserSession, OAuth configuration, Endpoint identity and
+Global identity tables own User/AuthIdentity/UserSession, authentication configuration, Endpoint identity and
 credential hashes, platform operator grants, and pre-tenant system audit/security/diagnostics.
 Tenant tables own Workspace, Membership, Invitation, WorkspacePolicy, Project, ProjectAccess,
 EndpointWorkspaceGrant, and the MS1 event/audit facts. Invitation acceptance, session refresh, and
@@ -37,12 +35,12 @@ credential rotation use database uniqueness/CAS so concurrent success cannot occ
 
 ## Electron and Runtime boundary
 
-Electron Main owns system-browser login, Human session refresh, OS secure storage, SDK, and Runtime
+Electron Main owns Human login/session refresh, OS secure storage, SDK, and Runtime
 pairing orchestration. Preload exposes named Zod methods only. Renderer stores presentation state,
 not authoritative membership/access. Runtime uses its own secure credential store and separate
 Endpoint token; it never inherits Human authority.
 
-The Pencil source is extended before UI GREEN for auth callback, invitation, ProjectAccess, pairing,
+The Pencil source is extended before UI GREEN for email verification/login, invitation, ProjectAccess, pairing,
 revocation, offline, forbidden, and recovery states. Existing Workspace/Settings/member components
 are reused only where they satisfy current specs and accessibility requirements.
 
@@ -56,3 +54,6 @@ system audit. Workspace owner/admin is explicitly denied.
 Closeout binds exact PostgreSQL 17.6 migration/RLS evidence, real multi-tenant HTTP/Endpoint flows,
 packaged Electron tests, negative controls, subject commit, schema, environment, tool versions, and
 artifacts. SKIPPED/degraded/unreachable never becomes PASS.
+
+Requirement creation is outside MS1. Its later reviewed input starts from a Markdown PRD file; the
+Feishu document connector is deferred.

@@ -415,3 +415,72 @@
   run the exact-redirect Feishu staging flow, delivery/inbox test, TLS callback, rotation/revocation,
   redaction, full repository, and Secret gates; update this ledger; only then close Task 4 with
   `feat(ms1): add human authentication sessions` and proceed to Task 5.
+
+## 2026-08-03 - Product correction: Markdown PRD input and deferred Feishu connector
+
+- Authorization and product intent: the user clarified that Feishu was originally considered only
+  as a document source and instructed that it can be deferred; the current PRD input is a Markdown
+  file. This supersedes the previous assumption that Feishu was an MS1 Human authentication
+  provider. The correction does not authorize Requirement implementation in MS1: Markdown ingestion
+  belongs to the later Requirement milestone, and a future Feishu document connector requires its
+  own reviewed authorization, snapshot, provenance, refresh, and failure contract.
+- Authority repair: the frozen imported `HubApiSpec` remains byte-identical. The task-specific
+  `MS1IdentityAccessSpec` now supersedes its Feishu login sentence for MS1, requires verified
+  company-email authentication only, records the later Markdown PRD boundary, and removes Feishu
+  provider staging from the MS1 evidence matrix. The active plan and all four OpenSpec files were
+  aligned; historical evidence above remains append-only and is not rewritten into a false claim.
+- RED/nonPASS history retained:
+  - The new product-boundary constitution target first exited 1 with `3/4` failures: the task-specific
+    spec still required Feishu login, the active plan/OpenSpec still registered provider staging and
+    OAuth rejection, and the runtime/schema cleanup migration was absent. The frozen-import hash
+    assertion was the only passing case.
+  - Removing the OAuth scenario made the existing OpenSpec CLI exit 1 with
+    `missing_required_content`; the validator and its fixture now require `email-rejection` instead.
+  - The first affected PostgreSQL target passed auth persistence/flow but failed the RLS catalog
+    assertion because it hard-coded four migration versions. After registering `000005`, the next
+    run failed because the same catalog fixture still required the removed OAuth-attempt table.
+    Both expectations now describe the approved five-migration, company-email-only schema.
+  - The first full format check exited 1 on two mechanical differences introduced by the new
+    contract and cleanup-guard test. Targeted Biome formatting changed only those two test files;
+    the repeated repository format check passed.
+- Implementation boundary:
+  - Removed Feishu authorization/callback contracts and controllers, OAuth port/error types,
+    provider service/repository methods, fixed-endpoint HTTP adapter and tests, Feishu auth policy,
+    provider rate-limit scopes, and the Feishu AuthIdentity domain/contract variant. Human auth now
+    contains verified company email, Argon2id, session/refresh rotation and replay revocation,
+    logout, inventory, rate limits, security events, and controlled HTTP errors only.
+  - Because `000004_ms1_human_authentication` was already committed and pushed, it was not rewritten.
+    Additive `000005_ms1_defer_feishu_login` fails closed when any legacy Feishu AuthIdentity exists;
+    otherwise it removes only the transient OAuth-attempt table, removes provider tenant state,
+    makes verified email non-null, and narrows identity/rate-limit constraints to the approved email
+    scopes. A real PostgreSQL negative control proves the guard rolls back, preserves the identity
+    and OAuth table, and does not write the `000005` schema row.
+  - Readiness now requires the exact company-email AuthIdentity columns/constraints, exact email-only
+    rate-limit constraint, absence of the OAuth table and provider-tenant column, existing hash-only
+    credential columns, and the unique refresh-token lookup. Restoring any removed surface fails
+    `schema_incompatible`.
+- Fresh evidence:
+  - Product-boundary constitution, domain/contracts, controller, and related unit targets passed
+    `5 files | 32/32 tests`; schema/OpenSpec compatibility and affected unit targets passed
+    `8 files | 60/60 tests` before the real database matrix.
+  - On exact PostgreSQL 17.6, migration registry, full MS1 RLS, auth persistence, and auth flow passed
+    `4 files | 30/30 tests`, including the cleanup rollback guard and restored-surface readiness
+    controls. Migration `000005` SHA-256 is
+    `d3243f78c2e45ec71f91635c22a897fa6206b4630668dd435f3bb95d98dc6e57`.
+  - A fresh root run with PostgreSQL 17.6 positive plus the temporary exact-digest PostgreSQL 17.10
+    read-only rejection control exited 0: scripts passed `29 files | 601/601`; all eight production
+    workspaces passed `136/136`; total `737/737`. The temporary 17.10 container was removed by the
+    exact-name cleanup path.
+  - `format:check`, `lint`, `typecheck`, `build`, `architecture:check`, `secret:check`, `spec:verify`,
+    `openspec:validate`, and `git diff --check` exited 0. All 26 imported specification hashes remain
+    unchanged.
+- Evidence/status: Feishu is no longer an MS1 blocker or evidence row. Task 4 is still `IN_PROGRESS`,
+  not PASS: a real verification-mail transport/inbox, production signing-key source/rotation,
+  internal Hub TLS boundary, least-privilege application database login/composition, and a registered
+  production Human-auth route remain absent. Per the stop conditions, Task 5 must not start until
+  those remaining Task 4 dependencies and evidence are resolved or explicitly respecified.
+- Resume procedure: define the Secret-safe mail/signing/TLS/application-database composition
+  contract without inventing operations values; execute real delivery/inbox, key rotation, TLS,
+  controller/API, database-role, redaction, and full repository gates; then close Task 4 and proceed
+  to Workspace commands. Do not implement Markdown Requirement ingestion or a Feishu connector in
+  MS1.

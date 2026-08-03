@@ -4,7 +4,6 @@ export const ERROR_CODES = [
   "validation_failed",
   "unauthenticated",
   "authentication_failed",
-  "oauth_callback_invalid",
   "refresh_token_reused",
   "forbidden",
   "resource_not_found",

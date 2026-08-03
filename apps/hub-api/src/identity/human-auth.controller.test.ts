@@ -14,8 +14,6 @@ const REQUEST = { ip: "127.0.0.1", headers: { "x-sartre-client-fingerprint": "de
 
 function fakeService(overrides: Partial<Record<keyof HumanAuthService, unknown>> = {}) {
   return {
-    startFeishuAuthorization: vi.fn(),
-    completeFeishuAuthorization: vi.fn(),
     requestEmailVerification: vi.fn(),
     registerCompanyEmail: vi.fn(),
     loginCompanyEmail: vi.fn(),
@@ -90,20 +88,17 @@ describe("Human auth HTTP boundary", () => {
     }
   });
 
-  it("redacts unknown provider/database failures as dependency_unavailable", async () => {
+  it("redacts unknown mail/database failures as dependency_unavailable", async () => {
     const controller = new HumanAuthController(
       fakeService({
-        startFeishuAuthorization: vi.fn(async () => {
-          throw new Error("raw provider response and database relation details");
+        requestEmailVerification: vi.fn(async () => {
+          throw new Error("raw mail response and database relation details");
         }),
       }),
     );
     const error = await caught(() =>
-      controller.startFeishuAuthorization(
-        {
-          redirectUri: "https://hub.internal.example/auth/feishu/callback",
-          codeChallenge: "a".repeat(43),
-        },
+      controller.requestEmailVerification(
+        { email: "human@example.com" },
         REQUEST,
         REQUEST_ID,
         CORRELATION_ID,
@@ -115,7 +110,7 @@ describe("Human auth HTTP boundary", () => {
       code: "dependency_unavailable",
       message: "Dependency unavailable",
     });
-    expect(JSON.stringify(error)).not.toMatch(/raw provider|database relation/iu);
+    expect(JSON.stringify(error)).not.toMatch(/raw mail|database relation/iu);
   });
 
   it("rejects unsupported authorization schemes for session inventory", async () => {

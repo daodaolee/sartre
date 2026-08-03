@@ -4,13 +4,7 @@ export type AuthRateLimitScope =
   | "email_login"
   | "email_register"
   | "email_verification"
-  | "oauth_callback"
-  | "oauth_start"
   | "refresh";
-
-export type ConsumedOAuthAttempt = {
-  readonly codeChallenge: string;
-};
 
 export type EmailCredential = {
   readonly identityId: string;
@@ -32,10 +26,6 @@ export type SessionInventoryRow = {
   readonly absoluteExpiresAt: string;
 };
 
-type OAuthAttemptRow = {
-  code_challenge: string;
-};
-
 type EmailChallengeRow = {
   challenge_id: string;
   code_hash: string;
@@ -46,11 +36,6 @@ type EmailCredentialRow = {
   auth_identity_id: string;
   user_id: string;
   password_hash: string;
-};
-
-type UserIdentityRow = {
-  user_id: string;
-  provider_tenant_id: string | null;
 };
 
 type RefreshRow = {
@@ -164,49 +149,6 @@ export class PostgresHumanAuthRepository {
     });
   }
 
-  async createOAuthAttempt(input: {
-    attemptId: string;
-    stateHash: string;
-    codeChallenge: string;
-    redirectUri: string;
-    expiresAt: Date;
-    now: Date;
-  }): Promise<void> {
-    await this.sql.begin(async (transaction) => {
-      await transaction.unsafe("SET LOCAL ROLE sartre_app");
-      await transaction`
-        INSERT INTO oauth_login_attempts (
-          oauth_attempt_id, state_hash, code_challenge, redirect_uri,
-          status, expires_at, consumed_at, created_at, updated_at
-        ) VALUES (
-          ${input.attemptId}, ${input.stateHash}, ${input.codeChallenge}, ${input.redirectUri},
-          'pending', ${input.expiresAt}, NULL, ${input.now}, ${input.now}
-        )
-      `;
-    });
-  }
-
-  async consumeOAuthAttempt(input: {
-    stateHash: string;
-    redirectUri: string;
-    now: Date;
-  }): Promise<ConsumedOAuthAttempt | null> {
-    return this.sql.begin(async (transaction) => {
-      await transaction.unsafe("SET LOCAL ROLE sartre_app");
-      const rows = await transaction<OAuthAttemptRow[]>`
-        UPDATE oauth_login_attempts
-           SET status = 'consumed', consumed_at = ${input.now}, updated_at = ${input.now}
-         WHERE state_hash = ${input.stateHash}
-           AND redirect_uri = ${input.redirectUri}
-           AND status = 'pending'
-           AND expires_at > ${input.now}
-        RETURNING code_challenge
-      `;
-      const row = rows[0];
-      return row ? { codeChallenge: row.code_challenge } : null;
-    });
-  }
-
   async createEmailVerificationChallenge(input: {
     challengeId: string;
     email: string;
@@ -297,10 +239,10 @@ export class PostgresHumanAuthRepository {
         `;
         await transaction`
           INSERT INTO auth_identities (
-            auth_identity_id, user_id, provider, provider_subject, provider_tenant_id,
+            auth_identity_id, user_id, provider, provider_subject,
             verified_email, version, created_at, updated_at
           ) VALUES (
-            ${input.identityId}, ${input.userId}, 'company_email', ${input.email}, NULL,
+            ${input.identityId}, ${input.userId}, 'company_email', ${input.email},
             ${input.email}, 0, ${input.now}, ${input.now}
           )
         `;
@@ -340,43 +282,6 @@ export class PostgresHumanAuthRepository {
           passwordHash: row.password_hash,
         }
       : null;
-  }
-
-  async findOrCreateFeishuIdentity(input: {
-    userId: string;
-    identityId: string;
-    subject: string;
-    tenantId: string;
-    displayName: string;
-    now: Date;
-  }): Promise<string | null> {
-    return this.sql.begin(async (transaction) => {
-      await transaction.unsafe("SET LOCAL ROLE sartre_app");
-      await transaction`SELECT pg_advisory_xact_lock(hashtext(${`feishu:${input.subject}`}))`;
-      const existing = await transaction<UserIdentityRow[]>`
-        SELECT user_id, provider_tenant_id
-          FROM auth_identities
-         WHERE provider = 'feishu'
-           AND provider_subject = ${input.subject}
-         LIMIT 1
-      `;
-      const row = existing[0];
-      if (row) return row.provider_tenant_id === input.tenantId ? row.user_id : null;
-      await transaction`
-        INSERT INTO users (user_id, display_name, status, version, created_at, updated_at)
-        VALUES (${input.userId}, ${input.displayName}, 'active', 0, ${input.now}, ${input.now})
-      `;
-      await transaction`
-        INSERT INTO auth_identities (
-          auth_identity_id, user_id, provider, provider_subject, provider_tenant_id,
-          verified_email, version, created_at, updated_at
-        ) VALUES (
-          ${input.identityId}, ${input.userId}, 'feishu', ${input.subject}, ${input.tenantId},
-          NULL, 0, ${input.now}, ${input.now}
-        )
-      `;
-      return input.userId;
-    });
   }
 
   async createSession(input: {

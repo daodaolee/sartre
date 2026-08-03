@@ -64,7 +64,7 @@ type Ms1SensitiveColumnCatalogRow = {
   character_maximum_length: number | null;
 };
 
-type Ms1OAuthAttemptColumnCatalogRow = {
+type Ms1AuthIdentityColumnCatalogRow = {
   column_name: string;
   data_type: string;
   udt_name: string;
@@ -265,7 +265,6 @@ const MS1_AUTH_GLOBAL_TABLES = [
   "auth_rate_limits",
   "company_email_credentials",
   "email_verification_challenges",
-  "oauth_login_attempts",
 ] as const;
 
 const EXACT_MS1_AUTH_GLOBAL_CATALOG: readonly Ms1GlobalCatalogRow[] = MS1_AUTH_GLOBAL_TABLES.map(
@@ -294,63 +293,49 @@ const EXACT_MS1_AUTH_SENSITIVE_COLUMNS: readonly Ms1SensitiveColumnCatalogRow[] 
     is_nullable: "NO",
     character_maximum_length: 64,
   },
-  {
-    table_name: "oauth_login_attempts",
-    column_name: "state_hash",
-    data_type: "character",
-    is_nullable: "NO",
-    character_maximum_length: 64,
-  },
 ];
 
-const EXACT_MS1_OAUTH_ATTEMPT_COLUMNS: readonly Ms1OAuthAttemptColumnCatalogRow[] = [
+const EXACT_MS1_AUTH_IDENTITY_COLUMNS: readonly Ms1AuthIdentityColumnCatalogRow[] = [
   {
-    column_name: "oauth_attempt_id",
+    column_name: "auth_identity_id",
     data_type: "uuid",
     udt_name: "uuid",
     is_nullable: "NO",
     character_maximum_length: null,
   },
   {
-    column_name: "state_hash",
-    data_type: "character",
-    udt_name: "bpchar",
+    column_name: "user_id",
+    data_type: "uuid",
+    udt_name: "uuid",
     is_nullable: "NO",
-    character_maximum_length: 64,
+    character_maximum_length: null,
   },
   {
-    column_name: "code_challenge",
+    column_name: "provider",
     data_type: "text",
     udt_name: "text",
     is_nullable: "NO",
     character_maximum_length: null,
   },
   {
-    column_name: "redirect_uri",
+    column_name: "provider_subject",
     data_type: "text",
     udt_name: "text",
     is_nullable: "NO",
     character_maximum_length: null,
   },
   {
-    column_name: "status",
+    column_name: "verified_email",
     data_type: "text",
     udt_name: "text",
     is_nullable: "NO",
     character_maximum_length: null,
   },
   {
-    column_name: "expires_at",
-    data_type: "timestamp with time zone",
-    udt_name: "timestamptz",
+    column_name: "version",
+    data_type: "integer",
+    udt_name: "int4",
     is_nullable: "NO",
-    character_maximum_length: null,
-  },
-  {
-    column_name: "consumed_at",
-    data_type: "timestamp with time zone",
-    udt_name: "timestamptz",
-    is_nullable: "YES",
     character_maximum_length: null,
   },
   {
@@ -369,12 +354,23 @@ const EXACT_MS1_OAUTH_ATTEMPT_COLUMNS: readonly Ms1OAuthAttemptColumnCatalogRow[
   },
 ];
 
-const EXACT_MS1_OAUTH_ATTEMPT_CONSTRAINTS: readonly DiagnosticConstraintCatalogRow[] = [
+const EXACT_MS1_AUTH_BOUNDARY_CONSTRAINTS: readonly DiagnosticConstraintCatalogRow[] = [
   {
-    constraint_name: "oauth_login_attempts_https_redirect_check",
+    constraint_name: "auth_identities_provider_check",
+    constraint_type: "c",
+    constraint_definition: "CHECK (provider = 'company_email'::text)",
+  },
+  {
+    constraint_name: "auth_identities_provider_shape_check",
     constraint_type: "c",
     constraint_definition:
-      "CHECK (length(redirect_uri) >= 1 AND length(redirect_uri) <= 2048 AND redirect_uri ~~ 'https://%'::text)",
+      "CHECK (provider = 'company_email'::text AND verified_email = provider_subject)",
+  },
+  {
+    constraint_name: "auth_rate_limits_scope_check",
+    constraint_type: "c",
+    constraint_definition:
+      "CHECK (scope = ANY (ARRAY['email_login'::text, 'email_register'::text, 'email_verification'::text, 'refresh'::text]))",
   },
 ];
 
@@ -724,8 +720,7 @@ export async function assertDatabaseSchemaCompatible(options: {
           AND (table_name, column_name) IN (
             ('auth_rate_limits', 'key_hash'),
             ('company_email_credentials', 'password_hash'),
-            ('email_verification_challenges', 'code_hash'),
-            ('oauth_login_attempts', 'state_hash')
+            ('email_verification_challenges', 'code_hash')
           )
         ORDER BY table_name, column_name`,
     );
@@ -733,27 +728,36 @@ export async function assertDatabaseSchemaCompatible(options: {
       throw new SchemaIncompatibleError();
     }
 
-    const oauthAttemptColumns = await options.database.query(
+    const authIdentityColumns = await options.database.query(
       `SELECT column_name, data_type, udt_name, is_nullable, character_maximum_length
          FROM information_schema.columns
         WHERE table_schema = 'public'
-          AND table_name = 'oauth_login_attempts'
+          AND table_name = 'auth_identities'
         ORDER BY ordinal_position`,
     );
-    if (!isExactCatalog(oauthAttemptColumns.rows, EXACT_MS1_OAUTH_ATTEMPT_COLUMNS)) {
+    if (!isExactCatalog(authIdentityColumns.rows, EXACT_MS1_AUTH_IDENTITY_COLUMNS)) {
       throw new SchemaIncompatibleError();
     }
 
-    const oauthAttemptConstraints = await options.database.query(
+    const authBoundaryConstraints = await options.database.query(
       `SELECT constraint_row.conname AS constraint_name,
               constraint_row.contype AS constraint_type,
               pg_get_constraintdef(constraint_row.oid, true) AS constraint_definition
          FROM pg_catalog.pg_constraint AS constraint_row
-        WHERE constraint_row.conrelid = to_regclass('public.oauth_login_attempts')
-          AND constraint_row.conname = 'oauth_login_attempts_https_redirect_check'
+        WHERE (
+                constraint_row.conrelid = to_regclass('public.auth_identities')
+            AND constraint_row.conname IN (
+                  'auth_identities_provider_check',
+                  'auth_identities_provider_shape_check'
+                )
+              )
+           OR (
+                constraint_row.conrelid = to_regclass('public.auth_rate_limits')
+            AND constraint_row.conname = 'auth_rate_limits_scope_check'
+              )
         ORDER BY constraint_row.conname`,
     );
-    if (!isExactCatalog(oauthAttemptConstraints.rows, EXACT_MS1_OAUTH_ATTEMPT_CONSTRAINTS)) {
+    if (!isExactCatalog(authBoundaryConstraints.rows, EXACT_MS1_AUTH_BOUNDARY_CONSTRAINTS)) {
       throw new SchemaIncompatibleError();
     }
 
