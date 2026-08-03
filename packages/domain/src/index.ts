@@ -7,9 +7,10 @@ export {
   revokeRefreshTokenFamily,
   rotateRefreshTokenFamily,
 } from "./identity/refresh-token-family.js";
-export { acceptInvitation, createInvitation } from "./workspace/invitation.js";
+export { acceptInvitation, createInvitation, revokeInvitation } from "./workspace/invitation.js";
 export { changeMembershipRole, removeMembership } from "./workspace/membership.js";
-export { resolveProjectPermission } from "./workspace/project-access.js";
+export { grantProjectAccess, resolveProjectPermission } from "./workspace/project-access.js";
+export { createProject } from "./workspace/project.js";
 export { createWorkspace } from "./workspace/workspace.js";
 
 export type { DomainErrorCode } from "./errors.js";
@@ -35,7 +36,9 @@ export type {
   WorkspaceRole,
 } from "./workspace/membership.js";
 export type {
+  ProjectAccess,
   ProjectAccessRole,
   ProjectPermission,
 } from "./workspace/project-access.js";
+export type { Project } from "./workspace/project.js";
 export type { Workspace } from "./workspace/workspace.js";

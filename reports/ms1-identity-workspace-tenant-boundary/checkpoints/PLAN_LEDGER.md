@@ -562,3 +562,87 @@
   Workspace repository boundary. Preserve exact invited local-account identity, idempotency,
   expectedVersion, last-owner, role-cap, explicit ProjectAccess, transaction/event/audit, IDOR, and
   RLS controls. Separately satisfy the remaining Task 4 production composition before MS1 closeout.
+
+## 2026-08-03 - Task 5 Workspace membership and explicit ProjectAccess checkpoint
+
+- Scope and product boundary:
+  - Completed the approved mail-free Task 5 application slice: invitation create/revoke/accept,
+    active-member list/role/remove, Project create/list, and explicit viewer/editor ProjectAccess
+    grant/change. Invitation acceptance still requires an operator-provisioned local account and the
+    exact normalized login identifier; no public registration, delivery, notification, or mail
+    dependency was introduced.
+  - The older plan's invitation `resend` wording is superseded for this checkpoint by
+    `MS1IdentityAccessSpec`: there is no delivery channel to resend through. No endpoint reports a
+    synthetic send success. A future delivery specification must add transport and inbox evidence.
+  - Requirement/Markdown ingestion, Endpoint pairing, Electron UI, and later milestones remain
+    outside this change.
+- RED/nonPASS history retained:
+  - New contracts first failed `2/10` focused cases because invitation-create, member-remove,
+    Project-create, and ProjectAccess schemas did not exist. New domain tests then failed to load the
+    absent Project invariant module. Both targets passed after the strict contracts and pure domain
+    functions were added.
+  - The first root `pnpm test` run failed only the PostgreSQL 17.10 read-only rejection control
+    because nothing was listening on the default loopback port `55432`. The exact approved 17.10
+    digest was started under the bounded name `sartre-postgres-17-10-negative`; the repeated full
+    test passed, and the temporary container was stopped and removed.
+  - The first post-build `pnpm secret:artifacts` invocation exited 1 with
+    `artifact_path_required`. The corrected command named all eight explicit build roots and exited
+    0. The failed invocation is not counted as evidence PASS.
+- Contracts/domain/application implementation:
+  - Strict Zod commands reject body-reported actor identity, route/body target mismatches, mail
+    delivery fields, and unversioned mutation. `expectedVersion: null` means a first ProjectAccess
+    grant; a number means exact compare-and-swap for an existing grant. Problem Details now includes
+    the stable non-disclosing `project_access_denied` code.
+  - The centralized `WorkspaceAuthorizationService` fails closed for missing/inactive Membership,
+    restricts governance to owner/admin, preserves exact invitation-recipient identity, and never
+    derives Project access from Workspace role. Authorization runs before receipt resolution, so a
+    removed or demoted actor cannot bypass current authority by replaying an old idempotency key.
+  - Every mutation runs under transaction-local Workspace/actor context and binds authorization,
+    request-hash idempotency, expectedVersion/domain invariants, state, monotonically serialized
+    DomainEvent cursor, OutboxEvent, AuditEvent, and receipt in one transaction. Project creation
+    writes an explicit creator `editor` row; an owner/admin without such a row sees no Project
+    metadata.
+  - Additive migration `000008_ms1_workspace_access_commands` records immutable inviter provenance
+    and expands the receipt command vocabulary. It fails closed before schema change if any legacy
+    invitation lacks an inviter backfill. Its SHA-256 is
+    `c67cd81a299198068e95036c57d8c44c90a1fb38a237d8d45a4d2efbfca064b5`.
+- Real behavior evidence:
+  - Exact PostgreSQL 17.6 focused migration/RLS/auth/HTTP matrix passed `4 files | 28/28 tests`.
+    The migration negative control proves a pre-`000008` invitation makes the upgrade fail with
+    SQLSTATE `55000`, preserves the row, leaves `inviter_user_id` absent, and does not register the
+    migration.
+  - The real Nest/HTTP/PostgreSQL flow provisions three local accounts, logs them in, and creates two
+    Workspaces. It proves concurrent invitation acceptance and ProjectAccess grant retries create
+    one result, changed request hashes return `idempotency_conflict`, stale access versions return
+    `version_conflict`, the wrong invitation recipient returns non-disclosing 403, a member cannot
+    govern, and the last owner cannot be demoted.
+  - The same flow proves invitation `accepted`, `revoked`, and database-expired outcomes; Workspace
+    admin has an empty Project list before explicit access; cross-Workspace Project lookup is 404;
+    explicit viewer access reveals exactly one Project; removing the member revokes effective access.
+    The final database has exactly 2 Workspaces, 3 Membership rows, 3 Invitations, 1 Project, 2
+    explicit ProjectAccess rows, and 12 matching DomainEvents, OutboxEvents, AuditEvents, and command
+    receipts.
+  - Full root tests with exact PostgreSQL 17.6 positive and exact-digest PostgreSQL 17.10 negative
+    controls exited 0: scripts `30 files | 605/605`; all eight production workspaces `150/150`;
+    aggregate `755/755`.
+- Final gates:
+  - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm build`,
+    `pnpm architecture:check`, `pnpm secret:check`, `pnpm spec:verify`,
+    `pnpm openspec:validate`, `pnpm sast`, `pnpm dependency:check`,
+    `pnpm license:check`, `pnpm docker-context:check`, `pnpm contract:compatibility`,
+    `pnpm toolchain:check`, and `git diff --check` exited 0. The dependency audit reports no known
+    vulnerabilities, and all 26 imported-spec hashes remain unchanged.
+  - `pnpm run secret:artifacts -- apps/electron-app/dist apps/hub-api/dist apps/hub-worker/dist
+    apps/local-runtime/dist packages/contracts/dist packages/domain/dist packages/runtime-core/dist
+    packages/sdk/dist` exited 0 across all eight explicit build roots.
+- Evidence/status and risk:
+  - Task 5 is `DONE / REAL_TEST / PASS` for the approved operator-provisioned, mail-free Hub API and
+    PostgreSQL scope. This is an implementation checkpoint, not MS1 closeout and not evidence for
+    production TLS, signing-key rotation, least-privilege database composition, Endpoint, Electron,
+    or cross-Workspace ops diagnostics.
+  - Task 4 remains `CHANGED / IN_PROGRESS` for those production-composition gaps. Task 6 is still
+    `PENDING`. No MS1 verified tag or MS2 capability is claimed.
+- Resume procedure: commit and fast-forward push this Task 5 checkpoint, then begin Task 6 from
+  Endpoint pairing RED. Before final MS1 closeout, separately close the retained Task 4 production
+  key/TLS/database-role evidence and complete Tasks 6-9 without weakening this tenant transaction,
+  explicit ProjectAccess, or Secret boundary.

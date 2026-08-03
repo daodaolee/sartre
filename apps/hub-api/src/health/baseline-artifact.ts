@@ -50,6 +50,13 @@ const APPROVED_MIGRATIONS = [
       import.meta.url,
     ),
   },
+  {
+    version: "000008_ms1_workspace_access_commands",
+    path: new URL(
+      "../infrastructure/database/migrations/000008_ms1_workspace_access_commands.sql",
+      import.meta.url,
+    ),
+  },
 ] as const;
 
 let cachedArtifacts: Promise<readonly ExpectedMigrationArtifact[]> | undefined;

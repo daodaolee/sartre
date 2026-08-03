@@ -146,3 +146,27 @@ export function acceptInvitation(
     })),
   };
 }
+
+export function revokeInvitation(
+  invitation: WorkspaceInvitation,
+  input: {
+    readonly actorType: "endpoint" | "human" | "system";
+    readonly revokerRole: WorkspaceRole;
+    readonly expectedVersion: number;
+  },
+): WorkspaceInvitation {
+  requireDomain(input.actorType === "human", "forbidden", "human_actor_required");
+  requireDomain(input.revokerRole !== "member", "forbidden", "revoker_role_forbidden");
+  requireDomain(
+    ROLE_RANK[invitation.workspaceRole] <= ROLE_RANK[input.revokerRole],
+    "forbidden",
+    "invitation_role_cap_exceeded",
+  );
+  requireDomain(
+    invitation.version === input.expectedVersion,
+    "version_conflict",
+    "version_conflict",
+  );
+  requireDomain(invitation.status === "pending", "state_conflict", "invitation_not_pending");
+  return { ...invitation, status: "revoked", version: invitation.version + 1 };
+}

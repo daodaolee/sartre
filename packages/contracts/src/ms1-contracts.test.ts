@@ -4,12 +4,21 @@ import {
   AuthIdentityRegistrationSchema,
   HumanActorSchema,
   InvitationAcceptCommandSchema,
+  InvitationCreateCommandSchema,
+  InvitationRevokeCommandSchema,
+  InvitationSummarySchema,
+  MembershipRemoveCommandSchema,
   MembershipRoleChangeCommandSchema,
+  MembershipSummarySchema,
   NonDisclosingAuthorizationProblemSchema,
   ProblemDetailsSchema,
+  ProjectAccessGrantCommandSchema,
   ProjectAccessRoleSchema,
-  WorkspaceRoleSchema,
+  ProjectAccessSummarySchema,
+  ProjectCreateCommandSchema,
+  ProjectSummarySchema,
   WorkspaceCreateCommandSchema,
+  WorkspaceRoleSchema,
   WorkspaceSummarySchema,
 } from "./index.js";
 
@@ -161,6 +170,101 @@ describe("MS1 identity and workspace contracts", () => {
       MembershipRoleChangeCommandSchema.parse({ ...change, actorId: USER_ID }),
     ).toThrow();
   });
+
+  it("defines a mail-free invitation and explicit membership lifecycle", () => {
+    const invitationId = "80000000-0000-4000-8000-000000000003";
+    const invitation = {
+      invitationId,
+      invitedEmail: "  MEMBER@EXAMPLE.COM  ",
+      role: "member",
+      expiresAt: "2026-08-10T10:00:00.000Z",
+      idempotencyKey: "90000000-0000-4000-8000-000000000003",
+    };
+    expect(InvitationCreateCommandSchema.parse(invitation)).toEqual({
+      ...invitation,
+      invitedEmail: "member@example.com",
+    });
+    expect(() =>
+      InvitationCreateCommandSchema.parse({ ...invitation, invitedUserId: USER_ID }),
+    ).toThrow();
+    expect(() =>
+      InvitationCreateCommandSchema.parse({ ...invitation, deliveryChannel: "email" }),
+    ).toThrow();
+    const revoke = {
+      invitationId,
+      expectedVersion: 0,
+      idempotencyKey: "90000000-0000-4000-8000-000000000007",
+    };
+    expect(InvitationRevokeCommandSchema.parse(revoke)).toEqual(revoke);
+    expect(() => InvitationRevokeCommandSchema.parse({ ...revoke, notify: true })).toThrow();
+    expect(
+      InvitationSummarySchema.parse({
+        workspaceId: WORKSPACE_ID,
+        invitationId,
+        invitedEmail: "member@example.com",
+        role: "member",
+        status: "pending",
+        expiresAt: invitation.expiresAt,
+        version: 0,
+      }),
+    ).toMatchObject({ invitationId, status: "pending" });
+
+    const remove = {
+      membershipId: "80000000-0000-4000-8000-000000000004",
+      expectedVersion: 1,
+      idempotencyKey: "90000000-0000-4000-8000-000000000004",
+    };
+    expect(MembershipRemoveCommandSchema.parse(remove)).toEqual(remove);
+    expect(() => MembershipRemoveCommandSchema.parse({ ...remove, userId: USER_ID })).toThrow();
+    expect(
+      MembershipSummarySchema.parse({
+        membershipId: remove.membershipId,
+        userId: USER_ID,
+        displayName: "Member",
+        role: "member",
+        status: "active",
+        version: 1,
+      }),
+    ).toMatchObject({ userId: USER_ID, status: "active" });
+  });
+
+  it("requires Projects and ProjectAccess to be explicit and versioned", () => {
+    const projectId = "80000000-0000-4000-8000-000000000005";
+    const project = {
+      projectId,
+      name: "  Repair SaaS  ",
+      idempotencyKey: "90000000-0000-4000-8000-000000000005",
+    };
+    expect(ProjectCreateCommandSchema.parse(project)).toEqual({ ...project, name: "Repair SaaS" });
+    expect(() => ProjectCreateCommandSchema.parse({ ...project, ownerUserId: USER_ID })).toThrow();
+    expect(
+      ProjectSummarySchema.parse({
+        projectId,
+        name: "Repair SaaS",
+        status: "active",
+        accessRole: "editor",
+        version: 0,
+      }),
+    ).toMatchObject({ projectId, accessRole: "editor" });
+
+    const grant = {
+      projectId,
+      userId: USER_ID,
+      role: "viewer",
+      expectedVersion: null,
+      idempotencyKey: "90000000-0000-4000-8000-000000000006",
+    };
+    expect(ProjectAccessGrantCommandSchema.parse(grant)).toEqual(grant);
+    expect(() => ProjectAccessGrantCommandSchema.parse({ ...grant, actorId: USER_ID })).toThrow();
+    expect(
+      ProjectAccessSummarySchema.parse({
+        projectId,
+        userId: USER_ID,
+        role: "viewer",
+        version: 0,
+      }),
+    ).toEqual({ projectId, userId: USER_ID, role: "viewer", version: 0 });
+  });
 });
 
 describe("MS1 Problem Details", () => {
@@ -194,6 +298,7 @@ describe("MS1 Problem Details", () => {
   it("gives forbidden and not-found responses the same non-disclosing message", () => {
     for (const problem of [
       { ...common, status: 403, code: "forbidden", message: "Access denied" },
+      { ...common, status: 403, code: "project_access_denied", message: "Access denied" },
       { ...common, status: 404, code: "resource_not_found", message: "Access denied" },
     ] as const) {
       expect(NonDisclosingAuthorizationProblemSchema.parse(problem).message).toBe("Access denied");

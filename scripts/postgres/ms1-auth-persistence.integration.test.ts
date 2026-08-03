@@ -48,6 +48,7 @@ describe.sequential("MS1 Human auth persistence", () => {
         "000005_ms1_defer_feishu_login",
         "000006_ms1_defer_email_delivery",
         "000007_ms1_workspace_commands",
+        "000008_ms1_workspace_access_commands",
       ]);
 
       await migratedDatabase("ms1_auth_catalog", async (connectionString) => {

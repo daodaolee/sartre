@@ -6,6 +6,7 @@ export const ERROR_CODES = [
   "authentication_failed",
   "refresh_token_reused",
   "forbidden",
+  "project_access_denied",
   "resource_not_found",
   "version_conflict",
   "state_conflict",

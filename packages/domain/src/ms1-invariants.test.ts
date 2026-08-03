@@ -6,13 +6,14 @@ import {
   revokeRefreshTokenFamily,
   rotateRefreshTokenFamily,
 } from "./identity/refresh-token-family.js";
-import { acceptInvitation, createInvitation } from "./workspace/invitation.js";
+import { acceptInvitation, createInvitation, revokeInvitation } from "./workspace/invitation.js";
 import {
   changeMembershipRole,
   removeMembership,
   type WorkspaceMembership,
 } from "./workspace/membership.js";
-import { resolveProjectPermission } from "./workspace/project-access.js";
+import { createProject } from "./workspace/project.js";
+import { grantProjectAccess, resolveProjectPermission } from "./workspace/project-access.js";
 
 const WORKSPACE_ID = "10000000-0000-4000-8000-000000000001";
 const PROJECT_ID = "20000000-0000-4000-8000-000000000001";
@@ -318,6 +319,33 @@ describe("Invitation invariants", () => {
     });
     expect("membership" in result).toBe(false);
   });
+
+  it("allows a role-capped Human manager to revoke only a pending invitation", () => {
+    const revoked = revokeInvitation(pendingInvitation(), {
+      actorType: "human",
+      revokerRole: "owner",
+      expectedVersion: 0,
+    });
+    expect(revoked).toMatchObject({ status: "revoked", version: 1 });
+    expectDomainError(
+      () =>
+        revokeInvitation(revoked, {
+          actorType: "human",
+          revokerRole: "owner",
+          expectedVersion: 1,
+        }),
+      "state_conflict",
+    );
+    expectDomainError(
+      () =>
+        revokeInvitation(pendingInvitation({ workspaceRole: "owner" }), {
+          actorType: "human",
+          revokerRole: "admin",
+          expectedVersion: 0,
+        }),
+      "forbidden",
+    );
+  });
 });
 
 describe("Membership and ProjectAccess invariants", () => {
@@ -339,6 +367,9 @@ describe("Membership and ProjectAccess invariants", () => {
       version: 4,
     },
   ];
+  const ownerMembership = memberships[0];
+  const memberMembership = memberships[1];
+  if (!ownerMembership || !memberMembership) throw new Error("membership_fixture_missing");
 
   it("cannot remove or demote the last active owner", () => {
     expectDomainError(
@@ -422,6 +453,89 @@ describe("Membership and ProjectAccess invariants", () => {
     );
     expect(resolveProjectPermission({ workspaceRole: "member", explicitAccess: "editor" })).toEqual(
       { canRead: true, canWrite: true },
+    );
+  });
+
+  it("creates a Project only for a Human manager and explicitly grants the creator editor", () => {
+    expect(
+      createProject({
+        workspaceId: WORKSPACE_ID,
+        projectId: PROJECT_ID,
+        name: "Repair SaaS",
+        actor: { actorType: "human", userId: OWNER_1 },
+        actorMembership: ownerMembership,
+      }),
+    ).toEqual({
+      project: {
+        workspaceId: WORKSPACE_ID,
+        projectId: PROJECT_ID,
+        name: "Repair SaaS",
+        status: "active",
+        version: 0,
+      },
+      creatorAccess: {
+        workspaceId: WORKSPACE_ID,
+        projectId: PROJECT_ID,
+        userId: OWNER_1,
+        role: "editor",
+        version: 0,
+      },
+    });
+    expectDomainError(
+      () =>
+        createProject({
+          workspaceId: WORKSPACE_ID,
+          projectId: PROJECT_ID,
+          name: "Repair SaaS",
+          actor: { actorType: "human", userId: MEMBER_ID },
+          actorMembership: memberMembership,
+        }),
+      "forbidden",
+    );
+  });
+
+  it("grants or changes explicit ProjectAccess with compare-and-swap", () => {
+    const created = grantProjectAccess({
+      workspaceId: WORKSPACE_ID,
+      projectId: PROJECT_ID,
+      actor: { actorType: "human", userId: OWNER_1 },
+      actorMembership: ownerMembership,
+      targetMembership: memberMembership,
+      role: "viewer",
+      existingAccess: null,
+      expectedVersion: null,
+    });
+    expect(created).toEqual({
+      workspaceId: WORKSPACE_ID,
+      projectId: PROJECT_ID,
+      userId: MEMBER_ID,
+      role: "viewer",
+      version: 0,
+    });
+    const changed = grantProjectAccess({
+      workspaceId: WORKSPACE_ID,
+      projectId: PROJECT_ID,
+      actor: { actorType: "human", userId: OWNER_1 },
+      actorMembership: ownerMembership,
+      targetMembership: memberMembership,
+      role: "editor",
+      existingAccess: created,
+      expectedVersion: 0,
+    });
+    expect(changed).toMatchObject({ role: "editor", version: 1 });
+    expectDomainError(
+      () =>
+        grantProjectAccess({
+          workspaceId: WORKSPACE_ID,
+          projectId: PROJECT_ID,
+          actor: { actorType: "human", userId: OWNER_1 },
+          actorMembership: ownerMembership,
+          targetMembership: memberMembership,
+          role: "viewer",
+          existingAccess: changed,
+          expectedVersion: 0,
+        }),
+      "version_conflict",
     );
   });
 });

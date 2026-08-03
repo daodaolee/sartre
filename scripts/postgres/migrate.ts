@@ -59,6 +59,13 @@ export const APPROVED_MIGRATION_DEFINITIONS = [
       MODULE_URL,
     ),
   },
+  {
+    version: "000008_ms1_workspace_access_commands",
+    path: new URL(
+      "../../apps/hub-api/src/infrastructure/database/migrations/000008_ms1_workspace_access_commands.sql",
+      MODULE_URL,
+    ),
+  },
 ] as const;
 export const BASELINE_MIGRATION_PATH = APPROVED_MIGRATION_DEFINITIONS[0].path;
 const MIGRATION_ADVISORY_LOCK_KEY = "73812170006";

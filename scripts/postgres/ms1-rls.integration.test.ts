@@ -197,6 +197,7 @@ describe.sequential("MS1 PostgreSQL 17.6 tenant boundary", () => {
           "000005_ms1_defer_feishu_login",
           "000006_ms1_defer_email_delivery",
           "000007_ms1_workspace_commands",
+          "000008_ms1_workspace_access_commands",
         ]);
         await migrateApprovedMigrations({ connectionString, artifacts });
 
@@ -285,6 +286,69 @@ describe.sequential("MS1 PostgreSQL 17.6 tenant boundary", () => {
             policy_count: "1",
           })),
         );
+      });
+    },
+    INTEGRATION_TIMEOUT_MS,
+  );
+
+  test(
+    "fails closed before adding inviter provenance when legacy invitation rows exist",
+    async () => {
+      await withDisposableDatabase("ms1_inviter_backfill_guard", async (connectionString) => {
+        const artifacts = await loadApprovedMigrations();
+        await migrateApprovedMigrations({
+          connectionString,
+          artifacts: artifacts.slice(0, 7),
+        });
+        await seedGlobalActors(connectionString);
+        await insertWorkspaceFixture(connectionString, WORKSPACE_A, USER_A, "Workspace A");
+        await withRoleTransaction({
+          connectionString,
+          role: APPLICATION_ROLE,
+          workspaceId: WORKSPACE_A,
+          actorId: USER_A,
+          operation: async (client) => {
+            await client.query(
+              `INSERT INTO invitations (
+                 workspace_id, invitation_id, invited_user_id, invited_email, role, status,
+                 expires_at, version, created_at, updated_at
+               ) VALUES (
+                 $1, $2, $3, 'user-b@example.com', 'member', 'pending',
+                 now() + interval '1 day', 0, now(), now()
+               )`,
+              [WORKSPACE_A, "78000000-0000-4000-8000-000000000001", USER_B],
+            );
+          },
+        });
+
+        await expect(
+          migrateApprovedMigrations({ connectionString, artifacts }),
+        ).rejects.toMatchObject({
+          code: "55000",
+          message: "existing_invitation_requires_inviter_backfill",
+        });
+        expect(
+          await queryDatabase<{ invitation_count: number }>(
+            connectionString,
+            "SELECT count(*)::int AS invitation_count FROM invitations",
+          ),
+        ).toEqual([{ invitation_count: 1 }]);
+        expect(
+          await queryDatabase<{ version: string }>(
+            connectionString,
+            "SELECT version FROM schema_migrations WHERE version = '000008_ms1_workspace_access_commands'",
+          ),
+        ).toEqual([]);
+        expect(
+          await queryDatabase<{ column_name: string }>(
+            connectionString,
+            `SELECT column_name
+               FROM information_schema.columns
+              WHERE table_schema = 'public'
+                AND table_name = 'invitations'
+                AND column_name = 'inviter_user_id'`,
+          ),
+        ).toEqual([]);
       });
     },
     INTEGRATION_TIMEOUT_MS,
@@ -427,11 +491,11 @@ describe.sequential("MS1 PostgreSQL 17.6 tenant boundary", () => {
           operation: async (client) => {
             await client.query(
               `INSERT INTO invitations
-                 (workspace_id, invitation_id, invited_email, role, status, expires_at, version,
-                  created_at, updated_at)
-               VALUES ($1, $2, 'member@example.com', 'member', 'pending', now() + interval '1 day',
-                       0, now(), now())`,
-              [WORKSPACE_A, "50000000-0000-4000-8000-000000000001"],
+                 (workspace_id, invitation_id, invited_email, inviter_user_id, role, status,
+                  expires_at, version, created_at, updated_at)
+               VALUES ($1, $2, 'member@example.com', $3, 'member', 'pending',
+                       now() + interval '1 day', 0, now(), now())`,
+              [WORKSPACE_A, "50000000-0000-4000-8000-000000000001", USER_A],
             );
             await client.query(
               `INSERT INTO workspace_policies
@@ -650,11 +714,11 @@ describe.sequential("MS1 PostgreSQL 17.6 tenant boundary", () => {
           operation: async (client) => {
             await client.query(
               `INSERT INTO invitations
-                 (workspace_id, invitation_id, invited_user_id, invited_email, role, status,
-                  expires_at, version, created_at, updated_at)
-               VALUES ($1, $2, $3, 'user-b@example.com', 'member', 'pending',
+                 (workspace_id, invitation_id, invited_user_id, invited_email, inviter_user_id,
+                  role, status, expires_at, version, created_at, updated_at)
+               VALUES ($1, $2, $3, 'user-b@example.com', $4, 'member', 'pending',
                        now() + interval '1 day', 0, now(), now())`,
-              [WORKSPACE_A, invitationId, USER_B],
+              [WORKSPACE_A, invitationId, USER_B, USER_A],
             );
           },
         });

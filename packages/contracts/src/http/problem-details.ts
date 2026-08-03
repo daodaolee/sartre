@@ -26,8 +26,15 @@ const ResourceNotFoundProblemSchema = ProblemDetailsBase.extend({
   message: z.literal("Access denied"),
 }).strict();
 
+const ProjectAccessDeniedProblemSchema = ProblemDetailsBase.extend({
+  status: z.literal(403),
+  code: z.literal("project_access_denied"),
+  message: z.literal("Access denied"),
+}).strict();
+
 export const NonDisclosingAuthorizationProblemSchema = z.union([
   ForbiddenProblemSchema,
+  ProjectAccessDeniedProblemSchema,
   ResourceNotFoundProblemSchema,
 ]);
 
